@@ -1,0 +1,19 @@
+.visible_plot {
+    visibility: visible;
+}
+.hidden_plot{
+    visibility: hidden;
+}
+#title{
+    text-align: center;
+}
+.overview{
+    width:100%;
+    /* ,"height": '400px'} */
+}
+.detail_graph{
+    width:100%;
+}
+.highlight_edge{
+    line-color:"red";
+}
