@@ -41,7 +41,7 @@ def overview_graph(dm):
         autoungrabify=True,
                 wheelSensitivity=0.5,
         # minZoom=1,
-        style={"width":"100%","height":"100%"},
+        style={"width":"100%","height":"100%","borderWidth":1,"borderColor":"black","borderStyle":"solid"},
         elements=
             # [{'data':{'id':s.id,"genes":s.Signature,"label":s.id,"Disease":s.Disease}} for s in signatures.itertuples()]+
             # [e.data for e in edges]
@@ -51,13 +51,19 @@ def overview_graph(dm):
 
 def get_elements(dm,**dm_kwargs):
     intersections,signatures_ids = dm.get_signatures_intersections(**dm_kwargs)
-    return [{'data':{"id":i["id"],"label":"\n".join(i["id"].split("_")),"Disease":i["Disease"]},"group":"nodes","classes":" ".join([i["Disease"]])} for i in signatures_ids]+[{"data":{"source":k[0],"target":k[1],"elems":v},"group":"edges","classes":""} for k,v in intersections.items()]
+    return [{'data':{"id":i["id"],"label":"\n".join(i["id"].split("_")),"Disease":i["Disease"],"Comparison":"_".join(i["Comparison"]),"Signature":i["Signature"]},"group":"nodes","classes":" ".join([i["Disease"],"highlight"])} for i in signatures_ids]+[{"data":{"source":k[0],"target":k[1],"elems":v},"group":"edges","classes":""} for k,v in intersections.items()]
 
 def get_default_stylesheet(dm,color_by_diseases=True):
     cm = dm.get_disease_cmap() if color_by_diseases else dm.get_stage_cmap()
     
     s= [
-        {"selector":"node","style":{"label":"data(label)","text-wrap":"wrap"}},
+        {"selector":"node","style":{"label":"data(label)","text-wrap":"wrap","background-opacity":0.25}},
+        {"selector":"node.highlight","style":{"background-opacity":1}},
+        {"selector":"node.half_highlight","style":{"background-opacity":0.5}},
+        {"selector":"edge","style":{"line-opacity":0.25}},
+        {"selector":"edge.highlight","style":{"line-opacity":1}},
+        {"selector":"edge.half_highlight","style":{"line-opacity":0.5}},
+
             ]
     for d in cm:
         color_str = f"rgba({','.join([str(i*255) for i in cm[d][:3]])},{cm[d][3]})"
@@ -67,7 +73,6 @@ def get_default_stylesheet(dm,color_by_diseases=True):
                 "background-color":color_str
             }
         })
-    print(s)
 
     return s
     

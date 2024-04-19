@@ -29,16 +29,19 @@ class DataManager(object):
     def get_stages(self):
         stages:list = self.signatures["Comparison"].list.flatten().unique().tolist()
         return stages
+    def get_comparisons(self):
+        stages:list = self.signatures["Comparison"].transform(lambda a:"_".join(a)).unique().tolist()
+        return stages
     def get_signatures_id(self):
         return self.signatures["id"].to_list()
-    
-    def get_signatures_intersections(self,disease_filter=[],stage_filter=[]):
+    def get_genes(self):
+        return self.exploded["Signature"].value_counts().to_dict()
+    def get_signatures_intersections(self,disease_filter=[],comparisons_filter=[]):
         exploded = self.exploded
         if(len(disease_filter)>0):
             exploded = exploded[exploded["Disease"].isin(disease_filter)]
-        if(len(stage_filter)>0):
-            # print(stage_filter,exploded["Comparison"],exploded["Comparison"].transform(lambda a: any([i in stage_filter for i in a])))
-            exploded = exploded[exploded["Comparison"].transform(lambda a: all([i in stage_filter for i in a]))]
+        if(len(comparisons_filter)>0):
+            exploded = exploded[exploded["Comparison"].isin(comparisons_filter)]
         
         # grouped_by_gene = exploded.groupby("Signature").agg(lambda a:a.to_list() if len(a) >1 else a)
         # grouped_by_gene["id"] = grouped_by_gene["id"].astype(pd.ArrowDtype(pa.list_(pa.string())))
@@ -59,18 +62,23 @@ class DataManager(object):
                         intersections[(genes[src],genes[tgt])].append(item.Signature)
                     else:
                         intersections[(genes[src],genes[tgt])]= [item.Signature]
-        return intersections,self.signatures.filter(["id","Disease"]).to_dict('records')
-    def get_genes_intersections(self,disease_filter=[],stage_filter=[],id_filter=[]):
+        return intersections,self.signatures.to_dict('records')
+    def get_genes_intersections(self,disease_filter=[],comparisons_filter=[],id_filter=[],gene_filter=[]):
         exploded = self.exploded
 
         if(len(disease_filter)>0):
-            exploded = exploded[exploded["Disease"].isin(disease_filter)]
-        if(len(stage_filter)>0):
-            exploded = exploded[exploded["Comparison"].transform(lambda a: any([i in stage_filter for i in a]))]
-        if(len(id_filter)>0):
-            genes = exploded[exploded["id"].isin(id_filter)]["Signature"].unique()
+            exploded = exploded.loc[exploded["Disease"].isin(disease_filter)]
+        if(len(comparisons_filter)>0):
+            exploded = exploded[exploded["Comparison"].isin(comparisons_filter)]
+        if 'None' in gene_filter:
+            gene_filter.remove('None')
+        if(len(id_filter)>0 or len(gene_filter)>0):
+            genes = []
+            if len(gene_filter)>0 :
+                genes = gene_filter
+            if(len(id_filter)>0):
+                genes = genes+ exploded[exploded["id"].isin(id_filter)]["Signature"].unique().tolist()
             id_filter = exploded[exploded["Signature"].isin(genes)]["id"].unique()
-            # print(id_filter)
             exploded = exploded[exploded["id"].isin(id_filter)]
 
         # grouped_by_gene = exploded.groupby("Signature").agg(lambda a:a.to_list() if len(a) >1 else a)
@@ -79,7 +87,6 @@ class DataManager(object):
         # grouped_by_gene = grouped_by_gene[nbsign>1]
 
         # exploded["id"] = exploded["id"].transform(lambda a:[a])
-            
         exploded = exploded.filter(["Signature","id"])
         grouped_by_id = exploded.groupby("id").agg(lambda a:a.values)
         grouped_by_id["Signature"] = grouped_by_id["Signature"].astype(pd.ArrowDtype(pa.list_(pa.string())))
@@ -100,12 +107,13 @@ class DataManager(object):
         grouped_by_id_nb["id"] = grouped_by_id_nb["id"].astype(pd.ArrowDtype(pa.list_(pa.string())))
         grouped_by_id_nb =grouped_by_id_nb.reset_index()
         # grouped_by_id["id"] = grouped_by_id["id"].list.len()
-        # print("a",grouped_by_id_nb,"b",grouped_by_id_nb.dtypes,"c",id_filter,sep="\n")
         return intersections,grouped_by_id_nb.rename(columns={"Signature":"gene","id":"id"})
     
     def get_activations(self,genes,diseases):
         genes  = [genes] if not isinstance(genes,list) else genes
-        activations = self.activation_data[self.activation_data["Disease"].isin(diseases)]
+        activations = self.activation_data
+        if len(diseases)>0:
+            activations = activations[self.activation_data["Disease"].isin(diseases)]
         activations = activations[genes+['Disease','Stage',"box_category"]]
         return activations
     
@@ -119,6 +127,15 @@ class DataManager(object):
         unique_stages = self.signatures["Comparison"].explode().unique()
         colormap = cm.get_cmap("tab10",len(unique_stages))
         return dict([(unique_stages[i],colormap(i)) for i in range(len(unique_stages))])
-
+    def get_comparison_cmap(self):
+        unique_comparisons = self.signatures["Comparison"].transform(lambda a:"_".join(a)).unique().tolist()
+        colormap = cm.get_cmap("tab10",len(unique_comparisons))
+        return dict([(unique_comparisons[i],colormap(i)) for i in range(len(unique_comparisons))])
+    def get_diseases_from_genes(self,genes):
+        exploded = self.exploded[self.exploded["Signature"].isin(genes)]
+        return exploded["Disease"].unique().tolist()
+    def get_comparisons_from_genes(self,genes):
+        exploded = self.exploded[self.exploded["Signature"].isin(genes)]
+        return exploded["Comparison"].transform(lambda a:"_".join(a)).unique().tolist()
 
 

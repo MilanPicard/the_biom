@@ -2,7 +2,7 @@ from dash import Dash, dcc, html, Input, Output,callback
 import dash_bootstrap_components as dbc
 
 
-def menu(diseases,stages,diseases_cmap,stages_cmap):
+def menu(diseases,comparisons,diseases_cmap,comparisons_cmap,genes):
     colors_str = dict([(d,f"rgba({','.join([str(i*255) for i in diseases_cmap[d][:3]])},{diseases_cmap[d][3]})") for d in diseases])
     disease_checklist = dcc.Checklist(
         [{"label":html.Div(d,style={
@@ -10,18 +10,21 @@ def menu(diseases,stages,diseases_cmap,stages_cmap):
             }),"value":d,
         #   
             } for d in diseases],
-        diseases,id="disease_filter",labelStyle={"display": "flex", "align-items": "center"})
-    stage_checklist = dcc.Checklist(stages,stages,id="stage_filter")
-    
-    return [html.H1("menu"),
+        [],id="disease_filter",labelStyle={"display": "flex", "alignItems": "center"})
+    comparisons_checklist = dcc.Checklist(comparisons,comparisons,id="comparisons_filter")
+    return [
+        html.Br(),
             dbc.Accordion([
                 dbc.AccordionItem([
-                    html.P("Diseases"),
                     disease_checklist
-                ],title="disease_filter"),
+                ],title="Diseases",),
                 dbc.AccordionItem([
-                    html.P("Stages"),
-                    stage_checklist
-                ],title="stage_filter"),
-            ]
-            )]
+                    comparisons_checklist
+                ],title="Comparisons"),
+                dbc.AccordionItem([
+                    dcc.Dropdown(options= [{"label":"None","value":"None"}]+[{"label":f"{i} : {j} signatures","value":i} for i,j in genes.items()],value="None",id="genes_menu_select")
+                ],title="Genes")
+            ],        start_collapsed=False,
+        always_open=True,
+            ),
+            dcc.Store(id="selected_genes")]

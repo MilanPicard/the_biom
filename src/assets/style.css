@@ -1,7 +1,7 @@
-.visible_plot {
+.visible_plot > .js-plotly-plot {
     visibility: visible;
 }
-.hidden_plot{
+.hidden_plot > .js-plotly-plot {
     visibility: hidden;
 }
 #title{
