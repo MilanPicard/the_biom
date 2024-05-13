@@ -2,21 +2,33 @@ import numpy as np
 from tulip import tlp
 import networkx as nx
 import s_gd2
-def sgd2_layout(elements):
+def initialized_sgd2_layout(I,J,pos):
+    seed = s_gd2.s_gd2._check_random_seed()
+    X = s_gd2.s_gd2.random_init(I,J,seed,None)
+    for i in pos:
+        X[i][0]=pos[i][0]
+        X[i][1]=pos[i][1]
+    if(len(pos)!=len(X)):
+        s_gd2.s_gd2.cpp.layout_unweighted(X,I,J,30,0.01,seed)
+        X*=100*len(I)/len(X)
+    return X
+def sgd2_layout(elements,detail_pos_store,AR=1):
     G = tlp.newGraph()
-    min_w = np.min([i["data"]["weight"] for i in elements if "source" not in i["data"]])
-    max_w = np.max([i["data"]["weight"] for i in elements if "source" not in i["data"]])
     node_dict = dict()
     pos = {}
     vs = G.getSizeProperty("viewSize")
+    cur_pos=dict()
 
     for i in elements:
-        if "source" not in i["data"]:
+        if "source" not in i["data"] and ("is_metanode" not in i["data"] or not i["data"]["is_metanode"]):
             node_dict[i["data"]["id"]]=G.addNode()
             if 'x' in i["data"] and "y" in i["data"]:
                 pos[i["data"]["id"]]=(i["data"]["x"],i['data']["y"],0.0)
+            if i["data"]["id"] in detail_pos_store:
+                if "position" in detail_pos_store[i["data"]["id"]]:
+                    cur_pos[ node_dict[i["data"]["id"]]]=(detail_pos_store[i["data"]["id"]]["position"]["x"],detail_pos_store[i["data"]["id"]]["position"]["y"])
             vs[node_dict[i["data"]["id"]]] = (4*i["data"]["weight"],4*i["data"]["weight"],1)
-        else:
+        elif "source" in i["data"]:
             G.addEdge(node_dict[i["data"]["source"]],node_dict[i["data"]["target"]])
     vl = G.getLayoutProperty("viewLayout")
     ccs = tlp.ConnectedTest.computeConnectedComponents(G)
@@ -31,8 +43,10 @@ def sgd2_layout(elements):
             I.append(node_index[src])
             J.append(node_index[tgt])
         
-        X = s_gd2.layout(I,J)
-        X*=100*sG.numberOfEdges()/sG.numberOfNodes()
+        X = initialized_sgd2_layout(I,J,dict([(i,cur_pos[n]) for n,i in node_index.items() if n in cur_pos]))
+        
+        cur_ar = (X[:,0].max()-X[:,0].min())/(X[:,1].max()-X[:,1].min())
+        X[:,0]*=AR/cur_ar
         for n,i in node_index.items():
             vl[n]=(X[i,0],X[i,1],0.0)
     # if len(pos)==len(node_dict):

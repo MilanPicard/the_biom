@@ -87,6 +87,8 @@ class DataManager(object):
         # grouped_by_gene = grouped_by_gene[nbsign>1]
 
         # exploded["id"] = exploded["id"].transform(lambda a:[a])
+        if(exploded.empty):
+            return dict(),None
         exploded = exploded.filter(["Signature","id"])
         grouped_by_id = exploded.groupby("id").agg(lambda a:a.values)
         grouped_by_id["Signature"] = grouped_by_id["Signature"].astype(pd.ArrowDtype(pa.list_(pa.string())))

@@ -40,3 +40,25 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
 
     }
 });
+
+function ajust_flex(y){
+    var upGrow = parseFloat(document.getElementById("overview_col").parentNode.style["flex-grow"]);
+    var upBasis = parseFloat(document.getElementById("overview_col").parentNode.style["flex-basis"].split("%"))/100;
+    var downBasis = parseFloat(document.getElementById("second_row").style["flex-basis"].split("%"))/100;
+    var downGrow = parseFloat(document.getElementById("second_row").style["flex-grow"]);
+    var titleHeight = document.getElementById("title").clientHeight;
+    var totalHeight = document.querySelector("#full_row > .col-10").clientHeight;
+    var upHeight = document.getElementById("overview_col").parentNode.clientHeight;
+    var downHeight = document.getElementById("second_row").clientHeight;
+    var newUpHeight = y;
+    if(Math.abs(newUpHeight-upHeight)>10){
+        var newDownHeight = downHeight + upHeight-newUpHeight;
+        var freespace = totalHeight-upBasis*totalHeight-downBasis*totalHeight-titleHeight;
+        var fgUp = (newUpHeight/*-upBasis*totalHeight-downBasis*totalHeight-titleHeight*/)/(freespace);
+        var fgDown = (newDownHeight/*-upBasis*totalHeight-downBasis*totalHeight-titleHeight*/)/(freespace);
+        document.getElementById("second_row").style["flex-grow"] = fgDown
+        document.getElementById("overview_col").parentNode.style["flex-grow"]=fgUp;
+        return true;
+    }
+    return false;
+}

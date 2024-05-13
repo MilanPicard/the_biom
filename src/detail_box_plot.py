@@ -1,14 +1,14 @@
-from dash import dcc
+from dash_extensions.enrich import dcc
 import plotly.express as px
 import plotly.graph_objs as go
 import numpy as np
 import pandas as pd
-from dash import Dash, html, Input, Output, State, callback
+from dash_extensions.enrich import Dash, html, Input, Output, State, callback
 from collections import defaultdict
 
 def detail_box_plot():
     fig = go.Figure(data=[])
-    return dcc.Graph(figure=fig,id='activation_boxplot',config={"scrollZoom":False,"displayModeBar":False},style={"borderStyle":"solid","borderWidth":"1px"})
+    return dcc.Graph(figure=fig,id='activation_boxplot',config={"scrollZoom":False,"displayModeBar":False},style={"height":"96%","cursor":"auto"})
 
 def detail_heatmap():
     fig = go.Figure(data=[])

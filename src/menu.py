@@ -1,4 +1,4 @@
-from dash import Dash, dcc, html, Input, Output,callback
+from dash_extensions.enrich import Dash, dcc, html, Input, Output,callback
 import dash_bootstrap_components as dbc
 
 
@@ -22,9 +22,12 @@ def menu(diseases,comparisons,diseases_cmap,comparisons_cmap,genes):
                     comparisons_checklist
                 ],title="Comparisons"),
                 dbc.AccordionItem([
-                    dcc.Dropdown(options= [{"label":"None","value":"None"}]+[{"label":f"{i} : {j} signatures","value":i} for i,j in genes.items()],value="None",id="genes_menu_select")
+                    dcc.Dropdown(options= [{"label":"None","value":"None"}]+[{"label":f"{i} : {j} signatures","value":i} for i,j in genes.items()],value="None",id="genes_menu_select"),
+                    html.Div(id="selected_genes_div",style={"minHeight":"2em","borderStyle":"ridge"}),
+                    dcc.Store(id="selected_genes_store",data={"selected":[]})
                 ],title="Genes")
-            ],        start_collapsed=False,
-        always_open=True,
+            ],
+            start_collapsed=False,
+            always_open=True,
             ),
             dcc.Store(id="selected_genes")]

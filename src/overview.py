@@ -40,8 +40,10 @@ def overview_graph(dm):
         boxSelectionEnabled=True,
         autoungrabify=True,
                 wheelSensitivity=0.5,
+                maxZoom=4,
+                minZoom=0.25,
         # minZoom=1,
-        style={"width":"100%","height":"100%","borderWidth":1,"borderColor":"black","borderStyle":"solid"},
+        style={"width":"97%","height":"96%"},
         elements=
             # [{'data':{'id':s.id,"genes":s.Signature,"label":s.id,"Disease":s.Disease}} for s in signatures.itertuples()]+
             # [e.data for e in edges]

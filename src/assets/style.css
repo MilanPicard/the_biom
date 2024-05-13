@@ -17,3 +17,7 @@
 .highlight_edge{
     line-color:"red";
 }
+
+#overview_col > * ,#detail_col > * {
+    cursor:auto
+}
