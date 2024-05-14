@@ -21,3 +21,9 @@
 #overview_col > * ,#detail_col > * {
     cursor:auto
 }
+#main_container > div:nth-child(2){
+    flex-grow: 1;
+}
+#_pages_content{
+    height: 100%;
+}

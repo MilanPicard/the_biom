@@ -20,7 +20,7 @@ class DataManager(object):
             cls._instance.exploded = cls._instance.signatures.explode("Signature")
             cls._instance.activation_data = pd.read_csv(cls._instance.expression_file,delimiter=";",dtype=defaultdict(lambda :float,Disease=str,Stage=str))
             cls._instance.activation_data["box_category"] = cls._instance.activation_data["Disease"]+"_"+cls._instance.activation_data["Stage"]
-            with open(pathway_file,"rt") as f:
+            with open(pathway_file,"rt") as f:               
                 cls._instance.pathways= json.load(f)
         return cls._instance
 
@@ -120,7 +120,14 @@ class DataManager(object):
         return activations
     
     def get_pathways(self,genes):
-        return dict([(g,self.pathways[g]) for g in genes])
+        genes = set(genes)
+        filtered = [p for p in self.pathways if any([g in genes for g in p["genes"]])]
+        pathways = {g:[] for g in genes}
+        for p in self.pathways:
+            for g in p["genes"]:
+                if g in genes:
+                    pathways[g].append(p)
+        return pathways
     def get_disease_cmap(self):
         unique_diseases = self.signatures["Disease"].unique()
         colormap = cm.get_cmap("tab10",len(unique_diseases))

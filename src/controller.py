@@ -26,15 +26,21 @@ class Controller(object):
         Output('selected_genes_store','data'),
         Input("genes_menu_select","value"),
         Input({"type":"selected_gene_button","gene":ALL},"n_clicks"),
+        Input("detail_graph","selectedNodeData"),
         State('selected_genes_store','data'),prevent_initial_call=True
-
 )
-def add_remove_gene(menu_select,button,current):
+def add_remove_gene(menu_select,button,fromGraph,current):
     if ctx.triggered_id == "genes_menu_select":
         if menu_select is not None and menu_select != "None" and menu_select not in current["selected"]:
             current["selected"].append(menu_select)
     else:
-        current["selected"].remove(ctx.triggered_id["gene"])
+        if ctx.triggered_id == "detail_graph":
+            if fromGraph is not None:
+                for gene in fromGraph:
+                    if gene["id"] not in current["selected"]:
+                        current["selected"].append(gene["id"])
+        else:
+            current["selected"].remove(ctx.triggered_id["gene"])
     return current        
 @callback(
     Output("selected_genes_div","children"),
@@ -68,19 +74,19 @@ def update_genes_buttons(store_data,cur_children):
           Input("comparisons_filter","value"),
           Input("overview_graph","selectedNodeData"),
           Input("detail_graph","selectedNodeData"),
-          Input("genes_menu_select","value"),
+          Input("selected_genes_store","data"),
           State("overview_graph","elements")
           )
-def update_overview(diseases,comparisons_filter,selectedSign,selected_detail_gene,menu_selected_genes,cur_elems):
+def update_overview(diseases,comparisons_filter,selectedSign,selected_detail_gene,selected_genes_store,cur_elems):
     
     classes = ["highlight","half_highlight"]
     for i in cur_elems:
         if "Disease" in i["data"]:
             if i['data']["Disease"] in diseases and i['data']["Comparison"] in comparisons_filter:
                 c = "highlight"
-                if( menu_selected_genes is not None and menu_selected_genes != "None"):
+                if( selected_genes_store is not None):
                     c = "half_highlight"
-                    if menu_selected_genes in i["data"]["Signature"]:
+                    if len(set(selected_genes_store["selected"]).intersection(i["data"]["Signature"]))!=0:
                         c = "highlight"
                 i["classes"]=utils.switch_class(i["classes"],[c],classes)
             else:
@@ -168,12 +174,12 @@ def display_detail_graph(diseases,comparisons,signatures,menu_genes,fake_graph_s
     else:
         return existing_elements,[],{"name":"preset"},{}
 
-@callback(Output("data_gene_detail_selected","value"),
-          Input("detail_graph","selectedNodeData"))
-def data_gene_detail_selected(nodes):
-    if nodes is None:
-        return ""
-    return ";".join([i["id"] for i in nodes])
+# @callback(Output("data_gene_detail_selected","value"),
+#           Input("detail_graph","selectedNodeData"))
+# def data_gene_detail_selected(nodes):
+#     if nodes is None:
+#         return ""
+#     return ";".join([i["id"] for i in nodes])
 
 @callback(
     Output("activation_boxplot","figure"),
@@ -181,19 +187,16 @@ def data_gene_detail_selected(nodes):
     Output("overview_graph","stylesheet"),
     Input("data_menu_selected","value"),
     Input("data_overview_selected","value"),
-    Input("data_gene_detail_selected","value"),
     # State("overview_graph","selectedNodeData" ),
     Input("selected_genes_store","data"),
         State("overview_graph","elements"),
         State("overview_graph","stylesheet"),
-        prevent_initial_call=True
+        prevent_initial_call=False
 )
-def update_box_plot(menu_selected_diseases,overview_selected,detail_selected,menu_selected,overview_elements,overview_stylesheets):
+def update_box_plot(menu_selected_diseases,overview_selected,menu_selected,overview_elements,overview_stylesheets):
     items = []
-    if(detail_selected is not None and len(detail_selected)>=1):
-        items = detail_selected.split(";")
-    elif menu_selected is not None and len(menu_selected["selected"])!=0:
-        items = menu_selected["selected"]
+    if menu_selected is not None and len(menu_selected["selected"])!=0:
+        items += menu_selected["selected"]
     stylesheets =overview_stylesheets if overview_stylesheets is not None else ov.get_default_stylesheet(Controller._instance.dm)
     stylesheets = [s for s in stylesheets if not(s["selector"].startswith("edge#"))]
     if(len(items)>0):
@@ -218,20 +221,21 @@ def update_box_plot(menu_selected_diseases,overview_selected,detail_selected,men
                     # classes.remove("highlight_edge")
                     # i["classes"] = " ".join(classes)
         if(len(items)==1):
-            box = px.box(selected_patient_and_genes,x="box_category",y=items[0])
+            box = px.box(selected_patient_and_genes,x="box_category",y=items[0],color_discrete_sequence=detail_graph.get_color_scheme(items),labels={"box_category":""})
             if(box.layout.margin.t is not None and box.layout.margin.t>20):
                 box.layout.margin.t=20
             return box,"visible_plot",stylesheets
 
         else:
             dfs = []
+            color_scheme=detail_graph.get_color_scheme(items)
             for i in range(len(items)):
                 df = selected_patient_and_genes.filter(("box_category",items[i]))
                 df = df.rename({items[i]:"expression"},axis=1)
                 df["gene"] = items[i]
                 dfs.append(df)
             df = pd.concat(dfs)
-            box = px.box(df,x="box_category",y="expression",color="gene")
+            box = px.box(df,x="box_category",y="expression",color="gene",color_discrete_sequence=color_scheme,labels={"box_category":""})
             if(box.layout.margin.t is not None and box.layout.margin.t>20):
                 box.layout.margin.t=20
             return box ,"visible_plot",stylesheets
@@ -517,3 +521,21 @@ return dash_clientside.no_update;
     
     prevent_initial_call=True
             )
+
+@callback(
+    Output("about_link","style"),
+    Output("main_link","style"),
+    Input(dash.dash._ID_LOCATION,"pathname"),
+    State("about_link","style"),
+    State("main_link","style"),
+    prevent_initial_call=True
+)
+def update_link_style(pathname,about,main):
+    match pathname:
+        case "/":
+            about["display"]="inline"
+            main["display"]="none"
+        case "/about":
+            main["display"]="inline"
+            about["display"]="none"
+    return about,main

@@ -13,7 +13,6 @@ def menu(diseases,comparisons,diseases_cmap,comparisons_cmap,genes):
         [],id="disease_filter",labelStyle={"display": "flex", "alignItems": "center"})
     comparisons_checklist = dcc.Checklist(comparisons,comparisons,id="comparisons_filter")
     return [
-        html.Br(),
             dbc.Accordion([
                 dbc.AccordionItem([
                     disease_checklist

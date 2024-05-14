@@ -6,7 +6,7 @@ import nx_layout
 import tlp_layout
 from controller import Controller
 from scipy.spatial import ConvexHull
-
+import plotly.express as px
 class Edge:
     def __init__(self,source_id,target_id):
         self.source_id = source_id
@@ -86,14 +86,15 @@ def add_path_ways(existing_elements,stylesheet_detail,updated_elements):
     pathways_nodes = dict()
     pathways_stylesheets = dict()
     pathways_edges = []
+    pathways = Controller._instance.dm.get_pathways([elem['data']['id'] for elem in existing_elements if "source" not in elem["data"]])
+
     for i,elem in enumerate(existing_elements):
         if "source" not in elem["data"]:
-            pathways = Controller._instance.dm.get_pathways([elem['data']['id']])
             for p in pathways[elem['data']['id']]:
-                if not p in pathways_nodes:
-                    pathways_nodes[p]={"data":{"id":p,"label":p,"weight":1},"selectable":False}
-                    pathways_stylesheets[p]={
-                        "selector":f"node#{p}",
+                if not p["id"] in pathways_nodes:
+                    pathways_nodes[p["id"]]={"data":{"id":p["id"],"label":p["id"],"weight":1,"tooltip_content":p["id"]},"selectable":False}
+                    pathways_stylesheets[p["id"]] = {
+                        "selector":f"node#{p['id']}",
                         "style":{
                             "shape":"hexagon",
                             # "background-opacity":0.25,
@@ -103,12 +104,16 @@ def add_path_ways(existing_elements,stylesheet_detail,updated_elements):
                             # "text-valign":"center",
                             # "border-width":1,
                             # "text-wrap":"wrap",
-                            "label":p
+                            "label":p["id"],
+                            "width":size(1),
+                            "height":size(1)
                             }
                         }
                 else:
-                    pathways_nodes[p]["data"]["weight"]=pathways_nodes[p]["data"]["weight"]+1
-                pathways_edges.append({"data":{"source":elem["data"]["id"],"target":p}})
+                    pathways_nodes[p["id"]]["data"]["weight"]=pathways_nodes[p["id"]]["data"]["weight"]+1
+                    pathways_stylesheets[p["id"]]["style"]["width"]=size(pathways_nodes[p["id"]]["data"]["weight"])
+                    pathways_stylesheets[p["id"]]["style"]["height"]=size(pathways_nodes[p["id"]]["data"]["weight"])
+                pathways_edges.append({"data":{"source":elem["data"]["id"],"target":p["id"]}})
     for p in pathways_nodes:
         pathways_nodes[p]["data"]["weight"]=size(pathways_nodes[p]["data"]["weight"])
     for elem in list(pathways_nodes.values()) + pathways_edges:
@@ -136,8 +141,6 @@ def get_genes_hull_points(existing_elements,pos,updated_elements):
             added_points = circle_approx_points(p,elem["data"]['weight'],12)
             if  "Signatures" in elem["data"]:
                 for i in elem["data"]["Signatures"]:
-                    if(i=="COAD_Normal_vs_StageI"):
-                        print("added_points",elem["data"],added_points)
                     if i in genes_hull_points:
                         genes_hull_points[i] = genes_hull_points[i] + added_points
                         genes_anchor_points[i] = genes_anchor_points[i] + [p]
@@ -214,6 +217,25 @@ def color_metanodes(cm,stylesheet_detail):
             }
         })
 
+def get_color_scheme(selected_genes):
+    if len(selected_genes)<len(px.colors.qualitative.D3):
+        return px.colors.qualitative.D3
+    if len(selected_genes)<len(px.colors.qualitative.Safe):
+        return px.colors.qualitative.Safe
+    if len(selected_genes)<len(px.colors.qualitative.Dark24):
+        return px.colors.qualitative.Dark24
+    return px.colors.qualitative.Alphabet
+def color_selected_node(stylesheet_detail,selected_genes):
+    color_scheme = get_color_scheme(selected_genes)
+    for i,g in enumerate(selected_genes):
+        stylesheet_detail.append({
+            "selector":"node#"+g,
+            "style":{
+                "background-color":color_scheme[i%len(color_scheme)]
+                }
+        })
+    return stylesheet_detail
+
 def display_detail_graph(selectedDiseases,selected_signatures,selected_genes,existing_elements,detail_pos_store,AR):
     updated_elements = Patch()
     edges = []
@@ -226,6 +248,7 @@ def display_detail_graph(selectedDiseases,selected_signatures,selected_genes,exi
             "label":"data(label)"
             }
     }]
+    stylesheet_detail = color_selected_node(stylesheet_detail,selected_genes)
     color_by_diseases = True # TODO
     cm = Controller._instance.dm.get_disease_cmap() if color_by_diseases else Controller._instance.dm.get_stage_cmap()
 
@@ -242,7 +265,7 @@ def display_detail_graph(selectedDiseases,selected_signatures,selected_genes,exi
     update_cur_elements(existing_elements,updated,stylesheet_detail,sizes,updated_elements)
 
         
-    nodes = [{'data':{'id':g.gene,"label":g.gene,"weight":size(g.size),"Signatures":g.id}} for g in items.itertuples() if g.gene not in updated]
+    nodes = [{'data':{'id':g.gene,"label":g.gene,"weight":size(g.size),"Signatures":g.id,"tooltip_content":g.gene}} for g in items.itertuples() if g.gene not in updated]
 
     edges = [{"data":{"source":k[0],"target":k[1]}} for k,v in intersections.items() ]
 
