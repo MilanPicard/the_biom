@@ -1,6 +1,6 @@
-from dash import Dash, html, Input, Output, State, callback
+from dash_extensions.enrich import Dash, html, Input, Output, State, callback
 import dash_cytoscape as cyto
-from dash import clientside_callback,ClientsideFunction, Input, Output
+from dash_extensions.enrich import clientside_callback,ClientsideFunction, Input, Output
 
 # @callback(Output('detail_graph','elements'),
 #           Input('overview_graph','selectedNodeData')
@@ -19,9 +19,3 @@ from dash import clientside_callback,ClientsideFunction, Input, Output
 #     nodes = [{'data':{'id':g,"label":g}} for g in nodes]
 #     print(data,nodes,edges)
     # return nodes+edges
-
-clientside_callback(ClientsideFunction(namespace="clientside",function_name="test_clientside_callback"),
-                    Output("dummy_div","children"),
-                    Input("detail_graph",'layout'),
-                    Input("detail_graph",'elements'),
-                    )

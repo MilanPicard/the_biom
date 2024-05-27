@@ -54,19 +54,32 @@ def update_genes_buttons(store_data,cur_children):
         cur_children = []
     n=len(cur_children)
     if n!=len(store_data["selected"]):
+        color_scheme = detail_graph.get_color_scheme(store_data["selected"])
         if(len(store_data["selected"])<len(cur_children)):
             found=False
             for i in range(len(store_data["selected"])):
                 if cur_children[i]["props"]["id"]["gene"]!=store_data["selected"][i]:
                     del patched[i]
+                    del cur_children[i]
                     found = True
                     break
             if not found:
                 del patched[len(cur_children)-1]
+                del cur_children[-1]
+
             n-=1
         else:
-            patched.append(dbc.Button(store_data["selected"][-1],id={"type":"selected_gene_button","gene":store_data["selected"][-1]}))
+            btn_style = {}
+            btn = html.Button(store_data["selected"][-1],id={"type":"selected_gene_button","gene":store_data["selected"][-1]},className="btn",style=btn_style)
+            patched.append(btn)
             n+=1
+        for i,g in enumerate(store_data["selected"]):
+            tc = utils.get_text_color(color_scheme[i%len(color_scheme)])
+            patched[i]["props"]["style"]={
+                "--bs-btn-bg":color_scheme[i%len(color_scheme)],
+                "--bs-btn-hover-bg":color_scheme[i%len(color_scheme)],
+                "--bs-btn-hover-color":tc,
+                "--bs-btn-color":tc}
     return patched          
 @callback(
         Output('overview_graph','elements'),
@@ -162,6 +175,7 @@ def display_detail_graph(diseases,comparisons,signatures,menu_genes,fake_graph_s
         if (fake_graph_size is None or "just_redraw" not in fake_graph_size or not fake_graph_size["just_redraw"]):
             raise dash.exceptions.PreventUpdate()
         else:
+            print("fake_graph_size",fake_graph_size)
             return detail_graph.redraw(existing_elements,detail_pos_store,1 if fake_graph_size is None or "AR" not in fake_graph_size else fake_graph_size["AR"],current_stylesheets)
     if(all([len(diseases)==0 or len(comparisons)==0 ,signatures is None or signatures ==""])):
         return [],[],{"name":"preset"},{}
@@ -279,8 +293,91 @@ def update_data_gene_menu_selected(v):
     return v
 
 
+clientside_callback(
+        """
+function activate_tooltip(mouseoverNodeData,fake_graph_size,elements,extent,stylesheets,pos_store_data,cur_children,cur_show,cur_bbox,cur_direction){
+    console.log(mouseoverNodeData);
+    if(mouseoverNodeData==null){
+    
+    //TODO keep cur if close else reset
+        //return [cur_children,cur_show,cur_bbox,cur_direction];
+        return [[],false,{},"right"];
+    }else{
+        var direction="left";
+        var elem = undefined;
 
-@callback(
+        if( mouseoverNodeData["id"] in pos_store_data){
+            elem=pos_store_data[mouseoverNodeData["id"]];
+        }else{
+            for(var i of elements){
+                if( i["data"]["id"] == mouseoverNodeData["id"]){
+                    elem = i;
+                    break;
+                }
+            }
+        }
+        var detail_graph = document.getElementById('detail_graph');
+        var detail_resize_span = document.getElementById('detail_resize_span');
+        //console.log("update_width_start",dash_clientside.callback_context.triggered_id,Object.assign({},fake_graph_size,{'width':elem.clientWidth,'height':elem.clientHeight,'width_span':detail_resize_span.clientWidth,"AR":elem.clientWidth/elem.clientHeight}))
+        var x = 0;
+        var y=0;
+        var width=0;
+        var height=0;
+        var wratio=detail_graph.clientWidth/(extent["x2"]-extent["x1"]);
+        var hratio=detail_graph.clientHeight/(extent["y2"]-extent["y1"]);
+        x = (elem["position"]["x"]-extent["x1"]) *wratio+detail_resize_span.clientWidth;
+        y = (elem["position"]["y"]-extent["y1"]) *hratio
+        direction = (x/detail_graph.clientWidth>0.5)?"left":"right";
+        if( "weight" in mouseoverNodeData){
+            width = mouseoverNodeData["weight"];
+            height = mouseoverNodeData["weight"];
+        }else{
+            var polygon = [];
+            var zeros = [];
+            var y_crosses = [];
+            for(var i of stylesheets){
+                if(i["selector"] == "node#"+mouseoverNodeData["id"]){
+                    width = parseFloat(i["style"]["width"]);
+                    height = parseFloat(i["style"]["height"]);
+                    var pos = i["style"]["shapePolygonPoints"].split(" ").map(parseFloat);
+                    for(var p =0;p<pos.length;p+=2){
+                        polygon.push([pos[p],pos[p+1]]);
+                        if(pos[p+1]==0.0){
+                            zeros.push(p/2);
+                            y_crosses.push(pos[p+1]);
+                        }
+                    }
+
+                    break;
+                }
+            }
+            if(y_crosses.length<2){
+                for(var i =0; i<polygon.length;i++){
+                    if(polygon[i][0]!=0 && polygon[(i+1)%polygon.length][0]!=0){
+                        if(polygon[i][1]*polygon[(i+1)%polygon.length][1]<0){
+                            y_crosses.push(
+                                polygon[i][0]+(Math.abs(polygon[i][1])/(Math.abs(polygon[i][1])+Math.abs(polygon[(i+1)%polygon.length][1])))*(polygon[(i+1)%polygon.length][0]-polygon[i][0])
+                            );
+                        }
+                    }
+                }
+            }
+            if(y_crosses.length==2){
+                if(direction=="right"){
+                    x+=0.5*y_crosses.reduce((a,b) => Math.max(a,b),-1)*width*wratio;
+                }else{
+                    x+=0.5*y_crosses.reduce((a,b) => Math.min(a,b),1)*width*wratio;
+                }
+                width=0;
+                height=0;
+            }else{
+                console.log("y_crosses",y_crosses);
+            }
+        }
+        return [mouseoverNodeData["tooltip_content"],true,{"x0":x-width*wratio/2,"y0":y-height*hratio/2,"x1":x+width*wratio/2,"y1":y+height*hratio/2},direction];
+    }
+}
+""",
     Output("detail_graph_tooltip","children"),
     Output("detail_graph_tooltip","show"),
     Output("detail_graph_tooltip","bbox"),
@@ -292,58 +389,12 @@ def update_data_gene_menu_selected(v):
     State("detail_graph","extent"),
     State("detail_graph","stylesheet"),
     State("detail_graph_pos","data"),
+    State("detail_graph_tooltip","children"),
+    State("detail_graph_tooltip","show"),
+    State("detail_graph_tooltip","bbox"),
+    State("detail_graph_tooltip","direction"),
     prevent_initial_call=True
     )
-def activate_tooltip(mouseoverNodeData,fake_graph_size,elements,extent,stylesheets,pos_store_data):
-    if mouseoverNodeData is None :#or "data" not in mouseoverNodeData or mouseoverNodeData["data"] is None:
-        return html.Span(""),False,{},"right"
-    else:
-        elem = None
-        if mouseoverNodeData["id"] in pos_store_data:
-            elem=pos_store_data[mouseoverNodeData["id"]]
-        else:
-            for i in elements:
-                if i["data"]["id"] == mouseoverNodeData["id"]:
-                    elem = i
-        width = None
-        height =None
-        wratio = (fake_graph_size["width"])/ (extent["x2"]-extent["x1"])
-        hratio = (fake_graph_size["height"])/ (extent["y2"]-extent["y1"])
-
-        x = (elem["position"]["x"]-extent["x1"]) *wratio+fake_graph_size["width_span"]
-        y = (elem["position"]["y"]-extent["y1"]) *hratio
-        if(x/fake_graph_size["width"]>0.5):
-            direction="left"
-        else:
-            direction="right"
-        if "weight" in mouseoverNodeData:
-            width = mouseoverNodeData["weight"]
-            height = mouseoverNodeData["weight"]
-        else:
-            for i in stylesheets:
-                if i["selector"] == f'node#{mouseoverNodeData["id"]}':
-                    width = float(i["style"]["width"])
-                    height = float(i["style"]["height"])
-                    polygon = np.array(list(map(float,i["style"]["shape-polygon-points"].split(" ")))).reshape(-1,2)
-            zeros = np.argwhere(polygon[:,1]==0)
-            y_crosses = []
-            for z in zeros:
-                y_crosses.append(polygon[z[0],0])
-            if (len(y_crosses)<2):
-                for i in range(len(polygon)):
-                    if(polygon[i,1]!=0.0 and polygon[(i+1)%len(polygon),1]!=0.0):
-                        if(polygon[i,1] * polygon[(i+1)%len(polygon),1]<0):
-                            y_crosses.append(
-                                polygon[i,0]+(abs(polygon[i,1])/(abs(polygon[i,1])+abs(polygon[(i+1)%len(polygon),1])))*(polygon[(i+1)%len(polygon),0]-polygon[i,0])
-                                )
-            if(len(y_crosses)==2):
-                if(direction=="right"):
-                    x+=0.5*np.max(y_crosses)*width*wratio
-                else:
-                    x+=0.5*np.min(y_crosses)*width*wratio
-                width=0
-                height=0
-        return html.Span(mouseoverNodeData["id"]),True,{"x0":x-width*wratio/2,"y0":y-height*hratio/2,"x1":x+width*wratio/2,"y1":y+height*hratio/2},direction
     
 # clientside_callback(ClientsideFunction(
 #     namespace="tooltip",
@@ -359,7 +410,23 @@ function update_width_start(n1,n2,e_width,e_height,state,detail_graph_pos,dw,fak
     if(dash_clientside.callback_context.triggered_id===undefined){
         var elem = document.getElementById('detail_graph');
         var span = document.getElementById('detail_resize_span');
+        console.log("update_width_start",dash_clientside.callback_context.triggered_id,Object.assign({},fake_graph_size,{'width':elem.clientWidth,'height':elem.clientHeight,'width_span':span.clientWidth,"AR":elem.clientWidth/elem.clientHeight}))
+
         return  Object.assign({},fake_graph_size,{'width':elem.clientWidth,'height':elem.clientHeight,'width_span':span.clientWidth,"AR":elem.clientWidth/elem.clientHeight});
+    }
+    if(e["type"]=="click" && !e["isTrusted"]){
+        if(fake_graph_size["width"]===undefined || fake_graph_size["height"]===undefined || Math.abs(fake_graph_size["width"]-document.getElementById("detail_graph").clientWidth)/document.getElementById("detail_graph").clientWidth>0.05 ||Math.abs(fake_graph_size["height"]-document.getElementById("detail_graph").clientHeight)/document.getElementById("detail_graph").clientHeight>0.05){
+        fake_graph_size["width"]=document.getElementById("detail_graph").clientWidth;
+        fake_graph_size["height"]=document.getElementById("detail_graph").clientHeight;
+        fake_graph_size["AR"]=fake_graph_size["width"]/fake_graph_size["height"];
+        fake_graph_size["just_redraw"]=true;
+        document.getElementById("overview_graph")['_cyreg']["cy"].layout({"name":"cose","nodeDimensionsIncludeLabels":true,"animate":false}).run();
+
+        return fake_graph_size;
+        }
+        else
+                            return dash_clientside.no_update;
+
     }
     if(e["type"]=="mousedown"){
         if(e.target.tagName=="SPAN"){
@@ -392,12 +459,18 @@ function update_width_start(n1,n2,e_width,e_height,state,detail_graph_pos,dw,fak
             dash_clientside.set_props("resize_state", {"data":{"width":state["width"],"height":state["height"]}});
             document.querySelectorAll("#overview_col canvas, #detail_col canvas").forEach(c => c.style.cursor="auto");
             document.getElementById("overview_graph")['_cyreg']["cy"].layout({"name":"cose","nodeDimensionsIncludeLabels":true}).run();
+                    fake_graph_size["width"]=document.getElementById("detail_graph").clientWidth;
+        fake_graph_size["height"]=document.getElementById("detail_graph").clientHeight;
+        fake_graph_size["AR"]=fake_graph_size["width"]/fake_graph_size["height"];
             return fake_graph_size;
         }
         if(state["height"]["is_resizing"]){
             state["height"]["is_resizing"]=false;
             dash_clientside.set_props("resize_state", {"data":{"width":state["width"],"height":state["height"]}});
             document.getElementById("overview_graph")['_cyreg']["cy"].layout({"name":"cose","nodeDimensionsIncludeLabels":true}).run();
+                    fake_graph_size["width"]=document.getElementById("detail_graph").clientWidth;
+        fake_graph_size["height"]=document.getElementById("detail_graph").clientHeight;
+        fake_graph_size["AR"]=fake_graph_size["width"]/fake_graph_size["height"];
             return fake_graph_size;
         }
         return dash_clientside.no_update;
@@ -409,6 +482,9 @@ function update_width_start(n1,n2,e_width,e_height,state,detail_graph_pos,dw,fak
         state["height"]["is_resizing"]=false;
         dash_clientside.set_props("resize_state", {"data":{"width":state["width"],"height":state["height"]}});
         document.getElementById("overview_graph")['_cyreg']["cy"].layout({"name":"cose","nodeDimensionsIncludeLabels":true}).run();
+        fake_graph_size["width"]=document.getElementById("detail_graph").clientWidth;
+        fake_graph_size["height"]=document.getElementById("detail_graph").clientHeight;
+        fake_graph_size["AR"]=fake_graph_size["width"]/fake_graph_size["height"];
         return fake_graph_size;
     }
     return dash_clientside.no_update;

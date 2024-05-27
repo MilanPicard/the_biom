@@ -62,3 +62,28 @@ function ajust_flex(y){
     }
     return false;
 }
+
+window.addEventListener("resize",function(e){
+    var overview_graph = document.getElementById("overview_graph");
+    if(overview_graph!==undefined){
+        // var elem = document.getElementById('detail_graph');
+        // var span = document.getElementById('detail_resize_span');
+        // var resize_state = {
+        //     "width": {
+        //       "is_resizing": false,
+        //     },
+        //     "height": {
+        //       "is_resizing": false
+        //     },
+        //     "window_resize":true
+
+        //   }
+        // dash_clientside.set_props("resize_state",resize_state);
+        // dash_clientside.set_props("fake_graph_size",{'width':elem.clientWidth,'height':elem.clientHeight,'width_span':span.clientWidth,"AR":elem.clientWidth/elem.clientHeight});
+        // console.log("relayout",{'width':elem.clientWidth,'height':elem.clientHeight,'width_span':span.clientWidth,"AR":elem.clientWidth/elem.clientHeight});
+        
+        // overview_graph['_cyreg']["cy"].layout({"name":"cose","nodeDimensionsIncludeLabels":true,"animate":false}).run();
+        var e2 = new MouseEvent("click");
+        document.getElementById("overview_col").dispatchEvent(e2);
+}
+})

@@ -1,3 +1,4 @@
+import re
 import dash_cytoscape as cyto
 from dash import Patch
 import numpy as np
@@ -7,6 +8,10 @@ import tlp_layout
 from controller import Controller
 from scipy.spatial import ConvexHull
 import plotly.express as px
+from shapely import Polygon,Point
+from dash_extensions.enrich import html
+from dash_svg import Svg, G, Path, Circle,Rect
+
 class Edge:
     def __init__(self,source_id,target_id):
         self.source_id = source_id
@@ -79,8 +84,7 @@ def update_cur_elements(existing_elements,updated,stylesheet_detail,sizes,update
             to_del.append(i)
     for i in reversed(to_del):
         del existing_elements[i]
-        del updated_elements[i]
-
+        del updated_elements[i]    
 
 def add_path_ways(existing_elements,stylesheet_detail,updated_elements):
     pathways_nodes = dict()
@@ -91,29 +95,43 @@ def add_path_ways(existing_elements,stylesheet_detail,updated_elements):
     for i,elem in enumerate(existing_elements):
         if "source" not in elem["data"]:
             for p in pathways[elem['data']['id']]:
-                if not p["id"] in pathways_nodes:
-                    pathways_nodes[p["id"]]={"data":{"id":p["id"],"label":p["id"],"weight":1,"tooltip_content":p["id"]},"selectable":False}
-                    pathways_stylesheets[p["id"]] = {
-                        "selector":f"node#{p['id']}",
+                if not p["kegg_id"] in pathways_nodes:
+                    children = []
+                    if "name" in p:
+                        children.append(html.H6(p["name"]))
+                    else:
+                        print(p.keys(),p["kegg_id"])
+                    if "description" in p:
+                        children.append(html.P(p["description"]))
+                    if("ko_pathway" in p):
+                        children.append(html.A("KEGG",href=f"https://www.kegg.jp/entry/{p['ko_pathway']}",target="_blank"))
+                    pathways_nodes[p["kegg_id"]]={"data":{"id":p["kegg_id"],"label":p["kegg_id"],"weight":1,"tooltip_content":children,"is_pathways":True},"selectable":False}
+                    pathways_stylesheets[p["kegg_id"]] = {
+                        "selector":f"node#{p['kegg_id']}",
                         "style":{
-                            "shape":"hexagon",
+                            "shape":"triangle",
                             # "background-opacity":0.25,
                             # "font-size":5,
+                            "backgroundColor":"gray",
+
                             "z-index":-1,
                             # "text-halign":"left",
                             # "text-valign":"center",
                             # "border-width":1,
                             # "text-wrap":"wrap",
-                            "label":p["id"],
+                            "label":p["kegg_id"],
                             "width":size(1),
                             "height":size(1)
                             }
                         }
                 else:
-                    pathways_nodes[p["id"]]["data"]["weight"]=pathways_nodes[p["id"]]["data"]["weight"]+1
-                    pathways_stylesheets[p["id"]]["style"]["width"]=size(pathways_nodes[p["id"]]["data"]["weight"])
-                    pathways_stylesheets[p["id"]]["style"]["height"]=size(pathways_nodes[p["id"]]["data"]["weight"])
-                pathways_edges.append({"data":{"source":elem["data"]["id"],"target":p["id"]}})
+                    pathways_nodes[p["kegg_id"]]["data"]["weight"]=pathways_nodes[p["kegg_id"]]["data"]["weight"]+1
+                    pathways_stylesheets[p["kegg_id"]]["style"]["width"]=size(pathways_nodes[p["kegg_id"]]["data"]["weight"])
+                    pathways_stylesheets[p["kegg_id"]]["style"]["height"]=size(pathways_nodes[p["kegg_id"]]["data"]["weight"])
+                pathways_edges.append({"data":{"source":elem["data"]["id"],"target":p["kegg_id"],"is_pathway_edge":True}})
+    pathways_edges = [e for e in pathways_edges if pathways_nodes[e["data"]["target"]]["data"]["weight"]>1]
+    pathways_nodes = {k:v for k,v in pathways_nodes.items() if v["data"]["weight"]>1}
+    print(len(pathways_nodes))
     for p in pathways_nodes:
         pathways_nodes[p]["data"]["weight"]=size(pathways_nodes[p]["data"]["weight"])
     for elem in list(pathways_nodes.values()) + pathways_edges:
@@ -149,7 +167,32 @@ def get_genes_hull_points(existing_elements,pos,updated_elements):
                         genes_anchor_points[i] = [p]
     return genes_hull_points,genes_anchor_points
 
-
+def choose_signature_label_pos(shape_polygon_points):
+    hull = np.array(shape_polygon_points).reshape(-1,2)
+    p = Polygon(hull)
+    d = []
+    for x in [-1,0,1]:
+        for y in [-1,0,1]:
+            if x!=0 or y!=0:
+                d.append({"x":x,"y":y,"d":Point((x,y)).distance(p)})
+    d_min = min(d,key=lambda x:x["d"])
+    x = "left"
+    y="center"
+    match d_min["x"]:
+        case -1:
+            x = "left"
+        case 0:
+            x = "center"
+        case 1:
+            x = "right"
+    match d_min["y"]:
+        case 1:
+            y = "bottom"
+        case 0:
+            y = "center"
+        case -1:
+            y = "top"
+    return x,y
 def add_signature_metanodes(gene_hull_points,existing_elements,stylesheet_detail,updated_elements,genes_anchor_points,style_only=False):
     
     index = dict([(elem["selector"],i) for i,elem in enumerate(stylesheet_detail)])
@@ -167,32 +210,33 @@ def add_signature_metanodes(gene_hull_points,existing_elements,stylesheet_detail
             shape_polygon_points.append(-1 + 2*(sign_pos[v,1]-bb[0][1])/(bb[1][1]-bb[0][1]))
             shape_polygon_anchors.append(-1 + 2*(anchor_pos[v//(len(sign_pos)//len(anchor_pos)),0]-bb[0][0])/(bb[1][0]-bb[0][0]))
             shape_polygon_anchors.append(-1 + 2*(anchor_pos[v//(len(sign_pos)//len(anchor_pos)),1]-bb[0][1])/(bb[1][1]-bb[0][1]))
+        label_pos = choose_signature_label_pos(shape_polygon_points)
         stylesheet = {
             "selector":f"node#{i}",
             "style":{
                 "width":f"{bb[1][0]-bb[0][0]}",
                 "height":f"{bb[1][1]-bb[0][1]}",
                 "shape":"polygon",
-                "background-opacity":0.25,
-                "font-size":5,
-                "z-index":-1,
-                "text-halign":"left",
-                "text-valign":"center",
-                "border-width":1,
-                "text-wrap":"wrap",
-                "shape-polygon-points":" ".join(list(map(str,shape_polygon_points))),
+                "backgroundOpacity":0.25,
+                "fontSize":10,
+                "zIndex":1,
+                "textHalign":label_pos[0],
+                "textValign":label_pos[1],
+                "borderWidth":1,
+                "textWrap":"wrap",
+                "shapePolygonPoints":" ".join(list(map(str,shape_polygon_points))),
                 "label":"\n".join(i.split("_"))
                 }
                 }
         if not style_only:    
             existing_elements.append({
-                "data":{"id":i,"label":i,"is_metanode":True},
+                "data":{"id":i,"label":i,"is_metanode":True,"tooltip_content":i},
                 "position":{"x":0.5*(bb[0][0]+bb[1][0]),
                             "y":0.5*(bb[0][1]+bb[1][1])},
                 "selectable": False,
                 "classes":" ".join([j for j in i.split("_") if j!="vs"])})
             updated_elements.append({
-                "data":{"id":i,"label":i,"is_metanode":True},
+                "data":{"id":i,"label":i,"is_metanode":True,"tooltip_content":i},
                 "position":{"x":0.5*(bb[0][0]+bb[1][0]),
                             "y":0.5*(bb[0][1]+bb[1][1])},
                 "selectable": False,
@@ -245,7 +289,9 @@ def display_detail_graph(selectedDiseases,selected_signatures,selected_genes,exi
         "style":{
             "width":"data(weight)",
             "height":"data(weight)",
-            "label":"data(label)"
+            "label":"data(label)",
+            "backgroundColor":"black",
+            "zIndex":2
             }
     }]
     stylesheet_detail = color_selected_node(stylesheet_detail,selected_genes)

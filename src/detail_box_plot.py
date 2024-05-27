@@ -13,8 +13,6 @@ def detail_box_plot():
 def detail_heatmap():
     fig = go.Figure(data=[])
     return dcc.Graph(figure=fig,id='activation_heatmap',config={"scrollZoom":False,"displayModeBar":False})
-activation_data = pd.read_csv('data/activations/fake_data.csv',delimiter=";",dtype=defaultdict(lambda :float,Disease=str,Stage=str))
-activation_data["box_category"] = activation_data["Disease"]+"_"+activation_data["Stage"]
 
 # @callback(
 #     Output("activation_boxplot","figure"),

@@ -35,7 +35,7 @@ def overview_graph(dm):
     #                 edges[edge] = [g]
     return cyto.Cytoscape(
         id="overview_graph",
-        layout={"name":"cose","nodeDimensionsIncludeLabels":True},
+        layout={"name":"cose","nodeDimensionsIncludeLabels":True,"animate":False},
         className="overview",
         boxSelectionEnabled=True,
         autoungrabify=True,

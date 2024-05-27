@@ -16,17 +16,19 @@ def menu(diseases,comparisons,diseases_cmap,comparisons_cmap,genes):
             dbc.Accordion([
                 dbc.AccordionItem([
                     disease_checklist
-                ],title="Diseases",),
+                ],title="Diseases",item_id="disease_accordion"),
                 dbc.AccordionItem([
                     comparisons_checklist
                 ],title="Comparisons"),
                 dbc.AccordionItem([
-                    dcc.Dropdown(options= [{"label":"None","value":"None"}]+[{"label":f"{i} : {j} signatures","value":i} for i,j in genes.items()],value="None",id="genes_menu_select"),
+                    dcc.Dropdown(options= [{"label":"None","value":"None"}]+[{"label":f"{i}","title" : f"{j} signatures","value":i} for i,j in genes.items()],value="None",id="genes_menu_select"),
                     html.Div(id="selected_genes_div",style={"minHeight":"2em","borderStyle":"ridge"}),
                     dcc.Store(id="selected_genes_store",data={"selected":[]})
-                ],title="Genes")
+                ],title="Genes",item_id="gene_accordion")
             ],
             start_collapsed=False,
             always_open=True,
+            active_item=["gene_accordion","disease_accordion"],
+            style={"height":"100%","overflowY": "scroll"}
             ),
             dcc.Store(id="selected_genes")]

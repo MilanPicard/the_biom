@@ -32,6 +32,7 @@ df = pd.read_csv(signatures)
 df["id"] = df["Disease"]+"_"+df["Comparison"]
 detail_graph=dg.detail_graph()
 mouse_up_event = {"event":"mouseup","props":["target","buttons","offsetX","offsetY","type"]}
+click_event = {"event":"click","props":["target","buttons","offsetX","offsetY","type","isTrusted"]}
 mouse_down_event = {"event":"mousedown","props":["target","buttons","offsetX","offsetY","type"]}
 mouse_out_event = {"event":"mouseout","props":["buttons","offsetX","offsetY","type"]}
 mouse_move_event = {"event":"mousemove","props":["buttons","offsetX","offsetY","target","type"]}
@@ -41,7 +42,7 @@ def layout():
      [
         dbc.Col(
         menu.menu(dm.get_diseases(),dm.get_comparisons(),dm.get_disease_cmap(),dm.get_comparison_cmap(),dm.get_genes())
-        ,width=2),
+        ,width=2,style={"minWidth":'170px',"height":"100%"}),
         EventListener([
             # dbc.Row([
             #     dbc.Col(html.H1("THe_Biom",id="title"),width=11),
@@ -65,7 +66,7 @@ def layout():
                          ],style={"display":"flex","flexDirection":"row","width":"100%","height":"96%"})
                          ],width=6,id="detail_col",style={"borderWidth":"1px","borderStyle":"solid","borderColor":"black"}),
             ],
-            events=[mouse_move_event,mouse_up_event,mouse_down_event],useCapture=True,logging=False,id="move_in_ov",style={"flexGrow":"1","flexShrink":"1","flexBasis":"1%","height": "max-content","cursor":"n-resize"},className="g-0 row"),
+            events=[click_event,mouse_move_event,mouse_up_event,mouse_down_event],useCapture=True,logging=False,id="move_in_ov",style={"flexGrow":"1","flexShrink":"1","flexBasis":"1%","height": "max-content","cursor":"n-resize"},className="g-0 row"),
             dbc.Row([
                 # dcc.Tabs([
                 # # dbc.Col(
@@ -85,7 +86,7 @@ def layout():
                 "flexGrow":"1","flexBasis":"1%","flexShrink":"1","height": "max-content","borderWidth":"1px","borderStyle":"solid","borderColor":"black","cursor":"n-resize"
                 },
                 className="g-0",id="second_row")
-        ],style={"display":"flex","flexDirection":"column","height":"100%"
+        ],style={"display":"flex","flexDirection":"column","height":"100%","maxWidth":'calc(100% - 170px)'
                 #  ,"height":"100vh"
                  },id="full_col",className="col-10 g-0",events=[mouse_down_event,mouse_up_event,mouse_move_event], logging=False),
         html.Div(id="dummy_div",style={"flexBasis":"0px","flexGrow":0}),

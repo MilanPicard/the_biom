@@ -2,15 +2,17 @@ import numpy as np
 from tulip import tlp
 import networkx as nx
 import s_gd2
-def initialized_sgd2_layout(I,J,pos):
+def initialized_sgd2_layout(I,J,V,pos):
     seed = s_gd2.s_gd2._check_random_seed()
     X = s_gd2.s_gd2.random_init(I,J,seed,None)
     for i in pos:
         X[i][0]=pos[i][0]
         X[i][1]=pos[i][1]
     if(len(pos)!=len(X)):
-        s_gd2.s_gd2.cpp.layout_unweighted(X,I,J,30,0.01,seed)
-        X*=100*len(I)/len(X)
+        s_gd2.s_gd2.cpp.layout_weighted(X,I,J,V,30,0.01,seed)
+        # X*=100*len(I)/len(X)
+        average_edge_length = (((X[I]-X[J])**2).sum(-1)**0.5).mean()
+        X*=average_edge_length*50
     return X
 def sgd2_layout(elements,detail_pos_store,AR=1):
     G = tlp.newGraph()
@@ -18,7 +20,7 @@ def sgd2_layout(elements,detail_pos_store,AR=1):
     pos = {}
     vs = G.getSizeProperty("viewSize")
     cur_pos=dict()
-
+    w = G.getDoubleProperty("edgeWeight")
     for i in elements:
         if "source" not in i["data"] and ("is_metanode" not in i["data"] or not i["data"]["is_metanode"]):
             node_dict[i["data"]["id"]]=G.addNode()
@@ -29,7 +31,13 @@ def sgd2_layout(elements,detail_pos_store,AR=1):
                     cur_pos[ node_dict[i["data"]["id"]]]=(detail_pos_store[i["data"]["id"]]["position"]["x"],detail_pos_store[i["data"]["id"]]["position"]["y"])
             vs[node_dict[i["data"]["id"]]] = (4*i["data"]["weight"],4*i["data"]["weight"],1)
         elif "source" in i["data"]:
-            G.addEdge(node_dict[i["data"]["source"]],node_dict[i["data"]["target"]])
+            e = G.existEdge(node_dict[i["data"]["source"]],node_dict[i["data"]["target"]],False)
+            if(not e.isValid()):
+                e = G.addEdge(node_dict[i["data"]["source"]],node_dict[i["data"]["target"]])
+            w[e]=w[e]+2
+            if not "is_pathway_edge" in i["data"] or not i["data"]["is_pathway_edge"]:
+                w[e]=w[e]-0.15
+
     vl = G.getLayoutProperty("viewLayout")
     ccs = tlp.ConnectedTest.computeConnectedComponents(G)
     for cc in ccs:
@@ -37,13 +45,15 @@ def sgd2_layout(elements,detail_pos_store,AR=1):
         node_index = dict([(n,i) for i,n in enumerate(cc)])
         I=[]
         J=[]
+        V = []
         for e in sG.edges():
             src = sG.source(e)
             tgt = sG.target(e)
             I.append(node_index[src])
             J.append(node_index[tgt])
+            V.append(w[e])
         
-        X = initialized_sgd2_layout(I,J,dict([(i,cur_pos[n]) for n,i in node_index.items() if n in cur_pos]))
+        X = initialized_sgd2_layout(I,J,V,dict([(i,cur_pos[n]) for n,i in node_index.items() if n in cur_pos]))
         
         cur_ar = (X[:,0].max()-X[:,0].min())/(X[:,1].max()-X[:,1].min())
         X[:,0]*=AR/cur_ar

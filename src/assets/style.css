@@ -23,7 +23,25 @@
 }
 #main_container > div:nth-child(2){
     flex-grow: 1;
+    flex-shrink: 1;
+    min-height: 0;
 }
 #_pages_content{
     height: 100%;
+}
+
+#detail_col span .dcc-tooltip-bounding-box{
+    z-index:0;
+    pointer-events: none;
+} 
+#detail_col span .dcc-tooltip-bounding-box > span,#detail_col span .dcc-tooltip-bounding-box > span *{
+    z-index:4;
+    pointer-events: auto;
+}
+#detail_graph_tooltip img {
+    max-height:40vh;
+    max-width:40vh;
+}
+#detail_graph_tooltip p {
+    text-wrap: pretty;
 }
