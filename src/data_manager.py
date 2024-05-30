@@ -116,18 +116,18 @@ class DataManager(object):
         if(exploded.empty):
             return dict(),None
         exploded = exploded.filter(["EnsemblID","id"])
-        grouped_by_id = exploded.groupby("id").agg(lambda a:a.values)
-        grouped_by_id["EnsemblID"] = grouped_by_id["EnsemblID"].astype(pd.ArrowDtype(pa.list_(pa.string())))
-        grouped_by_id_multiple = grouped_by_id.reset_index()[grouped_by_id["EnsemblID"].list.len()>1]
+        # grouped_by_id = exploded.groupby("id").agg(lambda a:a.values)
+        # grouped_by_id["EnsemblID"] = grouped_by_id["EnsemblID"].astype(pd.ArrowDtype(pa.list_(pa.string())))
+        # grouped_by_id_multiple = grouped_by_id.reset_index()[grouped_by_id["EnsemblID"].list.len()>1]
         intersections = dict()
-        for item in grouped_by_id_multiple.itertuples():
-            for src in range(len(item.EnsemblID)-1):
-                for tgt in range(src+1,len(item.EnsemblID)):
-                    if (item.EnsemblID[src],item.EnsemblID[tgt]) in intersections:
-                        intersections[(item.EnsemblID[src],item.EnsemblID[tgt])].append(item.id)
-                    else:
-                        intersections[(item.EnsemblID[src],item.EnsemblID[tgt])]= [item.id]
-                    assert item.EnsemblID[src] in exploded["EnsemblID"].unique() and item.EnsemblID[tgt] in exploded["EnsemblID"].unique()
+        # for item in grouped_by_id_multiple.itertuples():
+        #     for src in range(len(item.EnsemblID)-1):
+        #         for tgt in range(src+1,len(item.EnsemblID)):
+        #             if (item.EnsemblID[src],item.EnsemblID[tgt]) in intersections:
+        #                 intersections[(item.EnsemblID[src],item.EnsemblID[tgt])].append(item.id)
+        #             else:
+        #                 intersections[(item.EnsemblID[src],item.EnsemblID[tgt])]= [item.id]
+        #             assert item.EnsemblID[src] in exploded["EnsemblID"].unique() and item.EnsemblID[tgt] in exploded["EnsemblID"].unique()
         grouped_by_id_nb=exploded.groupby("EnsemblID").agg(lambda a:a.size)
         # grouped_by_id_nb["id"] = grouped_by_id_nb["id"].astype(int)
         grouped_by_id_nb = grouped_by_id_nb.rename(columns={"id":"size"})

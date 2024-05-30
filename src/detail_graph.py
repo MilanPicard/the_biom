@@ -368,8 +368,9 @@ def display_detail_graph(selectedDiseases,selected_signatures,selected_genes,exi
     # updated_elements.clear()
 
     intersections,items = Controller._instance.dm.get_genes_intersections(id_filter=selected_signatures,disease_filter=selectedDiseases,gene_filter=selected_genes)
-    data = Controller._instance.dm.get_genes_intersection_data(id_filter=selected_signatures,disease_filter=selectedDiseases,gene_filter=selected_genes)
+    # data = Controller._instance.dm.get_genes_intersection_data(id_filter=selected_signatures,disease_filter=selectedDiseases,gene_filter=selected_genes)
     # euler_layout.euler_layout(data)
+
 
     color_metanodes(cm,stylesheet_detail)
     if(items is None):
@@ -378,10 +379,11 @@ def display_detail_graph(selectedDiseases,selected_signatures,selected_genes,exi
     updated = set()
     update_cur_elements(existing_elements,updated,stylesheet_detail,sizes,updated_elements)
 
-        
-    nodes = [{'data':{'id':g.gene,"label":"","weight":size(g.size),"Signatures":g.id,"tooltip_content":Controller._instance.dm.get_symbol(g.gene)}} for g in items.itertuples() if g.gene not in updated]
+    symbols = Controller._instance.dm.get_symbol([g.gene for g in items.itertuples() if g.gene not in updated])
+    nodes = [{'data':{'id':g.gene,"label":"","weight":size(g.size),"Signatures":g.id,"tooltip_content":symbols[g.gene]}} for g in items.itertuples() if g.gene not in updated]
 
-    edges = [{"data":{"source":k[0],"target":k[1]}} for k,v in intersections.items() ]
+    # edges = [{"data":{"source":k[0],"target":k[1]}} for k,v in intersections.items() ]
+    times.append(time.perf_counter())
 
     # print(edges)
     existing_elements = existing_elements +nodes

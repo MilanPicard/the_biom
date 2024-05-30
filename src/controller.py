@@ -112,17 +112,14 @@ def update_overview(diseases,
                     selected_genes_store,
                     selected_filter,
                     cur_elems):
-    print(ctx.triggered_id)
     if cur_elems[0]["data"]["Filter"]!=selected_filter:
         cur_elems = ov.get_elements(Controller._instance.dm,selected_filter=selected_filter)
-        print("change")
     else:
         classes = ["highlight","half_highlight"]
         for i in cur_elems:
 
             if "Cancer" in i["data"]:
                 if "classes" not in i:
-                    print(i)
                     i["classes"]=" ".join([i["data"]["Cancer"],"highlight"])
                 if i['data']["Cancer"] in diseases and i['data']["Comparison"] in comparisons_filter:
                     c = "highlight"
@@ -207,7 +204,6 @@ def display_detail_graph(diseases,comparisons,signatures,menu_genes,fake_graph_s
         if (fake_graph_size is None or "just_redraw" not in fake_graph_size or not fake_graph_size["just_redraw"]):
             raise dash.exceptions.PreventUpdate()
         else:
-            print("fake_graph_size",fake_graph_size)
             return detail_graph.redraw(existing_elements,detail_pos_store,1 if fake_graph_size is None or "AR" not in fake_graph_size else fake_graph_size["AR"],current_stylesheets)
     if(all([len(diseases)==0 or len(comparisons)==0 ,signatures is None or signatures ==""])):
         return [],[],{"name":"preset"},{}
@@ -268,7 +264,6 @@ def update_box_plot(menu_selected_diseases,overview_selected,menu_selected,overv
                     # classes.remove("highlight_edge")
                     # i["classes"] = " ".join(classes)
         if(len(items)==1):
-            print(selected_patient_and_genes,(symbols),items)
             box = px.box(selected_patient_and_genes,x="box_category",y=symbols[0],color_discrete_sequence=detail_graph.get_color_scheme(items),labels={"box_category":""})
             if(box.layout.margin.t is not None and box.layout.margin.t>20):
                 box.layout.margin.t=20

@@ -9,7 +9,7 @@ def initialized_sgd2_layout(I,J,V,pos):
         X[i][0]=pos[i][0]
         X[i][1]=pos[i][1]
     if(len(pos)!=len(X)):
-        s_gd2.s_gd2.cpp.layout_weighted(X,I,J,V,600,0.01,seed)
+        s_gd2.s_gd2.cpp.layout_weighted(X,I,J,V,50,0.01,seed)
         # X*=100*len(I)/len(X)
         average_edge_length = (((X[I]-X[J])**2).sum(-1)**0.5).mean()
         X*=average_edge_length*50
