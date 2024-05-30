@@ -53,10 +53,10 @@ def overview_graph(dm):
 
 def get_elements(dm,**dm_kwargs):
     intersections,signatures_ids = dm.get_signatures_intersections(**dm_kwargs)
-    return [{'data':{"id":i["id"],"label":"\n".join(i["id"].split("_")),"Disease":i["Disease"],"Comparison":"_".join(i["Comparison"]),"Signature":i["Signature"]},"group":"nodes","classes":" ".join([i["Disease"],"highlight"])} for i in signatures_ids]+[{"data":{"source":k[0],"target":k[1],"elems":v},"group":"edges","classes":""} for k,v in intersections.items()]
+    return [{'data':{"id":i["id"],"label":"\n".join(i["id"].split("_")),"Cancer":i["Cancer"],"Comparison":i["Comparison"],"Filter":i["Filter"],"Signature":i["Signature"]},"group":"nodes","classes":" ".join([i["Cancer"]])} for i in signatures_ids]+[{"data":{"source":k[0],"target":k[1],"elems":v},"group":"edges","classes":""} for k,v in intersections.items()]
 
 def get_default_stylesheet(dm,color_by_diseases=True):
-    cm = dm.get_disease_cmap() if color_by_diseases else dm.get_stage_cmap()
+    cm = dm.get_disease_cmap()# if color_by_diseases else dm.get_stage_cmap()
     
     s= [
         {"selector":"node","style":{"label":"data(label)","text-wrap":"wrap","background-opacity":0.25}},

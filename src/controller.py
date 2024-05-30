@@ -21,25 +21,34 @@ class Controller(object):
             cls._instance = super(Controller, cls).__new__(cls)
             cls._instance.dm = dm
         return cls._instance
+@callback(
+        Output("genes_menu_select","options"),
+        Input("filters_dropdown","value")
+)
+def update_selectable_genes(selected_filter):
+    return [{"label":"None","value":"None"}]+[{"label":f"{' '.join(j['GeneSymbolID'])}","title" : f"{j['counts']} signatures","value":i} for i,j in Controller._instance.dm.get_genes(selected_filter).items()]
 
 @callback(
         Output('selected_genes_store','data'),
         Input("genes_menu_select","value"),
         Input({"type":"selected_gene_button","gene":ALL},"n_clicks"),
         Input("detail_graph","selectedNodeData"),
+        Input("filters_dropdown","value"),
         State('selected_genes_store','data'),prevent_initial_call=True
 )
-def add_remove_gene(menu_select,button,fromGraph,current):
-    if ctx.triggered_id == "genes_menu_select":
-        if menu_select is not None and menu_select != "None" and menu_select not in current["selected"]:
-            current["selected"].append(menu_select)
-    else:
-        if ctx.triggered_id == "detail_graph":
+def add_remove_gene(menu_select,button,fromGraph,selected_filter,current):
+    match ctx.triggered_id:
+        case "genes_menu_select":
+            if menu_select is not None and menu_select != "None" and menu_select not in current["selected"]:
+                current["selected"].append(menu_select)
+        case "detail_graph":
             if fromGraph is not None:
                 for gene in fromGraph:
                     if gene["id"] not in current["selected"]:
                         current["selected"].append(gene["id"])
-        else:
+        case "filters_dropdown":
+            current["selected"]=[]
+        case _:
             current["selected"].remove(ctx.triggered_id["gene"])
     return current        
 @callback(
@@ -53,34 +62,39 @@ def update_genes_buttons(store_data,cur_children):
     if cur_children is None:
         cur_children = []
     n=len(cur_children)
-    if n!=len(store_data["selected"]):
-        color_scheme = detail_graph.get_color_scheme(store_data["selected"])
-        if(len(store_data["selected"])<len(cur_children)):
-            found=False
-            for i in range(len(store_data["selected"])):
-                if cur_children[i]["props"]["id"]["gene"]!=store_data["selected"][i]:
-                    del patched[i]
-                    del cur_children[i]
-                    found = True
-                    break
-            if not found:
-                del patched[len(cur_children)-1]
-                del cur_children[-1]
+    if len(store_data["selected"])==0 and n>0:
+        patched.clear()
+    else:
+        if n!=len(store_data["selected"]):
+            color_scheme = detail_graph.get_color_scheme(store_data["selected"])
+            if(len(store_data["selected"])<len(cur_children)):
+                found=False
+                for i in range(len(store_data["selected"])):
+                    if cur_children[i]["props"]["id"]["gene"]!=store_data["selected"][i]:
+                        del patched[i]
+                        del cur_children[i]
+                        found = True
+                        break
+                if not found:
+                    del patched[len(cur_children)-1]
+                    del cur_children[-1]
 
-            n-=1
-        else:
-            btn_style = {}
-            btn = html.Button(store_data["selected"][-1],id={"type":"selected_gene_button","gene":store_data["selected"][-1]},className="btn",style=btn_style)
-            patched.append(btn)
-            n+=1
-        for i,g in enumerate(store_data["selected"]):
-            tc = utils.get_text_color(color_scheme[i%len(color_scheme)])
-            patched[i]["props"]["style"]={
-                "--bs-btn-bg":color_scheme[i%len(color_scheme)],
-                "--bs-btn-hover-bg":color_scheme[i%len(color_scheme)],
-                "--bs-btn-hover-color":tc,
-                "--bs-btn-color":tc}
+                n-=1
+            else:
+                btn_style = {}
+                btn = html.Button(Controller._instance.dm.get_symbol(store_data["selected"][-1]),id={"type":"selected_gene_button","gene":store_data["selected"][-1]},className="btn",style=btn_style)
+                patched.append(btn)
+                n+=1
+            for i,g in enumerate(store_data["selected"]):
+                tc = utils.get_text_color(color_scheme[i%len(color_scheme)])
+                patched[i]["props"]["style"]={
+                    "--bs-btn-bg":color_scheme[i%len(color_scheme)],
+                    "--bs-btn-hover-bg":color_scheme[i%len(color_scheme)],
+                    "--bs-btn-hover-color":tc,
+                    "--bs-btn-color":tc}
     return patched          
+
+
 @callback(
         Output('overview_graph','elements'),
           Input("disease_filter","value"),
@@ -88,39 +102,57 @@ def update_genes_buttons(store_data,cur_children):
           Input("overview_graph","selectedNodeData"),
           Input("detail_graph","selectedNodeData"),
           Input("selected_genes_store","data"),
+          State("filters_dropdown","value"),
           State("overview_graph","elements")
           )
-def update_overview(diseases,comparisons_filter,selectedSign,selected_detail_gene,selected_genes_store,cur_elems):
-    
-    classes = ["highlight","half_highlight"]
-    for i in cur_elems:
-        if "Disease" in i["data"]:
-            if i['data']["Disease"] in diseases and i['data']["Comparison"] in comparisons_filter:
-                c = "highlight"
-                if( selected_genes_store is not None):
-                    c = "half_highlight"
-                    if len(set(selected_genes_store["selected"]).intersection(i["data"]["Signature"]))!=0:
-                        c = "highlight"
-                i["classes"]=utils.switch_class(i["classes"],[c],classes)
+def update_overview(diseases,
+                    comparisons_filter,
+                    selectedSign,
+                    selected_detail_gene,
+                    selected_genes_store,
+                    selected_filter,
+                    cur_elems):
+    print(ctx.triggered_id)
+    if cur_elems[0]["data"]["Filter"]!=selected_filter:
+        cur_elems = ov.get_elements(Controller._instance.dm,selected_filter=selected_filter)
+        print("change")
+    else:
+        classes = ["highlight","half_highlight"]
+        for i in cur_elems:
+
+            if "Cancer" in i["data"]:
+                if "classes" not in i:
+                    print(i)
+                    i["classes"]=" ".join([i["data"]["Cancer"],"highlight"])
+                if i['data']["Cancer"] in diseases and i['data']["Comparison"] in comparisons_filter:
+                    c = "highlight"
+                    if( selected_genes_store is not None):
+                        c = "half_highlight"
+                        if len(set(selected_genes_store["selected"]).intersection(i["data"]["Signature"]))!=0:
+                            c = "highlight"
+                    i["classes"]=utils.switch_class(i["classes"],[c],classes)
+                else:
+                    i["classes"]=utils.switch_class(i["classes"],[],classes)
             else:
-                i["classes"]=utils.switch_class(i["classes"],[],classes)
-        else:
-            src = i["data"]["source"].split("_")
-            tgt = i["data"]["target"].split("_")
-            src.remove("vs")
-            tgt.remove("vs")
-            src_dis = src[0]
-            src_comp = "_".join(src[1:])
-            tgt_comp = "_".join(tgt[1:])
-            tgt_dis = tgt[0]
-            if(src_dis in diseases and tgt_dis in diseases and src_comp in comparisons_filter and tgt_comp in comparisons_filter):
-                if "highlight" not in i["classes"]:
-                    i["classes"] = " ".join(i["classes"].split(" ")+["highlight"])
-            else:
-                if "highlight" in i["classes"]:
-                    classes = i["classes"].split(" ")
-                    classes.remove("highlight")
-                    i["classes"]="_".join(classes)
+                if "classes" not in i:
+                    i["classes"]=""
+
+                src = i["data"]["source"].split("_")
+                tgt = i["data"]["target"].split("_")
+                # src.remove("vs")
+                # tgt.remove("vs")
+                src_dis = src[0]
+                src_comp = "_".join(src[1:])
+                tgt_comp = "_".join(tgt[1:])
+                tgt_dis = tgt[0]
+                if(src_dis in diseases and tgt_dis in diseases and src_comp in comparisons_filter and tgt_comp in comparisons_filter):
+                    if "highlight" not in i["classes"]:
+                        i["classes"] = " ".join(i["classes"].split(" ")+["highlight"])
+                else:
+                    if "highlight" in i["classes"]:
+                        classes = i["classes"].split(" ")
+                        classes.remove("highlight")
+                        i["classes"]="_".join(classes)
     return cur_elems
 
 @callback(Output('data_overview_selected','value'),
@@ -219,9 +251,10 @@ def update_box_plot(menu_selected_diseases,overview_selected,menu_selected,overv
         if overview_selected is not None:
             overview_selected = overview_selected.split(";")
             diseases = diseases + list(set([i.split("_")[0] for i in overview_selected]))
-        selected_patient_and_genes = Controller._instance.dm.get_activations(items,diseases)
-        box_categories = pd.unique(selected_patient_and_genes["box_category"]).tolist()
-
+        selected_patient_and_genes = Controller._instance.dm.get_activations(items,diseases).sort_values(["box_category"])
+        box_categories = sorted(pd.unique(selected_patient_and_genes["box_category"]).tolist())
+        symbols = list(map(lambda s : " ".join(s),Controller._instance.dm.get_symbol(items).to_list()))
+        selected_patient_and_genes =selected_patient_and_genes.rename(columns = dict(zip(items,symbols)))
         for i in overview_elements:
             if "elems" in i["data"] and  any([j in items for j in i["data"]["elems"]]):
                 stylesheets.append({"selector":'edge#'+i["data"]["id"],"style":{"line-color":"red","width":6}})
@@ -235,7 +268,8 @@ def update_box_plot(menu_selected_diseases,overview_selected,menu_selected,overv
                     # classes.remove("highlight_edge")
                     # i["classes"] = " ".join(classes)
         if(len(items)==1):
-            box = px.box(selected_patient_and_genes,x="box_category",y=items[0],color_discrete_sequence=detail_graph.get_color_scheme(items),labels={"box_category":""})
+            print(selected_patient_and_genes,(symbols),items)
+            box = px.box(selected_patient_and_genes,x="box_category",y=symbols[0],color_discrete_sequence=detail_graph.get_color_scheme(items),labels={"box_category":""})
             if(box.layout.margin.t is not None and box.layout.margin.t>20):
                 box.layout.margin.t=20
             return box,"visible_plot",stylesheets
@@ -244,9 +278,9 @@ def update_box_plot(menu_selected_diseases,overview_selected,menu_selected,overv
             dfs = []
             color_scheme=detail_graph.get_color_scheme(items)
             for i in range(len(items)):
-                df = selected_patient_and_genes.filter(("box_category",items[i]))
-                df = df.rename({items[i]:"expression"},axis=1)
-                df["gene"] = items[i]
+                df = selected_patient_and_genes.filter(("box_category",symbols[i]))
+                df = df.rename({symbols[i]:"expression"},axis=1)
+                df["gene"] = symbols[i]
                 dfs.append(df)
             df = pd.concat(dfs)
             box = px.box(df,x="box_category",y="expression",color="gene",color_discrete_sequence=color_scheme,labels={"box_category":""})

@@ -29,7 +29,7 @@ register_page(__name__,"/",title="THe_BIOM")
 dm = data_manager.DataManager(signatures,expressions,pathways)
 ctrl = controller.Controller(dm)
 df = pd.read_csv(signatures)
-df["id"] = df["Disease"]+"_"+df["Comparison"]
+df["id"] = df["Cancer"]+"_"+df["Comparison"]
 detail_graph=dg.detail_graph()
 mouse_up_event = {"event":"mouseup","props":["target","buttons","offsetX","offsetY","type"]}
 click_event = {"event":"click","props":["target","buttons","offsetX","offsetY","type","isTrusted"]}
@@ -41,7 +41,7 @@ def layout():
     return dbc.Container([ dbc.Row(
      [
         dbc.Col(
-        menu.menu(dm.get_diseases(),dm.get_comparisons(),dm.get_disease_cmap(),dm.get_comparison_cmap(),dm.get_genes())
+        menu.menu(dm.get_diseases(),dm.get_comparisons(),dm.get_disease_cmap(),dm.get_comparison_cmap(),dm.get_genes(),dm.get_filters())
         ,width=2,style={"minWidth":'170px',"height":"100%"}),
         EventListener([
             # dbc.Row([

@@ -9,7 +9,7 @@ def initialized_sgd2_layout(I,J,V,pos):
         X[i][0]=pos[i][0]
         X[i][1]=pos[i][1]
     if(len(pos)!=len(X)):
-        s_gd2.s_gd2.cpp.layout_weighted(X,I,J,V,30,0.01,seed)
+        s_gd2.s_gd2.cpp.layout_weighted(X,I,J,V,600,0.01,seed)
         # X*=100*len(I)/len(X)
         average_edge_length = (((X[I]-X[J])**2).sum(-1)**0.5).mean()
         X*=average_edge_length*50
@@ -34,9 +34,10 @@ def sgd2_layout(elements,detail_pos_store,AR=1):
             e = G.existEdge(node_dict[i["data"]["source"]],node_dict[i["data"]["target"]],False)
             if(not e.isValid()):
                 e = G.addEdge(node_dict[i["data"]["source"]],node_dict[i["data"]["target"]])
-            w[e]=w[e]+2
-            if not "is_pathway_edge" in i["data"] or not i["data"]["is_pathway_edge"]:
-                w[e]=w[e]-0.15
+                if not "is_pathway_edge" in i["data"] or not i["data"]["is_pathway_edge"]:
+                    w[e]=w[e]+1
+                else:
+                    w[e]=w[e]+3
 
     vl = G.getLayoutProperty("viewLayout")
     ccs = tlp.ConnectedTest.computeConnectedComponents(G)
