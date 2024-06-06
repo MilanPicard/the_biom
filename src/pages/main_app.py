@@ -30,14 +30,15 @@ dm = data_manager.DataManager(signatures,expressions,pathways)
 ctrl = controller.Controller(dm)
 df = pd.read_csv(signatures)
 df["id"] = df["Cancer"]+"_"+df["Comparison"]
-detail_graph=dg.detail_graph()
 mouse_up_event = {"event":"mouseup","props":["target","buttons","offsetX","offsetY","type"]}
 click_event = {"event":"click","props":["target","buttons","offsetX","offsetY","type","isTrusted"]}
 mouse_down_event = {"event":"mousedown","props":["target","buttons","offsetX","offsetY","type"]}
 mouse_out_event = {"event":"mouseout","props":["buttons","offsetX","offsetY","type"]}
 mouse_move_event = {"event":"mousemove","props":["buttons","offsetX","offsetY","target","type"]}
 def layout():
+    detail_graph=dg.detail_graph()
 
+    overview_graph = ov.overview_graph(dm)
     return dbc.Container([ dbc.Row(
      [
         dbc.Col(
@@ -53,7 +54,8 @@ def layout():
             EventListener(
                 [
                 dbc.Col([
-                    ov.overview_graph(dm),
+                    html.Span(tooltip.create_tooltip(overview_graph),style={"position":"relative","zIndex":"4"}),
+                    overview_graph,
                     html.Span(draggable="false",style={"width":"3%","height":"96%","cursor":"w-resize","userSelect":"none"}),
                          ],width=6,id="overview_col",style={"display":"flex","flexDirection":"row","borderWidth":"1px","borderStyle":"solid","borderColor":"black"}),
                 dbc.Col([
@@ -71,8 +73,8 @@ def layout():
                 # dcc.Tabs([
                 # # dbc.Col(
                 # dcc.Tab(label='Boxplot', children=[
-                html.Div([#html.Span(style={"userSelect":"none","height":"1%"},id="height_resize_span"),
-                          dbp.detail_box_plot()],style={"height":"100%","display":"flex","flexDirection":"column","justifyContent":"end"},id="second_row_div")
+                html.Div([#html.Span(style={"userSelect":"none","height":"1%"},id="height_resize_span")
+                    ]+ dbp.detail_box_plot(),style={"height":"100%","display":"flex","flexDirection":"column","justifyContent":"end"},id="second_row_div")
                 #     # ,width=9)
                 # ])
                 #     ,

@@ -8,7 +8,10 @@ from collections import defaultdict
 
 def detail_box_plot():
     fig = go.Figure(data=[])
-    return dcc.Graph(figure=fig,id='activation_boxplot',config={"scrollZoom":False,"displayModeBar":False},style={"height":"96%","cursor":"auto"})
+    return [
+        dcc.Graph(figure=fig,id='activation_boxplot',config={"scrollZoom":False,"displayModeBar":False},style={"height":"96%","cursor":"auto"}),
+        dcc.Store(data={'wider_boxplot_border':[]},id="box_plots_to_style")]
+
 
 def detail_heatmap():
     fig = go.Figure(data=[])

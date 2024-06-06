@@ -29,12 +29,19 @@
 #_pages_content{
     height: 100%;
 }
-
+#overview_col span .dcc-tooltip-bounding-box{
+    z-index:0;
+    pointer-events: none;
+} 
 #detail_col span .dcc-tooltip-bounding-box{
     z-index:0;
     pointer-events: none;
 } 
 #detail_col span .dcc-tooltip-bounding-box > span,#detail_col span .dcc-tooltip-bounding-box > span *{
+    z-index:4;
+    pointer-events: auto;
+}
+#overview_col span .dcc-tooltip-bounding-box > span,#overview_col span .dcc-tooltip-bounding-box > span *{
     z-index:4;
     pointer-events: auto;
 }
@@ -44,4 +51,8 @@
 }
 #detail_graph_tooltip p {
     text-wrap: pretty;
+}
+
+#activation_boxplot g.boxlayer path.box.nothighlight{
+stroke-dasharray: "5,5"
 }

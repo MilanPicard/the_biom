@@ -1,6 +1,6 @@
 import dash_cytoscape as cyto
 import pandas as pd
-
+from dash_extensions.enrich import html
 class Edge:
     def __init__(self,source_id,target_id):
         self.source_id = source_id
@@ -36,6 +36,8 @@ def overview_graph(dm):
     return cyto.Cytoscape(
         id="overview_graph",
         layout={"name":"cose","nodeDimensionsIncludeLabels":True,"animate":False},
+        clearOnUnhover=True,
+
         className="overview",
         boxSelectionEnabled=True,
         autoungrabify=True,
@@ -53,7 +55,13 @@ def overview_graph(dm):
 
 def get_elements(dm,**dm_kwargs):
     intersections,signatures_ids = dm.get_signatures_intersections(**dm_kwargs)
-    return [{'data':{"id":i["id"],"label":"\n".join(i["id"].split("_")),"Cancer":i["Cancer"],"Comparison":i["Comparison"],"Filter":i["Filter"],"Signature":i["Signature"]},"group":"nodes","classes":" ".join([i["Cancer"]])} for i in signatures_ids]+[{"data":{"source":k[0],"target":k[1],"elems":v},"group":"edges","classes":""} for k,v in intersections.items()]
+    genes = set()
+    for v in intersections.values():
+        genes.update(v)
+    symbols = dm.get_symbol(genes)
+    def get_toolip(symbols):
+        return html.P(" ".join(symbols))
+    return [{'data':{"id":i["id"],"label":"\n".join(i["id"].split("_")),"Cancer":i["Cancer"],"Comparison":i["Comparison"],"Filter":i["Filter"],"Signature":i["Signature"]},"group":"nodes","classes":" ".join([i["Cancer"]])} for i in signatures_ids]+[{"data":{"source":k[0],"target":k[1],"elems":v,"symbols":[get_toolip(symbols[g]) for g in v]},"group":"edges","classes":"","style":{"width":len(v)}} for k,v in intersections.items()]
 
 def get_default_stylesheet(dm,color_by_diseases=True):
     cm = dm.get_disease_cmap()# if color_by_diseases else dm.get_stage_cmap()

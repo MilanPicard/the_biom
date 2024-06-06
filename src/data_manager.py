@@ -21,7 +21,7 @@ class DataManager(object):
             cls._instance.signatures["id"] = cls._instance.signatures["Cancer"]+"_"+cls._instance.signatures["Comparison"]+"_"+cls._instance.signatures["Filter"]
             # cls._instance.signatures["Comparison"] = cls._instance.signatures["Comparison"].str.split("_").astype(pd.ArrowDtype(pa.list_(pa.string()))).list[0::2]
             cls._instance.exploded = cls._instance.signatures.explode("Signature").rename(columns={"Signature":"EnsemblID"})
-            cls._instance.activation_data = pd.read_csv(cls._instance.expression_file,delimiter=";",dtype=defaultdict(lambda :float,Cancer=str,Stage=str))
+            cls._instance.activation_data = pd.read_csv(cls._instance.expression_file,delimiter=",",dtype=defaultdict(lambda :float,Cancer=str,Stage=str,ID=str))
             cls._instance.activation_data["box_category"] = cls._instance.activation_data["Cancer"]+"_"+cls._instance.activation_data["Stage"]
             cls._instance.pathways = pd.read_csv(pathway_file,dtype={"EnsemblID":str,"UniProtID":str,"PathwayStId":str,"PathwayDisplayName":str,"PathwayReactomeLink":str},converters={"GeneSymbolID":lambda s:list(map(lambda symbol:symbol.replace("'",""),s[1:-1].split(",")))},keep_default_na=False)
             cls._instance.pathways["GeneSymbolID"] = cls._instance.pathways["GeneSymbolID"].astype(pd.ArrowDtype(pa.list_(pa.string())))
@@ -60,7 +60,9 @@ class DataManager(object):
         # print(symbols,self.exploded[self.exploded["Filter"]==selected_filter]["Signature"].value_counts(),symbols.join(self.exploded[self.exploded["Filter"]==selected_filter]["Signature"].value_counts(),how="right").fillna())
         return genes.to_dict("index")
     def get_symbol(self,gene):
-        return self.symbols.loc[gene]["GeneSymbolID"]
+        if isinstance(gene,str):
+            return self.symbols.loc[gene]["GeneSymbolID"]
+        return self.symbols.iloc[self.symbols.index.isin(gene)]["GeneSymbolID"]
     
     def get_signatures_intersections(self,disease_filter=[],comparisons_filter=[],selected_filter="Merge"):
         exploded = self.exploded[self.exploded["Filter"]==selected_filter]
