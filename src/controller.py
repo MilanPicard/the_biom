@@ -269,25 +269,25 @@ def update_box_plot(menu_selected_diseases,overview_selected,menu_selected,overv
                     # classes:list = i["classes"].split(" ")
                     # classes.remove("highlight_edge")
                     # i["classes"] = " ".join(classes)
-        if(len(items)==1):
-            box = px.box(selected_patient_and_genes,x="box_category",y=symbols[0],color_discrete_sequence=detail_graph.get_color_scheme(items),labels={"box_category":""})
-            if(box.layout.margin.t is not None and box.layout.margin.t>20):
-                box.layout.margin.t=20
-            return box,"visible_plot",stylesheets,{"categories":box_categories,"genes":items}
+        # if(len(items)==1):
+        #     box = px.box(selected_patient_and_genes,x="box_category",y=symbols[0],color_discrete_sequence=detail_graph.get_color_scheme(items),labels={"box_category":""})
+        #     if(box.layout.margin.t is not None and box.layout.margin.t>20):
+        #         box.layout.margin.t=20
+        #     return box,"visible_plot",stylesheets,{"categories":box_categories,"genes":items}
 
-        else:
-            dfs = []
-            color_scheme=detail_graph.get_color_scheme(items)
-            for i in range(len(items)):
-                df = selected_patient_and_genes.filter(("box_category",symbols[i]))
-                df = df.rename({symbols[i]:"expression"},axis=1)
-                df["gene"] = symbols[i]
-                dfs.append(df)
-            df = pd.concat(dfs)
-            box = px.box(df,x="box_category",y="expression",color="gene",color_discrete_sequence=color_scheme,labels={"box_category":""})
-            if(box.layout.margin.t is not None and box.layout.margin.t>20):
-                box.layout.margin.t=20
-            return box ,"visible_plot",stylesheets,{"categories":box_categories,"genes":items}
+        # else:
+        dfs = []
+        color_scheme=detail_graph.get_color_scheme(items)
+        for i in range(len(items)):
+            df = selected_patient_and_genes.filter(("box_category",symbols[i]))
+            df = df.rename({symbols[i]:"expression"},axis=1)
+            df["gene"] = symbols[i]
+            dfs.append(df)
+        df = pd.concat(dfs)
+        box = px.box(df,x="box_category",y="expression",color="gene",color_discrete_sequence=color_scheme,labels={"box_category":"","expression":"expression (log2(TPM+1))"})
+        if(box.layout.margin.t is not None and box.layout.margin.t>20):
+            box.layout.margin.t=20
+        return box ,"visible_plot",stylesheets,{"categories":box_categories,"genes":items}
         
     else:
         return go.Figure(data=[

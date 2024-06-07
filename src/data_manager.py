@@ -16,8 +16,9 @@ class DataManager(object):
             cls._instance.expression_file = expression_file
             cls._instance.signatures = pd.read_csv(signature_file,dtype=pd.StringDtype())
             cls._instance.signatures["Signature"] = cls._instance.signatures["Signature"].str.split(";").astype(pd.ArrowDtype(pa.list_(pa.string())))
-            merged = cls._instance.signatures.groupby(["Cancer","Comparison"]).agg(Filter=pd.NamedAgg(column="Filter",aggfunc=lambda x: "Merge"),Signature=pd.NamedAgg(column="Signature",aggfunc=lambda x:set([g for sign in x for g in sign])),gProfiler=pd.NamedAgg(column="gProfiler",aggfunc=lambda x: "??"))
-            cls._instance.signatures=pd.concat([cls._instance.signatures,merged.reset_index()])
+            if "Merge" not in cls._instance.signatures["Filter"].unique():
+                merged = cls._instance.signatures.groupby(["Cancer","Comparison"]).agg(Filter=pd.NamedAgg(column="Filter",aggfunc=lambda x: "Merge"),Signature=pd.NamedAgg(column="Signature",aggfunc=lambda x:set([g for sign in x for g in sign])),gProfiler=pd.NamedAgg(column="gProfiler",aggfunc=lambda x: "??"))
+                cls._instance.signatures=pd.concat([cls._instance.signatures,merged.reset_index()])
             cls._instance.signatures["id"] = cls._instance.signatures["Cancer"]+"_"+cls._instance.signatures["Comparison"]+"_"+cls._instance.signatures["Filter"]
             # cls._instance.signatures["Comparison"] = cls._instance.signatures["Comparison"].str.split("_").astype(pd.ArrowDtype(pa.list_(pa.string()))).list[0::2]
             cls._instance.exploded = cls._instance.signatures.explode("Signature").rename(columns={"Signature":"EnsemblID"})
