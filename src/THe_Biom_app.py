@@ -1,4 +1,4 @@
-from dash_extensions.enrich import Dash,html,dcc
+from dash_extensions.enrich import Dash,html,dcc,DashProxy,TriggerTransform,MultiplexerTransform,NoOutputTransform,CycleBreakerTransform,BlockingCallbackTransform,ServersideOutputTransform
 from dash_extensions import EventListener
 import dash
 import os
@@ -25,7 +25,13 @@ else:
     signatures =os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),"data","signatures","THe_Biom_DEV_dataset.csv")
     expressions = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),"data","activations","fake_data.csv")
     pathways = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),"data","pathways","fake_pathways")
-app = Dash(__name__,external_stylesheets=[dbc.themes.BOOTSTRAP],assets_ignore="lib/.*",use_pages=True)
+app = DashProxy(__name__,transforms=[TriggerTransform(),
+            MultiplexerTransform(),
+            NoOutputTransform(),
+            CycleBreakerTransform(),
+            BlockingCallbackTransform(),
+            ServersideOutputTransform()
+            ],external_stylesheets=[dbc.themes.BOOTSTRAP],assets_ignore="lib/.*",use_pages=True)
 main_page = dash.page_registry["pages.main_app"]
 about_page = dash.page_registry["pages.about"]
 dm = data_manager.DataManager(signatures,expressions,pathways)
