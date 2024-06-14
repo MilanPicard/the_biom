@@ -28,92 +28,97 @@ function tooltip(mouseoverNodeData,fake_graph_size,elements,extent,stylesheets,p
         //return [cur_children,cur_show,cur_bbox,cur_direction];
         return [[],false,{},"right"];
     }else{
-        const cy_elem = document.getElementById(dash_clientside.callback_context.triggered_id)['_cyreg']["cy"].elements("#" + mouseoverNodeData["id"]).toArray();
+        try{
+            const cy_elem = document.getElementById(dash_clientside.callback_context.triggered_id)['_cyreg']["cy"].elements("#" + mouseoverNodeData["id"]).toArray();
 
-        var direction="left";
-        var elem = undefined;
-        console.log(cy_elem)
-        if(cy_elem[0].isEdge()){
-            console.log(cy_elem[0].isEdge(),cy_elem[0].renderedMidpoint(),cy_elem[0].midpoint(),cy_elem[0].data("symbols"))
-            content=cy_elem[0].data("symbols")
-            rmp = cy_elem[0].renderedMidpoint()
-            mp = cy_elem[0].midpoint()
-            
-            return [content,true,{"x0":rmp['x'],"y0":rmp['y'],"x1":rmp['x'],"y1":rmp['y']},direction];
-        }else{
-            // if( mouseoverNodeData["id"] in pos_store_data){
-            //     elem=pos_store_data[mouseoverNodeData["id"]];
-            // }else{
-            //     for(var i of elements){
-            //         if( i["data"]["id"] == mouseoverNodeData["id"]){
-            //             elem = i;
-            //             break;
-            //         }
-            //     }
-            // }
-            var detail_graph = document.getElementById('detail_graph');
-            var detail_resize_span = document.getElementById('detail_resize_span');
-            //console.log("update_width_start",dash_clientside.callback_context.triggered_id,Object.assign({},fake_graph_size,{'width':elem.clientWidth,'height':elem.clientHeight,'width_span':detail_resize_span.clientWidth,"AR":elem.clientWidth/elem.clientHeight}))
-            var x = 0;
-            var y=0;
-            var width=0;
-            var height=0;
-            var wratio=detail_graph.clientWidth/(extent["x2"]-extent["x1"]);
-            var hratio=detail_graph.clientHeight/(extent["y2"]-extent["y1"]);
-            // x = (elem["position"]["x"]-extent["x1"]) *wratio+detail_resize_span.clientWidth;
-            // y = (elem["position"]["y"]-extent["y1"]) *hratio
-            x = cy_elem[0].renderedPosition("x")+document.getElementById("detail_resize_span").clientWidth
-            y = cy_elem[0].renderedPosition("y")
-            console.log(elem,cy_elem[0].renderedPosition(),cy_elem[0].relativePosition(),x,y);
-
-            direction = (x/detail_graph.clientWidth>0.5)?"left":"right";
-            if( "weight" in mouseoverNodeData){
-                width = mouseoverNodeData["weight"];
-                height = mouseoverNodeData["weight"];
+            var direction="left";
+            var elem = undefined;
+            console.log(cy_elem)
+            if(cy_elem[0].isEdge()){
+                console.log(cy_elem[0].isEdge(),cy_elem[0].renderedMidpoint(),cy_elem[0].midpoint(),cy_elem[0].data("symbols"))
+                content=cy_elem[0].data("symbols")
+                rmp = cy_elem[0].renderedMidpoint()
+                mp = cy_elem[0].midpoint()
+                
+                return [content,true,{"x0":rmp['x'],"y0":rmp['y'],"x1":rmp['x'],"y1":rmp['y']},direction];
             }else{
-                var polygon = [];
-                var zeros = [];
-                var y_crosses = [];
-                for(var i of stylesheets){
-                    if(i["selector"] == "node#"+mouseoverNodeData["id"]){
-                        width = parseFloat(i["style"]["width"]);
-                        height = parseFloat(i["style"]["height"]);
-                        var pos = i["style"]["shapePolygonPoints"].split(" ").map(parseFloat);
-                        for(var p =0;p<pos.length;p+=2){
-                            polygon.push([pos[p],pos[p+1]]);
-                            if(pos[p+1]==0.0){
-                                zeros.push(p/2);
-                                y_crosses.push(pos[p+1]);
-                            }
-                        }
+                // if( mouseoverNodeData["id"] in pos_store_data){
+                //     elem=pos_store_data[mouseoverNodeData["id"]];
+                // }else{
+                //     for(var i of elements){
+                //         if( i["data"]["id"] == mouseoverNodeData["id"]){
+                //             elem = i;
+                //             break;
+                //         }
+                //     }
+                // }
+                var detail_graph = document.getElementById('detail_graph');
+                var detail_resize_span = document.getElementById('detail_resize_span');
+                //console.log("update_width_start",dash_clientside.callback_context.triggered_id,Object.assign({},fake_graph_size,{'width':elem.clientWidth,'height':elem.clientHeight,'width_span':detail_resize_span.clientWidth,"AR":elem.clientWidth/elem.clientHeight}))
+                var x = 0;
+                var y=0;
+                var width=0;
+                var height=0;
+                var wratio=detail_graph.clientWidth/(extent["x2"]-extent["x1"]);
+                var hratio=detail_graph.clientHeight/(extent["y2"]-extent["y1"]);
+                // x = (elem["position"]["x"]-extent["x1"]) *wratio+detail_resize_span.clientWidth;
+                // y = (elem["position"]["y"]-extent["y1"]) *hratio
+                x = cy_elem[0].renderedPosition("x")+document.getElementById("detail_resize_span").clientWidth
+                y = cy_elem[0].renderedPosition("y")
+                console.log(elem,cy_elem[0].renderedPosition(),cy_elem[0].relativePosition(),x,y);
 
-                        break;
+                direction = (x/detail_graph.clientWidth>0.5)?"left":"right";
+                if( "weight" in mouseoverNodeData){
+                    width = mouseoverNodeData["weight"];
+                    height = mouseoverNodeData["weight"];
+                }else{
+                    var polygon = [];
+                    var zeros = [];
+                    var y_crosses = [];
+                    for(var i of stylesheets){
+                        if(i["selector"] == "node#"+mouseoverNodeData["id"]){
+                            width = parseFloat(i["style"]["width"]);
+                            height = parseFloat(i["style"]["height"]);
+                            var pos = i["style"]["shapePolygonPoints"].split(" ").map(parseFloat);
+                            for(var p =0;p<pos.length;p+=2){
+                                polygon.push([pos[p],pos[p+1]]);
+                                if(pos[p+1]==0.0){
+                                    zeros.push(p/2);
+                                    y_crosses.push(pos[p+1]);
+                                }
+                            }
+
+                            break;
+                        }
                     }
-                }
-                if(y_crosses.length<2){
-                    for(var i =0; i<polygon.length;i++){
-                        if(polygon[i][0]!=0 && polygon[(i+1)%polygon.length][0]!=0){
-                            if(polygon[i][1]*polygon[(i+1)%polygon.length][1]<0){
-                                y_crosses.push(
-                                    polygon[i][0]+(Math.abs(polygon[i][1])/(Math.abs(polygon[i][1])+Math.abs(polygon[(i+1)%polygon.length][1])))*(polygon[(i+1)%polygon.length][0]-polygon[i][0])
-                                );
+                    if(y_crosses.length<2){
+                        for(var i =0; i<polygon.length;i++){
+                            if(polygon[i][0]!=0 && polygon[(i+1)%polygon.length][0]!=0){
+                                if(polygon[i][1]*polygon[(i+1)%polygon.length][1]<0){
+                                    y_crosses.push(
+                                        polygon[i][0]+(Math.abs(polygon[i][1])/(Math.abs(polygon[i][1])+Math.abs(polygon[(i+1)%polygon.length][1])))*(polygon[(i+1)%polygon.length][0]-polygon[i][0])
+                                    );
+                                }
                             }
                         }
                     }
-                }
-                if(y_crosses.length==2){
-                    if(direction=="right"){
-                        x+=0.5*y_crosses.reduce((a,b) => Math.max(a,b),-1)*width*wratio;
+                    if(y_crosses.length==2){
+                        if(direction=="right"){
+                            x+=0.5*y_crosses.reduce((a,b) => Math.max(a,b),-1)*width*wratio;
+                        }else{
+                            x+=0.5*y_crosses.reduce((a,b) => Math.min(a,b),1)*width*wratio;
+                        }
+                        width=0;
+                        height=0;
                     }else{
-                        x+=0.5*y_crosses.reduce((a,b) => Math.min(a,b),1)*width*wratio;
+                        console.log("y_crosses",y_crosses);
                     }
-                    width=0;
-                    height=0;
-                }else{
-                    console.log("y_crosses",y_crosses);
                 }
+                return [mouseoverNodeData["tooltip_content"],true,{"x0":x-width*wratio/2,"y0":y-height*hratio/2,"x1":x+width*wratio/2,"y1":y+height*hratio/2},direction];
             }
-            return [mouseoverNodeData["tooltip_content"],true,{"x0":x-width*wratio/2,"y0":y-height*hratio/2,"x1":x+width*wratio/2,"y1":y+height*hratio/2},direction];
+        }catch(error){
+            return [[],false,{},"right"];
+
         }
     }
 }

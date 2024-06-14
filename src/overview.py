@@ -61,7 +61,20 @@ def get_elements(dm,**dm_kwargs):
     symbols = dm.get_symbol(genes)
     def get_toolip(symbols):
         return html.P(" ".join(symbols))
-    return [{'data':{"id":i["id"],"label":"\n".join(i["id"].split("_")),"Cancer":i["Cancer"],"Comparison":i["Comparison"],"Filter":i["Filter"],"Signature":i["Signature"]},"group":"nodes","classes":" ".join([i["Cancer"]])} for i in signatures_ids]+[{"data":{"source":k[0],"target":k[1],"elems":v,"symbols":[get_toolip(symbols[g]) for g in v]},"group":"edges","classes":"","style":{"width":len(v)}} for k,v in intersections.items()]
+    cancers = {}
+    for i in signatures_ids:
+        if i["Cancer"] not in cancers:
+            cancers[i["Cancer"]] = [i["id"]]
+        else:
+            cancers[i["Cancer"]].append(i["id"])
+
+    fake_edges = []
+    fake_nodes = []
+    for c,l in cancers.items():
+        fake_nodes.append({'data':{"id":str(c),"label":"","fake":True},"group":"nodes","style":{"width":0,"height":0}})
+        for i in range(len(l)):
+            fake_edges.append({"data":{"source":l[i],"target":c,"fake":True},"group":"edges","style":{"width":0}})
+    return [{'data':{"id":i["id"],"label":"\n".join(i["id"].split("_")),"Cancer":i["Cancer"],"Comparison":i["Comparison"],"Filter":i["Filter"],"Signature":i["Signature"]},"group":"nodes","classes":" ".join([i["Cancer"]])} for i in signatures_ids]+[{"data":{"source":k[0],"target":k[1],"elems":v,"symbols":[get_toolip(symbols[g]) for g in v]},"group":"edges","classes":"","style":{"width":len(v)}} for k,v in intersections.items()]+fake_nodes+fake_edges
 
 def get_default_stylesheet(dm,color_by_diseases=True):
     cm = dm.get_disease_cmap()# if color_by_diseases else dm.get_stage_cmap()

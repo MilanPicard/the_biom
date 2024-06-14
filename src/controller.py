@@ -23,20 +23,22 @@ class Controller(object):
         return cls._instance
 @callback(
         Output("genes_menu_select","options"),
+        Output("pathways_menu_select","options"),
         Input("filters_dropdown","value")
 )
 def update_selectable_genes(selected_filter):
-    return [{"label":"None","value":"None"}]+[{"label":f"{' '.join(j['GeneSymbolID'])}","title" : f"{j['counts']} signatures","value":i} for i,j in Controller._instance.dm.get_genes(selected_filter).items()]
-
+    return [{"label":"None","value":"None"}]+[{"label":f"{' '.join(j['GeneSymbolID'])}","title" : f"{j['counts']} signatures","value":i} for i,j in Controller._instance.dm.get_genes(selected_filter).items()],[{"label":"None","value":"None"}]+[{"label":j['PathwayDisplayName'],"title" : f"{j['counts']} genes","value":i} for i,j in Controller._instance.dm.get_pathways([],selected_filter).items()]
 @callback(
         Output('selected_genes_store','data'),
         Input("genes_menu_select","value"),
         Input({"type":"selected_gene_button","gene":ALL},"n_clicks"),
         Input("detail_graph","selectedNodeData"),
         Input("filters_dropdown","value"),
+        Input("pathways_menu_select","value"),
+        Input({"type":"selected_pathway_button","pathway":ALL},"n_clicks"),
         State('selected_genes_store','data'),prevent_initial_call=True
 )
-def add_remove_gene(menu_select,button,fromGraph,selected_filter,current):
+def add_remove_gene(menu_select,button,fromGraph,selected_filter,menu_pathway,pathway_button,current):
     match ctx.triggered_id:
         case "genes_menu_select":
             if menu_select is not None and menu_select != "None" and menu_select not in current["selected"]:
@@ -50,10 +52,25 @@ def add_remove_gene(menu_select,button,fromGraph,selected_filter,current):
                         current["selected"].append(gene["id"])
             else:
                 raise dash.exceptions.PreventUpdate()
+        case "pathways_menu_select":
+            if menu_pathway is not None and menu_pathway != "None" and menu_pathway not in current["from_pathways"]:
+                current["from_pathways"]["ids"].append(menu_pathway)
+                current["from_pathways"]["genes"].append(Controller._instance.dm.get_genes(selected_filter,pathway = menu_pathway))
+            else:
+                raise dash.exceptions.PreventUpdate()
+
         case "filters_dropdown":
             current["selected"]=[]
+            current["from_pathways"]["ids"]=[]
+            current["from_pathways"]["genes"]=[]
         case _:
-            current["selected"].remove(ctx.triggered_id["gene"])
+            if "gene" in ctx.triggered_id:
+                current["selected"].remove(ctx.triggered_id["gene"])
+            else:
+                index = current["from_pathways"]["ids"].index(ctx.triggered_id["pathway"])
+                current["from_pathways"]["ids"].remove(ctx.triggered_id["pathway"])
+                del current["from_pathways"]["genes"][index]
+
     return current        
 @callback(
     Output("selected_genes_div","children"),
@@ -62,19 +79,30 @@ def add_remove_gene(menu_select,button,fromGraph,selected_filter,current):
     prevent_initial_call=False
 )
 def update_genes_buttons(store_data,cur_children):
+    return update_button(store_data["selected"], cur_children,attr="gene",get_symbol=Controller._instance.dm.get_symbol) 
+@callback(
+    Output("selected_pathways_div","children"),
+    Input("selected_genes_store","data"),
+    State("selected_pathways_div","children"),
+    prevent_initial_call=False
+)
+def update_pathways_buttons(store_data,cur_children):
+    print(store_data)
+    return update_button(store_data["from_pathways"]["ids"], cur_children,attr="pathway",get_symbol=Controller._instance.dm.get_pathway_label) 
+def update_button(store_data, cur_children,attr,get_symbol):
     patched = Patch()
     if cur_children is None:
         cur_children = []
     n=len(cur_children)
-    if len(store_data["selected"])==0 and n>0:
+    if len(store_data)==0 and n>0:
         patched.clear()
     else:
-        if n!=len(store_data["selected"]):
-            color_scheme = detail_graph.get_color_scheme(store_data["selected"])
-            if(len(store_data["selected"])<len(cur_children)):
+        if n!=len(store_data):
+            color_scheme = detail_graph.get_color_scheme(store_data)
+            if(len(store_data)<len(cur_children)):
                 found=False
-                for i in range(len(store_data["selected"])):
-                    if cur_children[i]["props"]["id"]["gene"]!=store_data["selected"][i]:
+                for i in range(len(store_data)):
+                    if cur_children[i]["props"]["id"][attr]!=store_data[i]:
                         del patched[i]
                         del cur_children[i]
                         found = True
@@ -86,17 +114,22 @@ def update_genes_buttons(store_data,cur_children):
                 n-=1
             else:
                 btn_style = {}
-                btn = html.Button(Controller._instance.dm.get_symbol(store_data["selected"][-1]),id={"type":"selected_gene_button","gene":store_data["selected"][-1]},className="btn",style=btn_style)
+                if attr=="pathway":
+                    print(store_data)
+                btn = html.Button(get_symbol(store_data[-1]),id={"type":f"selected_{attr}_button",attr:store_data[-1]},className="btn",style=btn_style)
                 patched.append(btn)
                 n+=1
-            for i,g in enumerate(store_data["selected"]):
+            for i,g in enumerate(store_data):
                 tc = utils.get_text_color(color_scheme[i%len(color_scheme)])
                 patched[i]["props"]["style"]={
                     "--bs-btn-bg":color_scheme[i%len(color_scheme)],
                     "--bs-btn-hover-bg":color_scheme[i%len(color_scheme)],
                     "--bs-btn-hover-color":tc,
                     "--bs-btn-color":tc}
-    return patched          
+        else:
+            raise dash.exceptions.PreventUpdate()
+
+    return patched         
 
 
 @callback(
@@ -116,12 +149,17 @@ def update_overview(diseases,
                     selected_genes_store,
                     selected_filter,
                     cur_elems):
-    if cur_elems[0]["data"]["Filter"]!=selected_filter:
+    if any(["Filter" in c["data"] and c["data"]["Filter"]!=selected_filter for c in cur_elems]):
         cur_elems = ov.get_elements(Controller._instance.dm,selected_filter=selected_filter)
     else:
+        genes = set(selected_genes_store["selected"])
+        for p in selected_genes_store["from_pathways"]["genes"]:
+            genes.update(p)
+
         classes = ["highlight","half_highlight"]
         for i in cur_elems:
-
+            if "fake" in i["data"] and i["data"]["fake"]:
+                continue               
             if "Cancer" in i["data"]:
                 if "classes" not in i:
                     i["classes"]=" ".join([i["data"]["Cancer"],"highlight"])
@@ -129,12 +167,14 @@ def update_overview(diseases,
                     c = "highlight"
                     if( selected_genes_store is not None):
                         c = "half_highlight"
-                        if len(set(selected_genes_store["selected"]).intersection(i["data"]["Signature"]))!=0:
+                        if len(genes.intersection(i["data"]["Signature"]))!=0 :
                             c = "highlight"
                     i["classes"]=utils.switch_class(i["classes"],[c],classes)
                 else:
                     i["classes"]=utils.switch_class(i["classes"],[],classes)
             else:
+                if "source" not in i["data"]:
+                    print(i)
                 if "classes" not in i:
                     i["classes"]=""
 
@@ -176,7 +216,10 @@ def update_menu_selected_data(data):
             prevent_initial_call=True
           )
 def update_menu_disease_filter_data(genes):
-    return Controller._instance.dm.get_diseases_from_genes(genes["selected"])
+    genes_set = set(genes["selected"])
+    for p in genes["from_pathways"]["genes"]:
+        genes_set.update(p)
+    return Controller._instance.dm.get_diseases_from_genes(genes_set)
 @callback(
         Output('comparisons_filter','value'),
         Input("selected_genes_store","data"),
@@ -184,8 +227,11 @@ def update_menu_disease_filter_data(genes):
             prevent_initial_call=True
           )
 def update_menu_comparison_filter_data(genes,cur_state):
-    if len(genes["selected"])>0:
-        return Controller._instance.dm.get_comparisons_from_genes(genes["selected"])
+    genes_set = set(genes["selected"])
+    for p in genes["from_pathways"]["genes"]:
+        genes_set.update(p)
+    if len(genes_set)>0:
+        return Controller._instance.dm.get_comparisons_from_genes(genes_set)
     return cur_state
 
 @callback(Output('detail_graph','elements'),
@@ -217,7 +263,10 @@ def display_detail_graph(diseases,comparisons,signatures,menu_genes,fake_graph_s
             diseases =""
         if signatures is None:
             signatures = ""
-        return detail_graph.display_detail_graph(list(filter(lambda a: len(a)>0,diseases)),list(filter(lambda a: len(a)>0,signatures.split(";"))),menu_genes["selected"],existing_elements,detail_pos_store if detail_pos_store is not None else dict(),1 if fake_graph_size is None or "AR" not in fake_graph_size else fake_graph_size["AR"],selected_filter,comparisons)
+        genes_set = set(menu_genes["selected"])
+        for p in menu_genes["from_pathways"]["genes"]:
+            genes_set.update(p)
+        return detail_graph.display_detail_graph(list(filter(lambda a: len(a)>0,diseases)),list(filter(lambda a: len(a)>0,signatures.split(";"))),genes_set,existing_elements,detail_pos_store if detail_pos_store is not None else dict(),1 if fake_graph_size is None or "AR" not in fake_graph_size else fake_graph_size["AR"],selected_filter,comparisons)
     else:
         return existing_elements,[],{"name":"preset"},{}
 
@@ -235,7 +284,7 @@ def display_detail_graph(diseases,comparisons,signatures,menu_genes,fake_graph_s
     Output("box_plots_to_style","data"),
     Input("data_menu_selected","value"),
     Input("data_overview_selected","value"),
-    # State("overview_graph","selectedNodeData" ),
+    # State("overview_graph","selectedNodeData" ),g
     Input("selected_genes_store","data"),
         State("overview_graph","elements"),
         State("overview_graph","stylesheet"),
@@ -243,8 +292,11 @@ def display_detail_graph(diseases,comparisons,signatures,menu_genes,fake_graph_s
 )
 def update_box_plot(menu_selected_diseases,overview_selected,menu_selected,overview_elements,overview_stylesheets):
     items = []
-    if menu_selected is not None and len(menu_selected["selected"])!=0:
-        items += menu_selected["selected"]
+    if menu_selected is not None and (len(menu_selected["selected"])!=0 or len(menu_selected["from_pathways"]["ids"])>0):
+        genes_set = set(menu_selected["selected"])
+        for p in menu_selected["from_pathways"]["genes"]:
+            genes_set.update(p)
+        items += genes_set
     stylesheets =overview_stylesheets if overview_stylesheets is not None else ov.get_default_stylesheet(Controller._instance.dm)
     stylesheets = [s for s in stylesheets if not(s["selector"].startswith("edge#"))]
     if(len(items)>0):
@@ -640,3 +692,14 @@ def update_link_style(pathname,about,main):
 #     prevent_initial_call=True
 
 #     )
+
+
+clientside_callback(
+    """function sign_clipboard(n,sign){
+        navigator.clipboard.writeText(sign[0]);
+    }""",
+            Input({"type":"signature_clipboard","sign":ALL},"n_clicks"),
+            State({"type":"signature_clipboard","sign":ALL},"value"),
+                prevent_initial_call=True
+
+)

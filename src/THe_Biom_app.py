@@ -1,18 +1,14 @@
-from dash_extensions.enrich import Dash,html,dcc,DashProxy,TriggerTransform,MultiplexerTransform,NoOutputTransform,CycleBreakerTransform,BlockingCallbackTransform,ServersideOutputTransform
-from dash_extensions import EventListener
+from dash_extensions.enrich import Dash,html,dcc,DashProxy,NoOutputTransform,CycleBreakerTransform,BlockingCallbackTransform,ServersideOutputTransform
 import dash
 import os
 import sys
 import pandas as pd
 import overview as ov
 import detail_graph as dg
-# import interactions
-import detail_box_plot as dbp
 import dash_bootstrap_components as dbc
 import data_manager
 import controller
-import menu
-import tooltip
+
 if len(sys.argv)>=4:
     signatures = sys.argv[1]
     expressions = sys.argv[2]
@@ -25,12 +21,8 @@ else:
     signatures =os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),"data","signatures","THe_Biom_DEV_dataset.csv")
     expressions = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),"data","activations","fake_data.csv")
     pathways = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),"data","pathways","fake_pathways")
-app = DashProxy(__name__,transforms=[TriggerTransform(),
-            MultiplexerTransform(),
+app = DashProxy(__name__,transforms=[
             NoOutputTransform(),
-            CycleBreakerTransform(),
-            BlockingCallbackTransform(),
-            ServersideOutputTransform()
             ],external_stylesheets=[dbc.themes.BOOTSTRAP],assets_ignore="lib/.*",use_pages=True)
 main_page = dash.page_registry["pages.main_app"]
 about_page = dash.page_registry["pages.about"]

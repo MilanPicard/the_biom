@@ -42,7 +42,7 @@ def layout():
     return dbc.Container([ dbc.Row(
      [
         dbc.Col(
-        menu.menu(dm.get_diseases(),dm.get_comparisons(),dm.get_disease_cmap(),dm.get_comparison_cmap(),dm.get_genes(),dm.get_filters())
+        menu.menu(dm.get_diseases(),dm.get_comparisons(),dm.get_disease_cmap(),dm.get_comparison_cmap(),dm.get_genes(),dm.get_filters(),dm.get_pathways([],"Merge"))
         ,width=2,style={"minWidth":'170px',"height":"100%"}),
         EventListener([
             # dbc.Row([

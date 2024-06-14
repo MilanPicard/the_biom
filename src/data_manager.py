@@ -24,7 +24,7 @@ class DataManager(object):
             cls._instance.exploded = cls._instance.signatures.explode("Signature").rename(columns={"Signature":"EnsemblID"})
             cls._instance.activation_data = pd.read_csv(cls._instance.expression_file,delimiter=",",dtype=defaultdict(lambda :float,Cancer=str,Stage=str,ID=str))
             cls._instance.activation_data["box_category"] = cls._instance.activation_data["Cancer"]+"_"+cls._instance.activation_data["Stage"]
-            cls._instance.pathways = pd.read_csv(pathway_file,dtype={"EnsemblID":str,"UniProtID":str,"PathwayStId":str,"PathwayDisplayName":str,"PathwayReactomeLink":str},converters={"GeneSymbolID":lambda s:list(map(lambda symbol:symbol.replace("'",""),s[1:-1].split(",")))},keep_default_na=False)
+            cls._instance.pathways = pd.read_csv(pathway_file,dtype={"EnsemblID":pd.ArrowDtype(pa.string()),"UniProtID":pd.ArrowDtype(pa.string()),"PathwayStId":pd.ArrowDtype(pa.string()),"PathwayDisplayName":pd.ArrowDtype(pa.string()),"PathwayReactomeLink":pd.ArrowDtype(pa.string())},converters={"GeneSymbolID":lambda s:list(map(lambda symbol:symbol.replace("'",""),s[1:-1].split(",")))},keep_default_na=False)
             cls._instance.pathways["GeneSymbolID"] = cls._instance.pathways["GeneSymbolID"].astype(pd.ArrowDtype(pa.list_(pa.string())))
             symbols = cls._instance.pathways.filter(["EnsemblID","GeneSymbolID"]).groupby("EnsemblID").agg(lambda a:a.iloc[0])
             value_counts = pd.DataFrame({"counts":cls._instance.exploded["EnsemblID"].value_counts()})
@@ -49,7 +49,7 @@ class DataManager(object):
         return stages
     def get_signatures_id(self):
         return self.signatures["id"].to_list()
-    def get_genes(self,selected_filter="Merge"):
+    def get_genes(self,selected_filter="Merge",pathway=None):
         value_counts = pd.DataFrame({"counts":self.exploded[self.exploded["Filter"]==selected_filter]["EnsemblID"].value_counts()})
         genes = value_counts.join(self.symbols,how="left")
         genes.reset_index(inplace=True)
@@ -59,7 +59,12 @@ class DataManager(object):
 
         # symbols = self.pathways[self.pathways["EnsemblID"].isin(value_counts.keys())].filter(["EnsemblID","GeneSymbolID"]).groupby("EnsemblID").agg(test)
         # print(symbols,self.exploded[self.exploded["Filter"]==selected_filter]["Signature"].value_counts(),symbols.join(self.exploded[self.exploded["Filter"]==selected_filter]["Signature"].value_counts(),how="right").fillna())
+        if pathway is not None:
+            genes = genes.loc[self.pathways[self.pathways["PathwayStId"]==pathway]["EnsemblID"]]
         return genes.to_dict("index")
+    def get_pathway_label(self,pathway):
+        print(pathway)
+        return self.pathways[self.pathways["PathwayStId"]==pathway]["PathwayDisplayName"].iloc[0]
     def get_symbol(self,gene):
         if isinstance(gene,str):
             return self.symbols.loc[gene]["GeneSymbolID"]
@@ -101,13 +106,12 @@ class DataManager(object):
             exploded = exploded[exploded["Comparison"].isin(comparisons_filter)]
         if 'None' in gene_filter:
             gene_filter.remove('None')
+        if(len(gene_filter)>0):
+            # genes = []
+            # if(len(id_filter)>0):
+                # genes = genes+ exploded[exploded["id"].isin(id_filter)]["EnsemblID"].unique().tolist()
+            id_filter += exploded[exploded["EnsemblID"].isin(gene_filter)]["id"].unique().tolist()
         if(len(id_filter)>0 or len(gene_filter)>0):
-            genes = []
-            if len(gene_filter)>0 :
-                genes = gene_filter
-            if(len(id_filter)>0):
-                genes = genes+ exploded[exploded["id"].isin(id_filter)]["EnsemblID"].unique().tolist()
-            id_filter = exploded[exploded["EnsemblID"].isin(genes)]["id"].unique()
             exploded = exploded[exploded["id"].isin(id_filter)]
 
         # grouped_by_gene = exploded.groupby("Signature").agg(lambda a:a.to_list() if len(a) >1 else a)
@@ -149,14 +153,17 @@ class DataManager(object):
             exploded = exploded[exploded["Comparison"].isin(comparisons_filter)]
         if 'None' in gene_filter:
             gene_filter.remove('None')
+        if(len(gene_filter)>0):
+            genes = gene_filter
+            # id_filter = exploded[exploded["EnsemblID"].isin(genes)]["id"].unique()
+
+            # if(len(id_filter)>0):
+                # genes = genes+ exploded[exploded["id"].isin(id_filter)]["EnsemblID"].unique().tolist()
+            id_filter += exploded[exploded["EnsemblID"].isin(genes)]["id"].unique().tolist()
         if(len(id_filter)>0 or len(gene_filter)>0):
-            genes = []
-            if len(gene_filter)>0 :
-                genes = gene_filter
-            if(len(id_filter)>0):
-                genes = genes+ exploded[exploded["id"].isin(id_filter)]["EnsemblID"].unique().tolist()
-            id_filter = exploded[exploded["EnsemblID"].isin(genes)]["id"].unique()
             exploded = exploded[exploded["id"].isin(id_filter)]
+            print("len(exploded)",len(exploded),id_filter,gene_filter)
+            print(exploded)
 
         # grouped_by_gene = exploded.groupby("Signature").agg(lambda a:a.to_list() if len(a) >1 else a)
         # grouped_by_gene["id"] = grouped_by_gene["id"].astype(pd.ArrowDtype(pa.list_(pa.string())))
@@ -174,7 +181,16 @@ class DataManager(object):
         activations = activations[genes+["Cancer",'Stage',"box_category"]]
         return activations
     
-    def get_pathways(self,genes):
+    def get_pathways(self,genes,filter=None):
+        if(len(genes)==0):
+            genes = set(self.exploded[self.exploded["Filter"]==filter]["EnsemblID"].unique().tolist())
+            p = self.pathways[self.pathways["EnsemblID"].isin(genes)].filter(["PathwayStId","PathwayDisplayName","EnsemblID"]).groupby("PathwayStId").agg(lambda a: a.unique())
+            p = p.astype({"EnsemblID":pd.ArrowDtype(pa.list_(pa.string())),"PathwayDisplayName":pd.ArrowDtype(pa.list_(pa.string()))})
+            p=p.assign(counts=lambda x: x.EnsemblID.apply(len))
+            p["PathwayDisplayName"].apply(lambda x:x[0])
+            p.sort_values("counts",inplace=True,ascending=False)
+            
+            return p.filter(["PathwayDisplayName","PathwayStId","counts","EnsemblID"]).to_dict("index")
         genes = set(genes)
         # filtered = [p for p in self.pathways if any([g in genes for g in p["genes"]])]
         # pathways = {g:[] for g in genes}
