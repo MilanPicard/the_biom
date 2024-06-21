@@ -32,6 +32,7 @@ class DataManager(object):
             symbols.reset_index(inplace=True)
             symbols["GeneSymbolID"] = symbols["GeneSymbolID"].fillna(symbols["EnsemblID"].transform(lambda a:[a]))
             # genes.fillna(inplace=True)
+            cls._instance.pathway_labels = cls._instance.pathways.filter(["PathwayStId","PathwayDisplayName"]).groupby("PathwayStId").agg(lambda a: a.iloc[0])["PathwayDisplayName"]
             cls._instance.symbols = symbols.set_index("EnsemblID").filter(["GeneSymbolID"])
 
             # with open(pathway_file,"rt") as f:               
@@ -63,13 +64,11 @@ class DataManager(object):
             genes = genes.loc[self.pathways[self.pathways["PathwayStId"]==pathway]["EnsemblID"]]
         return genes.to_dict("index")
     def get_pathway_label(self,pathway):
-        print(pathway)
         return self.pathways[self.pathways["PathwayStId"]==pathway]["PathwayDisplayName"].iloc[0]
     def get_symbol(self,gene):
         if isinstance(gene,str):
             return self.symbols.loc[gene]["GeneSymbolID"]
         return self.symbols.iloc[self.symbols.index.isin(gene)]["GeneSymbolID"]
-    
     def get_signatures_intersections(self,disease_filter=[],comparisons_filter=[],selected_filter="Merge"):
         exploded = self.exploded[self.exploded["Filter"]==selected_filter]
         if(len(disease_filter)>0):
@@ -85,6 +84,33 @@ class DataManager(object):
         # exploded["id"] = exploded["id"].transform(lambda a:[a])
         grouped_by_gene = exploded.filter(["EnsemblID","id"]).groupby("EnsemblID").agg(lambda a:a.values)
         grouped_by_gene["id"] = grouped_by_gene["id"].astype(pd.ArrowDtype(pa.list_(pa.string())))
+        pathways = self.pathways.filter(["EnsemblID","PathwayStId"])
+        pathways = pathways[pathways["EnsemblID"].isin(grouped_by_gene.index)].groupby("EnsemblID").agg(lambda a:a.unique())
+        def agg_signature(a):
+            pd.set_option("max_colwidth",100)
+            pairs = set()
+            
+            for i in range(len(a)):
+                for j in range(i+1,len(a)):
+                    sign_i=set(a.iloc[i]).difference(set(a.iloc[j]))
+                    sign_j=set(a.iloc[j]).difference(set(a.iloc[i]))
+
+                    for s1 in sign_i:
+                        for s2 in sign_j:
+                            # if s1!=s2:
+                                if s1<s2:
+                                    pairs.add("__".join((s1,s2)))
+                                else:
+                                    pairs.add("__".join((s2,s1)))
+            pd.reset_option("max_colwidth")
+
+            return pairs
+        pathways = grouped_by_gene.join(pathways,how="inner").explode("PathwayStId").filter(["id","PathwayStId"]).groupby("PathwayStId").agg(lambda a: agg_signature(a))
+        pathways = pathways.assign(count=lambda x: x.id.apply(len))
+        pathways = pathways[pathways["count"]>0].filter(["id"])
+        pathways_edges = pathways.filter(["id"]).explode("id").reset_index().groupby("id").agg(lambda a:a.unique())
+        pathways_edges["PathwayStId"]=pathways_edges["PathwayStId"].apply(lambda pids:[f"{self.pathway_labels.loc[pid]}({pid})" for pid in pids])
+        # pathways_edges = pd.DataFrame.from_dict({"PathwayStId":[]})
         grouped_by_gene = grouped_by_gene.reset_index()[grouped_by_gene["id"].list.len()>1]
         
         intersections = dict()
@@ -96,7 +122,7 @@ class DataManager(object):
                         intersections[(genes[src],genes[tgt])].append(item.EnsemblID)
                     else:
                         intersections[(genes[src],genes[tgt])]= [item.EnsemblID]
-        return intersections,self.signatures[self.signatures["Filter"]==selected_filter].to_dict('records')
+        return intersections,self.signatures[self.signatures["Filter"]==selected_filter].to_dict('records'),pathways_edges
     def get_genes_intersections(self,disease_filter=[],comparisons_filter=[],id_filter=[],gene_filter=[],selected_filter="Merge"):
         exploded = self.exploded[self.exploded["Filter"]==selected_filter]
 
@@ -162,8 +188,6 @@ class DataManager(object):
             id_filter += exploded[exploded["EnsemblID"].isin(genes)]["id"].unique().tolist()
         if(len(id_filter)>0 or len(gene_filter)>0):
             exploded = exploded[exploded["id"].isin(id_filter)]
-            print("len(exploded)",len(exploded),id_filter,gene_filter)
-            print(exploded)
 
         # grouped_by_gene = exploded.groupby("Signature").agg(lambda a:a.to_list() if len(a) >1 else a)
         # grouped_by_gene["id"] = grouped_by_gene["id"].astype(pd.ArrowDtype(pa.list_(pa.string())))
@@ -199,7 +223,21 @@ class DataManager(object):
         #         if g in genes:
         #             pathways[g].append(p)
         # return pathways
-        return self.pathways[self.pathways['EnsemblID'].isin(genes)]
+        p=  self.pathways[self.pathways['EnsemblID'].isin(genes)]
+        p=p.transform({
+            'EnsemblID':lambda col:col.apply(lambda a: [a]).astype(pd.ArrowDtype(pa.list_(pa.string()))),
+            'UniProtID':lambda col:col.apply(lambda a: [a]).astype(pd.ArrowDtype(pa.list_(pa.string()))),
+            'PathwayStId':lambda col:col,
+            'PathwayDisplayName':lambda col:col,
+            'PathwayReactomeLink':lambda col:col,
+                       })
+        p=p.filter(["EnsemblID", "UniProtID" , "PathwayStId","PathwayDisplayName","PathwayReactomeLink"]).groupby("PathwayStId").agg({
+            "EnsemblID":lambda a:  [ i  for i in a.list.flatten()],
+            "UniProtID":lambda a: a,
+            "PathwayDisplayName":lambda a: a.iloc[0],
+            "PathwayReactomeLink":lambda a: a.iloc[0],
+        })
+        return p 
     def get_disease_cmap(self):
         unique_diseases = self.signatures["Cancer"].unique()
         colormap = cm.get_cmap("tab10",len(unique_diseases))

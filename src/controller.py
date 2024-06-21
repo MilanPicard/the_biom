@@ -1,3 +1,4 @@
+import time
 from dash_extensions.enrich import Dash, html, Input, Output, State, callback,ctx,ALL
 import dash_bootstrap_components as dbc
 import dash_cytoscape as cyto
@@ -151,12 +152,14 @@ def update_overview(diseases,
                     cur_elems):
     if any(["Filter" in c["data"] and c["data"]["Filter"]!=selected_filter for c in cur_elems]):
         cur_elems = ov.get_elements(Controller._instance.dm,selected_filter=selected_filter)
+        print(cur_elems)
     else:
         genes = set(selected_genes_store["selected"])
         for p in selected_genes_store["from_pathways"]["genes"]:
             genes.update(p)
 
         classes = ["highlight","half_highlight"]
+        signs = set([i["id"] for i in selectedSign]) if selectedSign is not None else set()
         for i in cur_elems:
             if "fake" in i["data"] and i["data"]["fake"]:
                 continue               
@@ -171,12 +174,15 @@ def update_overview(diseases,
                             c = "highlight"
                     i["classes"]=utils.switch_class(i["classes"],[c],classes)
                 else:
-                    i["classes"]=utils.switch_class(i["classes"],[],classes)
+                    if i["data"]["id"] in signs:
+                        i["classes"]=utils.switch_class(i["classes"],["highlight"],classes)
+                    else:
+                        i["classes"]=utils.switch_class(i["classes"],[],classes)
             else:
                 if "source" not in i["data"]:
                     print(i)
                 if "classes" not in i:
-                    i["classes"]=""
+                    i["classes"]="pathway" if i["data"]["type"]=="pathway" else ""
 
                 src = i["data"]["source"].split("_")
                 tgt = i["data"]["target"].split("_")
@@ -391,6 +397,7 @@ clientside_callback(
     Output("detail_graph_tooltip","direction"),
 #     # Output("detail_graph_tooltip","bbox"),
     Input("detail_graph","mouseoverNodeData"),
+    Input("detail_graph","mouseoverEdgeData"),
     Input("fake_graph_size","data"),
     State("detail_graph","elements"),
     State("detail_graph","extent"),
@@ -414,6 +421,7 @@ clientside_callback(
     Output("overview_graph_tooltip","bbox"),
     Output("overview_graph_tooltip","direction"),
 #     # Output("detail_graph_tooltip","bbox"),
+    Input("overview_graph","mouseoverNodeData"),
     Input("overview_graph","mouseoverEdgeData"),
     Input("fake_graph_size","data"),
     State("overview_graph","elements"),
@@ -451,7 +459,8 @@ function update_width_start(n1,n2,e_width,e_height,state,detail_graph_pos,dw,fak
         fake_graph_size["height"]=document.getElementById("detail_graph").clientHeight;
         fake_graph_size["AR"]=fake_graph_size["width"]/fake_graph_size["height"];
         fake_graph_size["just_redraw"]=true;
-        document.getElementById("overview_graph")['_cyreg']["cy"].layout({"name":"cose","nodeDimensionsIncludeLabels":true,"animate":false}).run();
+        //document.getElementById("overview_graph")['_cyreg']["cy"].layout({"name":"cose","nodeDimensionsIncludeLabels":true,"animate":false}).run();
+        layout_overview();
 
         return fake_graph_size;
         }
@@ -460,7 +469,11 @@ function update_width_start(n1,n2,e_width,e_height,state,detail_graph_pos,dw,fak
 
     }
     if(e["type"]=="mousedown"){
-        if(e.target.tagName=="SPAN"){
+        let in_tooltip = false;
+        for(let t of document.querySelectorAll(".dcc-tooltip-bounding-box")){
+            in_tooltip = in_tooltip || t.contains(e.target);
+        }
+        if(e.target.tagName=="SPAN" && !in_tooltip){
             if(dash_clientside.callback_context.triggered_id==="move_in_ov"){
                 if(!state["width"]["is_resizing"]){
                     state["width"]["is_resizing"]=true;
@@ -471,8 +484,9 @@ function update_width_start(n1,n2,e_width,e_height,state,detail_graph_pos,dw,fak
                 }
             }
         }else{
+            if(!in_tooltip){
                 var possibleTargets = ["overview_col","detail_col"];
-                if((dash_clientside.callback_context.triggered_id==="full_col" && "second_row_div" == e.target.id) || (possibleTargets.includes(e.target.id) && dash_clientside.callback_context.triggered_id==="move_in_ov")){
+                if((dash_clientside.callback_context.triggered_id==="full_col" && "second_row_div" == e.target.id) || (possibleTargets.includes(e.target.id) && (e.target.clientHeight-e.offsetY<50)&& dash_clientside.callback_context.triggered_id==="move_in_ov")){
                     if(!state["height"]["is_resizing"]){
                         state["height"]["is_resizing"]=true;
                         dash_clientside.set_props("resize_state", {"data":{"width":{"is_resizing":false},"height":{"is_resizing":true}}});
@@ -481,6 +495,7 @@ function update_width_start(n1,n2,e_width,e_height,state,detail_graph_pos,dw,fak
                 }else{
                     console.log(possibleTargets.includes(e.target.id),e.target.id,dash_clientside.callback_context.triggered_id==="full_col",dash_clientside.callback_context.triggered_id)
                 }
+            }
         }
         return dash_clientside.no_update;
     }
@@ -489,7 +504,9 @@ function update_width_start(n1,n2,e_width,e_height,state,detail_graph_pos,dw,fak
             state["width"]["is_resizing"]=false;
             dash_clientside.set_props("resize_state", {"data":{"width":state["width"],"height":state["height"]}});
             document.querySelectorAll("#overview_col canvas, #detail_col canvas").forEach(c => c.style.cursor="auto");
-            document.getElementById("overview_graph")['_cyreg']["cy"].layout({"name":"cose","nodeDimensionsIncludeLabels":true}).run();
+            //document.getElementById("overview_graph")['_cyreg']["cy"].layout({"name":"cose","nodeDimensionsIncludeLabels":true}).run();
+        layout_overview();
+
                     fake_graph_size["width"]=document.getElementById("detail_graph").clientWidth;
         fake_graph_size["height"]=document.getElementById("detail_graph").clientHeight;
         fake_graph_size["AR"]=fake_graph_size["width"]/fake_graph_size["height"];
@@ -498,7 +515,9 @@ function update_width_start(n1,n2,e_width,e_height,state,detail_graph_pos,dw,fak
         if(state["height"]["is_resizing"]){
             state["height"]["is_resizing"]=false;
             dash_clientside.set_props("resize_state", {"data":{"width":state["width"],"height":state["height"]}});
-            document.getElementById("overview_graph")['_cyreg']["cy"].layout({"name":"cose","nodeDimensionsIncludeLabels":true}).run();
+            //document.getElementById("overview_graph")['_cyreg']["cy"].layout({"name":"cose","nodeDimensionsIncludeLabels":true}).run();
+        layout_overview();
+
                     fake_graph_size["width"]=document.getElementById("detail_graph").clientWidth;
         fake_graph_size["height"]=document.getElementById("detail_graph").clientHeight;
         fake_graph_size["AR"]=fake_graph_size["width"]/fake_graph_size["height"];
@@ -512,7 +531,9 @@ function update_width_start(n1,n2,e_width,e_height,state,detail_graph_pos,dw,fak
     if(e["type"]=="mousemove" && state["height"]["is_resizing"] && e["buttons"]==0){
         state["height"]["is_resizing"]=false;
         dash_clientside.set_props("resize_state", {"data":{"width":state["width"],"height":state["height"]}});
-        document.getElementById("overview_graph")['_cyreg']["cy"].layout({"name":"cose","nodeDimensionsIncludeLabels":true}).run();
+//        document.getElementById("overview_graph")['_cyreg']["cy"].layout({"name":"cose","nodeDimensionsIncludeLabels":true}).run();
+        layout_overview();
+
         fake_graph_size["width"]=document.getElementById("detail_graph").clientWidth;
         fake_graph_size["height"]=document.getElementById("detail_graph").clientHeight;
         fake_graph_size["AR"]=fake_graph_size["width"]/fake_graph_size["height"];
@@ -696,10 +717,21 @@ def update_link_style(pathname,about,main):
 
 clientside_callback(
     """function sign_clipboard(n,sign){
-        navigator.clipboard.writeText(sign[0]);
+        if(n>0){
+            navigator.clipboard.writeText(sign[0]);
+        }
     }""",
             Input({"type":"signature_clipboard","sign":ALL},"n_clicks"),
             State({"type":"signature_clipboard","sign":ALL},"value"),
                 prevent_initial_call=True
 
+)
+
+clientside_callback(    ClientsideFunction(
+        namespace='clientside',
+        function_name='layout_overview'
+    ),
+
+                            Output('overview_graph','layout'),
+                            Input('overview_graph','elements'),
 )

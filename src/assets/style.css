@@ -52,7 +52,14 @@
 #detail_graph_tooltip p {
     text-wrap: pretty;
 }
-
+#detail_graph_tooltip, #overview_graph_tooltip{
+    font-size:smaller;
+}
+#detail_graph_tooltip, #overview_graph_tooltip{
+    max-width: 250px;
+    max-height: 200px;
+    overflow: scroll;
+}
 #activation_boxplot g.boxlayer path.box.nothighlight{
 stroke-dasharray: "5,5"
 }

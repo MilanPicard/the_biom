@@ -15,7 +15,7 @@ class Edge:
 def overview_graph(dm):
     cyto.load_extra_layouts()
 
-    intersections,signatures_ids = dm.get_signatures_intersections()
+    # intersections,signatures_ids = dm.get_signatures_intersections()
     genes = {}
     edges = dict()
     # for item in signatures.itertuples():
@@ -54,7 +54,7 @@ def overview_graph(dm):
     )
 
 def get_elements(dm,**dm_kwargs):
-    intersections,signatures_ids = dm.get_signatures_intersections(**dm_kwargs)
+    intersections,signatures_ids,pathway_edges = dm.get_signatures_intersections(**dm_kwargs)
     genes = set()
     for v in intersections.values():
         genes.update(v)
@@ -73,8 +73,20 @@ def get_elements(dm,**dm_kwargs):
     for c,l in cancers.items():
         fake_nodes.append({'data':{"id":str(c),"label":"","fake":True},"group":"nodes","style":{"width":0,"height":0}})
         for i in range(len(l)):
-            fake_edges.append({"data":{"source":l[i],"target":c,"fake":True},"group":"edges","style":{"width":0}})
-    return [{'data':{"id":i["id"],"label":"\n".join(i["id"].split("_")),"Cancer":i["Cancer"],"Comparison":i["Comparison"],"Filter":i["Filter"],"Signature":i["Signature"]},"group":"nodes","classes":" ".join([i["Cancer"]])} for i in signatures_ids]+[{"data":{"source":k[0],"target":k[1],"elems":v,"symbols":[get_toolip(symbols[g]) for g in v]},"group":"edges","classes":"","style":{"width":len(v)}} for k,v in intersections.items()]+fake_nodes+fake_edges
+            fake_edges.append({"data":{"source":l[i],"target":c,"fake":True,"type":"fake"},"group":"edges","style":{"width":0}})
+    return [{'data':{"id":i["id"],"label":"\n".join(i["id"].split("_")),"Cancer":i["Cancer"],"Comparison":i["Comparison"],"Filter":i["Filter"],"Signature":i["Signature"],"tooltip_content":[
+        html.Button("Copy genes to cliboard",id={"type":"signature_clipboard","sign":i["id"]} ,value=";".join(i["Signature"]))
+    ]},"group":"nodes","classes":" ".join([i["Cancer"]])} for i in signatures_ids]+[{"data":{"source":k[0],"target":k[1],"elems":v,"symbols":[get_toolip(symbols[g]) for g in v],"type":"signature"},"group":"edges","classes":"","style":{"width":5+len(v)}} for k,v in intersections.items()]+fake_nodes+fake_edges+[{
+        "data":{
+            "source":i.Index.split("__")[0],
+            "target":i.Index.split("__")[1],
+            "symbols":[get_toolip([j]) for j in i.PathwayStId],
+            "type":"pathway"
+        },
+        "classes":" ".join([
+            "pathway"
+        ]),
+    } for i in pathway_edges.itertuples()]
 
 def get_default_stylesheet(dm,color_by_diseases=True):
     cm = dm.get_disease_cmap()# if color_by_diseases else dm.get_stage_cmap()
@@ -83,9 +95,11 @@ def get_default_stylesheet(dm,color_by_diseases=True):
         {"selector":"node","style":{"label":"data(label)","text-wrap":"wrap","background-opacity":0.25}},
         {"selector":"node.highlight","style":{"background-opacity":1}},
         {"selector":"node.half_highlight","style":{"background-opacity":0.5}},
-        {"selector":"edge","style":{"line-opacity":0.25}},
+        {"selector":"edge","style":{"line-opacity":0.5}},
+        {"selector":"edge","style":{"line-opacity":0.5,"line-color":"red"}},
         {"selector":"edge.highlight","style":{"line-opacity":1}},
-        {"selector":"edge.half_highlight","style":{"line-opacity":0.5}},
+        {"selector":"edge.half_highlight","style":{"line-opacity":0.75}},
+        {"selector":"edge.pathway","style":{"line-style":"solid","line-dash-pattern":[3,6],"line-opacity":0.25,"line-color":"blue","curve-style":"unbundled-bezier",  "control-point-distances": 120,  "control-point-weights": 0.1}},
 
             ]
     for d in cm:
