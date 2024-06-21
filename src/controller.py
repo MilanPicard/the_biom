@@ -159,7 +159,15 @@ def update_overview(diseases,
             genes.update(p)
 
         classes = ["highlight","half_highlight"]
+        
         signs = set([i["id"] for i in selectedSign]) if selectedSign is not None else set()
+        if selectedSign is not None:
+            for i in selectedSign:
+                if i["Cancer"] not in diseases:
+                    diseases.append(i["Cancer"])
+                if i["Comparison"] not in comparisons_filter:
+                    comparisons_filter.append(i["Comparison"])
+        print(signs,diseases,comparisons_filter)
         for i in cur_elems:
             if "fake" in i["data"] and i["data"]["fake"]:
                 continue               
@@ -269,6 +277,14 @@ def display_detail_graph(diseases,comparisons,signatures,menu_genes,fake_graph_s
             diseases =""
         if signatures is None:
             signatures = ""
+        if len(signatures)>0:
+            for s in signatures.split(";"):
+                cancer,comp,fil = s.split("_")
+                if cancer not in diseases:
+                    diseases.append(cancer)
+                if comp not in comparisons:
+                    comparisons.append(comp)
+                
         genes_set = set(menu_genes["selected"])
         for p in menu_genes["from_pathways"]["genes"]:
             genes_set.update(p)

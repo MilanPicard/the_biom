@@ -110,7 +110,7 @@ class DataManager(object):
         pathways = pathways[pathways["count"]>0].filter(["id"])
         pathways_edges = pathways.filter(["id"]).explode("id").reset_index().groupby("id").agg(lambda a:a.unique())
         pathways_edges["PathwayStId"]=pathways_edges["PathwayStId"].apply(lambda pids:[f"{self.pathway_labels.loc[pid]}({pid})" for pid in pids])
-        # pathways_edges = pd.DataFrame.from_dict({"PathwayStId":[]})
+        pathways_edges = pd.DataFrame.from_dict({"PathwayStId":[]})
         grouped_by_gene = grouped_by_gene.reset_index()[grouped_by_gene["id"].list.len()>1]
         
         intersections = dict()

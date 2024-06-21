@@ -134,7 +134,8 @@ def add_path_ways(existing_elements,stylesheet_detail,updated_elements):
                     continue
                 sign_i = gene_sign[p.EnsemblID[i]]
                 sign_j = gene_sign[p.EnsemblID[j]]
-                if(not sign_i.issubset(sign_j) and not sign_j.issubset(sign_i)):
+                # if(not sign_i.issubset(sign_j) and not sign_j.issubset(sign_i)):
+                if(len(sign_i.symmetric_difference(sign_j))!=0):
                     highlight[i]=True
                     highlight[j]=True
                 j+=1
@@ -148,7 +149,7 @@ def add_path_ways(existing_elements,stylesheet_detail,updated_elements):
                 stylesheet_detail.append({
                             "selector":f"edge#{edge_id}",
                             "style":{
-                                "lineColor":"red",
+                                "lineColor":"blue",
                                 "lineWidth":2
                                 }
                             })
@@ -319,7 +320,7 @@ def color_metanodes(cm,stylesheet_detail):
                 y1 = "0%"
                 y2 = "100%"
                 roman = "IV"
-        svg = f'<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE svg><svg version="1.1" baseProfile="full" xmlns="http://www.w3.org/2000/svg" width="80" height="80"> <defs> <linearGradient id="grad"  x1="{x1}" x2="{x2}" y1="{y1}" y2="{y2}"> <stop stop-color="white" stop-opacity="0" offset="0%" /> <stop stop-color="white" stop-opacity="0" offset="40%" /> <stop stop-color="black" stop-opacity="0.25" offset="41%" /> <stop stop-color="black" stop-opacity="0.25" offset="50%" /> <stop stop-color="black" stop-opacity="0.25" offset="59%" /> <stop stop-color="white" stop-opacity="0" offset="60%" /> <stop stop-color="white" stop-opacity="0" offset="100%" /> </linearGradient > </defs> <rect width="100%" height="100%" fill="url(#grad)"/></svg>'
+        svg = f'<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE svg><svg version="1.1" baseProfile="full" xmlns="http://www.w3.org/2000/svg" width="40" height="40"> <defs> <linearGradient id="grad"  x1="{x1}" x2="{x2}" y1="{y1}" y2="{y2}"> <stop stop-color="white" stop-opacity="0" offset="0%" /> <stop stop-color="white" stop-opacity="0" offset="43%" /> <stop stop-color="black" stop-opacity="0.25" offset="44%" /> <stop stop-color="black" stop-opacity="0.25" offset="50%" /> <stop stop-color="black" stop-opacity="0.25" offset="56%" /> <stop stop-color="white" stop-opacity="0" offset="57%" /> <stop stop-color="white" stop-opacity="0" offset="100%" /> </linearGradient > </defs> <rect width="100%" height="100%" fill="url(#grad)"/></svg>'
         stylesheet_detail.append({
             "selector":f"node.Stage{roman}",
             "style":{
@@ -373,7 +374,8 @@ def display_detail_graph(selectedDiseases,selected_signatures,selected_genes,exi
 
     color_metanodes(cm,stylesheet_detail)
     if(items is None):
-        return redraw(existing_elements,detail_pos_store,AR,stylesheet_detail)
+        print("redraw")
+        return redraw([],{},AR,stylesheet_detail)
     sizes = items.set_index("gene")
     updated = set()
     # update_cur_elements(existing_elements,updated,stylesheet_detail,sizes,updated_elements)
