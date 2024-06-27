@@ -69,6 +69,12 @@ class Impred:
         fa = self.edge_attr()
         fe = self.edge_rep()
         r = fn+fa+fe+fg
+        norm = np.linalg.norm(r,axis=1,keepdims=True)
+        cond = norm>1e4
+
+        if(np.any(cond)):
+            r[cond[:,0]]/=10**(np.log10(norm[cond[:,0]])-2)
+
         return r
     def gravity_force(self):
         f = np.zeros_like(self.pos)
@@ -316,7 +322,8 @@ class Impred:
                 i3 = i3[order]
                 v = (d/np.cos(angle_diff[cond]))[order]
                 uniques = np.unique(i3,return_index=True)
-                v=np.array([np.min(j) for j in np.split(v,uniques[1][1:])])
+                split = np.split(v,uniques[1][1:])
+                v=np.array([np.min(j) for j in split])
                 max_move[uniques[0]]=np.minimum(max_move[uniques[0]],v)
 
     
@@ -374,11 +381,9 @@ class Impred:
                 on_edge_pos = pos[on_edge]
                 angle = np.arctan2(on_edge_projs[:,1]-on_edge_pos[:,1],on_edge_projs[:,0]-on_edge_pos[:,0])%(2*np.pi)
                 on_edge_dist = dist_p[on_edge]
-
-
-                self.set_max_move(f,max_move,points[on_edge],angle,np.clip(on_edge_dist/2.1-self.gamma/2,0,None),debug=False)
-                self.set_max_move(f,max_move,srcs[on_edge],angle+np.pi,np.clip(on_edge_dist/2.1-self.gamma/2,0,None),debug=False)
-                self.set_max_move(f,max_move,tgts[on_edge],angle+np.pi,np.clip(on_edge_dist/2.1-self.gamma/2,0,None),debug=False)
+                self.set_max_move(f,max_move,points[on_edge],angle,np.clip(on_edge_dist/2.1-self.gamma/5,0,None),debug=False)
+                self.set_max_move(f,max_move,srcs[on_edge],angle+np.pi,np.clip(on_edge_dist/2.1-self.gamma/5,0,None),debug=False)
+                self.set_max_move(f,max_move,tgts[on_edge],angle+np.pi,np.clip(on_edge_dist/2.1-self.gamma/5,0,None),debug=False)
                 # if i==21 and len(self.pos)>21:
                     # print("debug HSNC NvsIII a",self.pos[21],f[21],max_move[21],global_max)
 
@@ -451,9 +456,9 @@ class Impred:
                 #         test(middle2,middle_l,c,debug=True)
 
                 #     assert (tp==tp2) and (tt==tt2) and (ts2==ts),f"\n{tp}\t{tp2}\t{ts}\t{ts2}\t{tt}\t{tt2}\n{pos[j]}\t{close_pos[j]}\t{far_pos[j]}\n{c}\t{a}\t{b}\n{middle2}\n{middle_l}\n{f1}\t{f2}\t{f3}"
-                self.set_max_move(f,max_move,points[not_on_edge],angle,np.clip(close_dist/2.1-self.gamma/2,0,None),False)
-                self.set_max_move(f,max_move,close,(angle+np.pi)%(np.pi*2),np.clip(close_dist/2.1-self.gamma/2,0,None),False)
-                self.set_max_move(f,max_move,far,(angle+np.pi)%(np.pi*2),np.clip(np.linalg.norm(projs2-far_pos,axis=1)/1.05-self.gamma/2,0,None),False)
+                self.set_max_move(f,max_move,points[not_on_edge],angle,np.clip(close_dist/2.1-self.gamma/5,0,None),False)
+                self.set_max_move(f,max_move,close,(angle+np.pi)%(np.pi*2),np.clip(close_dist/2.1-self.gamma/5,0,None),False)
+                self.set_max_move(f,max_move,far,(angle+np.pi)%(np.pi*2),np.clip(np.linalg.norm(projs2-far_pos,axis=1)/1.05-self.gamma/5,0,None),False)
                 # if i==21 and len(self.pos)>21:
                     # print("debug HSNC NvsIII b",self.pos[21],f[21],max_move[21],global_max,far,close)
 

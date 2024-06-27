@@ -11,50 +11,72 @@ Sets. Computer Graphics Forum, 2009, 28 (3), pp.967-974. ￿hal-00407269
 
 def get_planar_intersection_graph(grouped_data):
     zones = grouped_data["id"].unique().tolist()
+    signatures = set()
+    for z in zones:
+        signatures.update(z.split(";"))
+    signatures = list(signatures)
     value_counts = grouped_data["id"].value_counts().to_dict()
-    ccs = np.array(list(range(len(zones))))
-    cc_classes = [set(zones[i].split(";")) for i in ccs]
-    c = np.zeros((len(ccs),len(ccs)))
-    discarded_edges =np.zeros((len(ccs),len(ccs)),dtype=bool)
-    for i in range(len(ccs)):
-        for j in range(i+1,len(ccs)):
-            c[i,j]=len(cc_classes[i].intersection(cc_classes[j]))#-p1*u-p2*v
+    # ccs = np.array(list(range(len(zones))))
+    ccs2 = np.arange(len(zones)).reshape(1,-1).repeat(len(signatures),0)
+    # np.save("/tmp/zones.npy",np.array(zones))
+    # np.save("/tmp/signatures.npy",np.array(signatures))
+
+    for s in range(len(signatures)):
+        for j in range(len(zones)):
+            if(signatures[s] not in zones[j].split(";")):
+               ccs2[s,j]=-1
+    # np.save("/tmp/ccs2.npy",ccs2)
+    # cc_classes = [set(zones[i].split(";")) for i in ccs]
+    # c = np.zeros((len(ccs),len(ccs)))
+    # c[0]=ccs[:,0]!=ccs[:,:]
+    # for i in range(len(ccs)):
+    #     for j in range(i+1,len(ccs)):
+    #         c[i,j]=len(cc_classes[i].intersection(cc_classes[j]))#-p1*u-p2*v
+    c2 = np.logical_and(np.logical_and(ccs2[:,np.newaxis]>=0 ,ccs2[:,:,np.newaxis]>=0),ccs2[:,np.newaxis]!=ccs2[:,:,np.newaxis]).astype(int).sum(0)
+    discarded_edges =np.zeros((len(c2),len(c2)),dtype=bool)
     g = tlp.newGraph()
     vla = g.getStringProperty("viewLabel")
     nodes = g.addNodes(len(zones))
     for i,n in enumerate(nodes):
         vla[n]=zones[i]
-    i,j = np.unravel_index(np.argmax(c),c.shape)
-
-    while(c[i,j]>0):
+    # signatures_subgraphs = {s:}
+    i,j = np.unravel_index(np.argmax(c2),c2.shape)
+    while(c2[i,j]>0):
         e = g.addEdge(nodes[i],nodes[j])
         if not tlp.PlanarityTest.isPlanar(g):
             g.delEdge(e)
             discarded_edges[i,j]=True
-            c[i,j]=0
+            # c[i,j]=0
+            c2[i,j]=0
+            c2[j,i]=0
         else:
-            kept_index,to_merge_index = (i,j) if ccs[i]<ccs[j] else (j,i)
-            cc_classes[kept_index]=cc_classes[kept_index].union(cc_classes[to_merge_index])
-            # c_copy=np.copy(c)
-            c[to_merge_index,kept_index]=0
-            # c_copy=np.copy(c)
+            # kept_index,to_merge_index = (i,j) if ccs[i]<ccs[j] else (j,i)
+            # cc_classes[kept_index]=cc_classes[kept_index].union(cc_classes[to_merge_index])
+            # # c_copy=np.copy(c)
+            # c[to_merge_index,kept_index]=0
+            # # c_copy=np.copy(c)
 
-            c[kept_index,to_merge_index]=0
-            # c_copy=np.copy(c)
+            # c[kept_index,to_merge_index]=0
+            # # c_copy=np.copy(c)
 
-            # for k1 in range(kept_index):
-            #     if not discarded_edges[k1,kept_index]:
-            #         c[k1,kept_index]=len(cc_classes[k1].intersection(cc_classes[kept_index]))
-            # for k1 in range(kept_index+1,len(ccs)):
-            #     if not discarded_edges[kept_index,k1]:
-            #         c[kept_index,k1]=len(cc_classes[k1].intersection(cc_classes[kept_index]))
+            # # for k1 in range(kept_index):
+            # #     if not discarded_edges[k1,kept_index]:
+            # #         c[k1,kept_index]=len(cc_classes[k1].intersection(cc_classes[kept_index]))
+            # # for k1 in range(kept_index+1,len(ccs)):
+            # #     if not discarded_edges[kept_index,k1]:
+            # #         c[kept_index,k1]=len(cc_classes[k1].intersection(cc_classes[kept_index]))
 
-            cc_classes[to_merge_index]=set()
-            c[np.unravel_index((np.argwhere(ccs==ccs[kept_index]).reshape(-1,1)*c.shape[0]+np.argwhere(ccs==ccs[to_merge_index]).reshape(1,-1)).flatten(),c.shape)]=0
+            # cc_classes[to_merge_index]=set()
+            # c[np.unravel_index((np.argwhere(ccs==ccs[kept_index]).reshape(-1,1)*c.shape[0]+np.argwhere(ccs==ccs[to_merge_index]).reshape(1,-1)).flatten(),c.shape)]=0
 
-            c[np.unravel_index((np.argwhere(ccs==ccs[to_merge_index]).reshape(-1,1)*c.shape[0]+np.argwhere(ccs==ccs[kept_index]).reshape(1,-1)).flatten(),c.shape)]=0
-            ccs[ccs==ccs[to_merge_index]]=ccs[kept_index]
-        i,j = np.unravel_index(np.argmax(c),c.shape)
+            # c[np.unravel_index((np.argwhere(ccs==ccs[to_merge_index]).reshape(-1,1)*c.shape[0]+np.argwhere(ccs==ccs[kept_index]).reshape(1,-1)).flatten(),c.shape)]=0
+            # ccs[ccs==ccs[to_merge_index]]=ccs[kept_index]
+            for k in range(len(ccs2)):
+                if ccs2[k,i]>=0 and ccs2[k,j]>=0:
+                    ccs2[k,ccs2[k]==ccs2[k,j]]=ccs2[k,i]
+            c2 = np.logical_and(np.logical_and(ccs2[:,np.newaxis]>=0 ,ccs2[:,:,np.newaxis]>=0),ccs2[:,np.newaxis]!=ccs2[:,:,np.newaxis]).astype(int).sum(0)*(1-discarded_edges.astype(int))
+            
+        i,j = np.unravel_index(np.argmax(c2),c2.shape)
         
     return g,zones,value_counts
 def apply_bertault(g,surrounding_edges,n_iter=20,edge_length=0,fixed_nodes=set(),gamma=2.0,optimalDist=5.0,bends=False,flexible_edges=False,debug=False):
@@ -96,15 +118,51 @@ def tlp2nx(g):
 def apply_planar_layout(g,scale=1):
     # params = tlp.getDefaultPluginParameters('Tree Radial')
     vl = g.getLayoutProperty("viewLayout")
-    G = tlp2nx(g)
-    pos = nx.planar_layout(G,scale=scale)
-    for n,p in pos.items():
-        vl[n]=tlp.Vec3f(p[0],p[1],0.0) 
+    vs = g.getSizeProperty("viewSize")
+    vs.setAllNodeValue(tlp.Vec3f(0.1,0.1,0.1))
+    cc= tlp.ConnectedTest.computeConnectedComponents(g)
+    if True or len(cc)>1:
+        avg=[]
+        sizes=[]
+        for i in range(len(cc)):
+            comp = g.inducedSubGraph(cc[i])
+            G = tlp2nx(comp)
+            pos = nx.planar_layout(G,scale=scale)
+            for n,p in pos.items():
+                vl[n]=tlp.Vec3f(p[0],p[1],0.0) 
+                # print(vs[n])
+            if comp.numberOfNodes()>1:
+                # if comp.numberOfEdges()>1:
+                #     s = 1/vl.averageEdgeLength(comp)
+                #     vl.scale(tlp.Vec3f(s,s,1.0),comp)
+                delta = vl.averageEdgeLength() if g.numberOfEdges()>0 else 5
+                vl.center(comp)
+                c,r = tlp.computeBoundingRadius(comp)
+                # delta *=3
+                # delta=2
+                # vl.scale(tlp.Vec3f(np.sqrt(comp.numberOfNodes())*delta/r.dist(c),np.sqrt(comp.numberOfNodes())*delta/r.dist(c),1.0))
 
+                gamma = delta/2
+                apply_bertault(comp,{n : comp.edges() for n in comp.nodes()} ,n_iter=30,optimalDist=delta,gamma=gamma,bends=False)
+            if(comp.numberOfEdges()>1):
+                sizes.append(len(cc[i]))
+                avg.append(vl.averageEdgeLength(comp))
+        if len(sizes)>0:
+            sizes = np.array(sizes)
+            avg = (np.array(avg)*sizes).sum()/np.sum(sizes)
+        g.applyLayoutAlgorithm('Connected Components Packing',{'result': vl, 'initial layout': vl, 'node size': None, 'rotation': None, 'complexity': 'auto'})
+        if g.numberOfEdges()>1:
+            s = avg/vl.averageEdgeLength(g)
+            vl.scale(tlp.Vec3f(s,s,1.0))
+    else:
+        G = tlp2nx(g)
+        pos = nx.planar_layout(G,scale=scale)
+        for n,p in pos.items():
+            vl[n]=tlp.Vec3f(p[0],p[1],0.0) 
     # params["result"]=vl
     # g.applyLayoutAlgorithm('Random layout')
     # g.applyLayoutAlgorithm('Tree Radial',params)
-
+    vl.center()
 def build_grid_graph(g):
     return None
 def point_segment_distance(points,srcs,dsts):
@@ -593,12 +651,14 @@ def find_tlp_faces(g):
         highest_slope = -np.inf
         for o in g.getInOutNodes(left_most[i]):
             p2 =vl[o]
-            slope = p2.getY()-p1.getY()/(p2.getX()-left[i])
+            if p2.getX()==left[i]:
+                slope=np.inf
+            else:
+                slope = (p2.getY()-p1.getY())/(p2.getX()-left[i])
             if slope > highest_slope:
                 highest_slope = slope
                 following = o
         outers.append(traversed_half_edges[(left_most[i],following)])
-        
     return traversed_half_edges,faces,outers
 
 def get_surrounding_edges(grid_nodes,traversed_half_edges,faces,gene_nodes,grid_graph,outer_faces_edges,outer_faces):
@@ -657,12 +717,15 @@ def euler_layout(data,all_nodes_and_edges,max_gene_size):
 
     g,zones,value_counts = get_planar_intersection_graph(grouped_data)
     apply_planar_layout(g)
-    # tlp.saveGraph(g,"/tmp/not_grid_graph-1.tlpb.gz")
+    tlp.saveGraph(g,"/tmp/not_grid_graph-1.tlpb.gz")
     vl = g.getLayoutProperty("viewLayout")
-    if g.numberOfNodes()>1:
-        delta = vl.averageEdgeLength() if g.numberOfEdges()>0 else 5
-        gamma = delta/2
-        apply_bertault(g,{n : g.edges() for n in g.nodes()} ,n_iter=30,optimalDist=delta,gamma=gamma,bends=False)
+    # if g.numberOfNodes()>1:
+    #     if g.numberOfEdges()>1:
+    #         s = 1/vl.averageEdgeLength()
+    #         vl.scale(tlp.Vec3f(s,s,1.0))
+    #     delta = 1 #vl.averageEdgeLength() if g.numberOfEdges()>0 else 5
+    #     gamma = delta/2
+    #     apply_bertault(g,{n : g.edges() for n in g.nodes()} ,n_iter=30,optimalDist=delta,gamma=gamma,bends=False)
 
 
     radius = compute_circle_set_radius(g)
@@ -734,23 +797,34 @@ def euler_layout(data,all_nodes_and_edges,max_gene_size):
     # test.delNodes(to_remove)
     only_grid = grid_graph.inducedSubGraph(grid_graph.nodes())
     add_pathways_edges(grid_graph,mapping,all_nodes_and_edges,radius/5,gene_nodes)
-    # tlp.saveGraph(grid_graph,"/tmp/grid_graphtest.tlpb.gz")
     avg_only_grid = vlgrid.averageEdgeLength(only_grid)
     # print("onlygrid_edge_length",avg_only_grid)
     # if(only_grid.numberOfNodes()>100):
     #     print(vlgrid[only_grid.nodes()[98]],vlgrid[only_grid.nodes()[100]])
     #     print(vla[only_grid.nodes()[98]],vla[only_grid.nodes()[100]])
-
+    vlgrid.center(tlp.computeBoundingRadius(only_grid)[0],grid_graph)
+    # tlp.saveGraph(grid_graph,"/tmp/grid_graph6.tlpb.gz")
     apply_bertault(only_grid,surrounding_edges,n_iter=25,gamma=avg_only_grid/8,optimalDist=avg_only_grid,bends=False,flexible_edges=False,fixed_nodes=pathway_nodes,debug=True)
+    # tlp.saveGraph(grid_graph,"/tmp/grid_graph7.tlpb.gz")
     # apply_bertault(grid_graph,surrounding_edges,n_iter=5,gamma=avg_only_grid/8,optimalDist=avg_only_grid,bends=False,flexible_edges=False,fixed_nodes=set(grid_graph.nodes()).difference(mapping.values()))
-    # tlp.saveGraph(grid_graph,"/tmp/grid_graph4.tlpb.gz")
+    tlp.saveGraph(grid_graph,"/tmp/grid_graph4.tlpb.gz")
     for n in pathway_nodes:
         surrounding_edges[n]=outer_face_edges
         # edges = set()
         # for n2 in grid_graph.getInOutNodes(n):
         #     edges.update(surrounding_edges[n2])
         # surrounding_edges[n]=edges
-    apply_bertault(grid_graph,surrounding_edges,n_iter=30,fixed_nodes = set([n for n in grid_graph.nodes() if n not in pathway_nodes]),gamma=avg_only_grid,optimalDist=avg_only_grid/2,bends=False,flexible_edges=False,debug=False)
+    outer_face = grid_graph.getBooleanProperty("outerface")
+    outer_face.setAllNodeValue(False)
+    outer_face.setAllEdgeValue(False)
+    for e in outer_face_edges:
+        outer_face[e]=True
+        outer_face[grid_graph.source(e)]=True
+        outer_face[grid_graph.target(e)]=True
+    # tlp.saveGraph(grid_graph,"/tmp/grid_graphtest.tlpb.gz")
+    # print(avg_only_grid,vlgrid.averageEdgeLength(only_grid))
+    vlgrid.center(grid_graph)
+    apply_bertault(grid_graph,surrounding_edges,n_iter=30,fixed_nodes = set([n for n in grid_graph.nodes() if n not in pathway_nodes]),gamma=avg_only_grid*2,optimalDist=avg_only_grid*2,bends=False,flexible_edges=False,debug=False)
     # apply_bertault(grid_graph)
     # tlp.saveGraph(grid_graph,"/tmp/grid_graph6.tlpb.gz")
     avg = vlgrid.averageEdgeLength()
