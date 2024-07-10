@@ -108,7 +108,7 @@ def add_path_ways(existing_elements,stylesheet_detail,updated_elements,all_pathw
             children = []
             children.append(html.H6(p.PathwayDisplayName))
             children.append(html.A("PathwayReactomeLink",href=p.PathwayReactomeLink,target="_blank"))
-            pathways_nodes[p.Index]={"data":{"id":p.Index,"label":"","weight":len(p.EnsemblID),"tooltip_content":children,"is_pathways":True},"selectable":True}
+            pathways_nodes[p.Index]={"data":{"id":p.Index,"label":"","weight":len(p.EnsemblID),"tooltip_content":children,"is_pathways":True,"ReactomeLink":p.PathwayReactomeLink,"name":p.PathwayDisplayName},"selectable":True}
             pathways_stylesheets[p.Index] = {
                         "selector":f"node#{p.Index}",
                         "style":{
@@ -428,7 +428,7 @@ def display_detail_graph(selectedDiseases,selected_signatures,selected_genes,exi
     updated = set()
     # update_cur_elements(existing_elements,updated,stylesheet_detail,sizes,updated_elements)
     symbols = Controller._instance.dm.get_symbol([g.gene for g in items.itertuples() if g.gene not in updated])
-    all_nodes = [{'data':{'id':g.gene,"label":"","weight":size(g.size),"Signatures":g.id,"tooltip_content":[html.H6(symbols[g.gene]),html.A("Ensembl",href=f"https://www.ensembl.org/Homo_sapiens/Gene/Summary?db=core;g={g.gene}",target="_blank")]}} for g in items.itertuples()]
+    all_nodes = [{'data':{'id':g.gene,"label":"","weight":size(g.size),"Signatures":g.id,"tooltip_content":[html.H6(symbols[g.gene]),html.A("Ensembl",href=f"https://ensembl.org/Homo_sapiens/Search/Results?q={g.gene};site=ensembl_all;facet_species=Human;facet_feature_type=Gene",target="_blank")]}} for g in items.itertuples()]
     nodes = [{'data':{'id':g.gene,"label":"","weight":size(g.size),"Signatures":g.id,"tooltip_content":symbols[g.gene]}} for g in items.itertuples() if g.gene not in updated]
 
     # edges = [{"data":{"source":k[0],"target":k[1]}} for k,v in intersections.items() ]

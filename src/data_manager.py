@@ -24,14 +24,16 @@ class DataManager(object):
             cls._instance.exploded = cls._instance.signatures.explode("Signature").rename(columns={"Signature":"EnsemblID"})
             cls._instance.activation_data = pd.read_csv(cls._instance.expression_file,delimiter=",",dtype=defaultdict(lambda :float,Cancer=str,Stage=str,ID=str))
             cls._instance.activation_data["box_category"] = cls._instance.activation_data["Cancer"]+"_"+cls._instance.activation_data["Stage"]
-            cls._instance.pathways = pd.read_csv(pathway_file,dtype={"EnsemblID":pd.ArrowDtype(pa.string()),"UniProtID":pd.ArrowDtype(pa.string()),"PathwayStId":pd.ArrowDtype(pa.string()),"PathwayDisplayName":pd.ArrowDtype(pa.string()),"PathwayReactomeLink":pd.ArrowDtype(pa.string())},converters={"GeneSymbolID":lambda s:list(map(lambda symbol:symbol.replace("'",""),s[1:-1].split(",")))},keep_default_na=False)
+            cls._instance.pathways = pd.read_csv(pathway_file,dtype={"EnsemblID":pd.ArrowDtype(pa.string()),"UniProtID":pd.ArrowDtype(pa.string()),"PathwayStId":pd.ArrowDtype(pa.string()),"PathwayDisplayName":pd.ArrowDtype(pa.string()),"PathwayReactomeLink":pd.ArrowDtype(pa.string())},converters={"GeneSymbolID":lambda s:s.split(";")},keep_default_na=False)
             cls._instance.pathways["GeneSymbolID"] = cls._instance.pathways["GeneSymbolID"].astype(pd.ArrowDtype(pa.list_(pa.string())))
-            symbols = cls._instance.pathways.filter(["EnsemblID","GeneSymbolID"]).groupby("EnsemblID").agg(lambda a:a.iloc[0])
+            symbols = cls._instance.pathways[cls._instance.pathways["GeneSymbolID"]!=""].filter(["EnsemblID","GeneSymbolID"]).groupby("EnsemblID").agg(lambda a:a.iloc[0])
             value_counts = pd.DataFrame({"counts":cls._instance.exploded["EnsemblID"].value_counts()})
             symbols = value_counts.join(symbols,how="left")
             symbols.reset_index(inplace=True)
             symbols["GeneSymbolID"] = symbols["GeneSymbolID"].fillna(symbols["EnsemblID"].transform(lambda a:[a]))
             # genes.fillna(inplace=True)
+            cls._instance.pathways= cls._instance.pathways[cls._instance.pathways["PathwayStId"]!=""]
+            
             cls._instance.pathway_labels = cls._instance.pathways.filter(["PathwayStId","PathwayDisplayName"]).groupby("PathwayStId").agg(lambda a: a.iloc[0])["PathwayDisplayName"]
             cls._instance.symbols = symbols.set_index("EnsemblID").filter(["GeneSymbolID"])
 

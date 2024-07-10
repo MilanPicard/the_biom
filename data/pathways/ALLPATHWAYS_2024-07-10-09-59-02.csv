@@ -1,0 +1,1127 @@
+EnsemblID,UniProtID,GeneSymbolID,PathwayStId,PathwayDisplayName,PathwayReactomeLink
+ENSG00000066405,P56856,CLDN18,R-HSA-420029,Tight junction interactions,https://reactome.org/PathwayBrowser/#/R-HSA-420029
+ENSG00000158850,O60512,B4GALT3,R-HSA-2022854,Keratan sulfate biosynthesis,https://reactome.org/PathwayBrowser/#/R-HSA-2022854
+ENSG00000158850,O60512,B4GALT3,R-HSA-975577,N-Glycan antennae elongation,https://reactome.org/PathwayBrowser/#/R-HSA-975577
+ENSG00000134533,,RERG,,,
+ENSG00000175806,Q9UJ68,MSRA,R-HSA-5676934,Protein repair,https://reactome.org/PathwayBrowser/#/R-HSA-5676934
+ENSG00000175063,O00762,UBE2C,R-HSA-141430,Inactivation of APC/C via direct inhibition of the APC/C complex,https://reactome.org/PathwayBrowser/#/R-HSA-141430
+ENSG00000175063,O00762,UBE2C,R-HSA-174048,APC/C:Cdc20 mediated degradation of Cyclin B,https://reactome.org/PathwayBrowser/#/R-HSA-174048
+ENSG00000175063,O00762,UBE2C,R-HSA-174084,Autodegradation of Cdh1 by Cdh1:APC/C,https://reactome.org/PathwayBrowser/#/R-HSA-174084
+ENSG00000175063,O00762,UBE2C,R-HSA-174154,APC/C:Cdc20 mediated degradation of Securin,https://reactome.org/PathwayBrowser/#/R-HSA-174154
+ENSG00000175063,O00762,UBE2C,R-HSA-174178,APC/C:Cdh1 mediated degradation of Cdc20 and other APC/C:Cdh1 targeted proteins in late mitosis/early G1,https://reactome.org/PathwayBrowser/#/R-HSA-174178
+ENSG00000175063,O00762,UBE2C,R-HSA-174184,Cdc20:Phospho-APC/C mediated degradation of Cyclin A,https://reactome.org/PathwayBrowser/#/R-HSA-174184
+ENSG00000175063,O00762,UBE2C,R-HSA-176407,Conversion from APC/C:Cdc20 to APC/C:Cdh1 in late anaphase,https://reactome.org/PathwayBrowser/#/R-HSA-176407
+ENSG00000175063,O00762,UBE2C,R-HSA-176408,Regulation of APC/C activators between G1/S and early anaphase,https://reactome.org/PathwayBrowser/#/R-HSA-176408
+ENSG00000175063,O00762,UBE2C,R-HSA-176409,APC/C:Cdc20 mediated degradation of mitotic proteins,https://reactome.org/PathwayBrowser/#/R-HSA-176409
+ENSG00000175063,O00762,UBE2C,R-HSA-176412,Phosphorylation of the APC/C,https://reactome.org/PathwayBrowser/#/R-HSA-176412
+ENSG00000175063,O00762,UBE2C,R-HSA-179409,APC-Cdc20 mediated degradation of Nek2A,https://reactome.org/PathwayBrowser/#/R-HSA-179409
+ENSG00000175063,O00762,UBE2C,R-HSA-2467813,Separation of Sister Chromatids,https://reactome.org/PathwayBrowser/#/R-HSA-2467813
+ENSG00000175063,O00762,UBE2C,R-HSA-2559582,Senescence-Associated Secretory Phenotype (SASP),https://reactome.org/PathwayBrowser/#/R-HSA-2559582
+ENSG00000175063,O00762,UBE2C,R-HSA-68867,Assembly of the pre-replicative complex,https://reactome.org/PathwayBrowser/#/R-HSA-68867
+ENSG00000175063,O00762,UBE2C,R-HSA-69017,CDK-mediated phosphorylation and removal of Cdc6,https://reactome.org/PathwayBrowser/#/R-HSA-69017
+ENSG00000175063,O00762,UBE2C,R-HSA-8853884,Transcriptional Regulation by VENTX,https://reactome.org/PathwayBrowser/#/R-HSA-8853884
+ENSG00000175063,O00762,UBE2C,R-HSA-8866652,Synthesis of active ubiquitin: roles of E1 and E2 enzymes,https://reactome.org/PathwayBrowser/#/R-HSA-8866652
+ENSG00000175063,O00762,UBE2C,R-HSA-9687136,Aberrant regulation of mitotic exit in cancer due to RB1 defects,https://reactome.org/PathwayBrowser/#/R-HSA-9687136
+ENSG00000175063,O00762,UBE2C,R-HSA-983168,Antigen processing: Ubiquitination & Proteasome degradation,https://reactome.org/PathwayBrowser/#/R-HSA-983168
+ENSG00000198932,,GPRASP1,,,
+ENSG00000105173,P24864,CCNE1,R-HSA-1538133,G0 and Early G1,https://reactome.org/PathwayBrowser/#/R-HSA-1538133
+ENSG00000105173,P24864,CCNE1,R-HSA-187577,SCF(Skp2)-mediated degradation of p27/p21,https://reactome.org/PathwayBrowser/#/R-HSA-187577
+ENSG00000105173,P24864,CCNE1,R-HSA-2559586,DNA Damage/Telomere Stress Induced Senescence,https://reactome.org/PathwayBrowser/#/R-HSA-2559586
+ENSG00000105173,P24864,CCNE1,R-HSA-390471,Association of TriC/CCT with target proteins during biosynthesis,https://reactome.org/PathwayBrowser/#/R-HSA-390471
+ENSG00000105173,P24864,CCNE1,R-HSA-6804116,TP53 Regulates Transcription of Genes Involved in G1 Cell Cycle Arrest,https://reactome.org/PathwayBrowser/#/R-HSA-6804116
+ENSG00000105173,P24864,CCNE1,R-HSA-69017,CDK-mediated phosphorylation and removal of Cdc6,https://reactome.org/PathwayBrowser/#/R-HSA-69017
+ENSG00000105173,P24864,CCNE1,R-HSA-69200,Phosphorylation of proteins involved in G1/S transition by active Cyclin E:Cdk2 complexes,https://reactome.org/PathwayBrowser/#/R-HSA-69200
+ENSG00000105173,P24864,CCNE1,R-HSA-69202,Cyclin E associated events during G1/S transition ,https://reactome.org/PathwayBrowser/#/R-HSA-69202
+ENSG00000105173,P24864,CCNE1,R-HSA-69205,G1/S-Specific Transcription,https://reactome.org/PathwayBrowser/#/R-HSA-69205
+ENSG00000105173,P24864,CCNE1,R-HSA-69231,Cyclin D associated events in G1,https://reactome.org/PathwayBrowser/#/R-HSA-69231
+ENSG00000105173,P24864,CCNE1,R-HSA-69563,p53-Dependent G1 DNA Damage Response,https://reactome.org/PathwayBrowser/#/R-HSA-69563
+ENSG00000105173,P24864,CCNE1,R-HSA-8849470,PTK6 Regulates Cell Cycle,https://reactome.org/PathwayBrowser/#/R-HSA-8849470
+ENSG00000105173,P24864,CCNE1,R-HSA-9661069,"Defective binding of RB1 mutants to E2F1,(E2F2, E2F3)",https://reactome.org/PathwayBrowser/#/R-HSA-9661069
+ENSG00000105173,P24864,CCNE1,R-HSA-9706019,RHOBTB3 ATPase cycle,https://reactome.org/PathwayBrowser/#/R-HSA-9706019
+ENSG00000164007,Q8N6F1,CLDN19,R-HSA-420029,Tight junction interactions,https://reactome.org/PathwayBrowser/#/R-HSA-420029
+ENSG00000224215,,,,,
+ENSG00000189159,,JPT1,,,
+ENSG00000125414,Q9UKX2,MYH2,R-HSA-2029482,Regulation of actin dynamics for phagocytic cup formation,https://reactome.org/PathwayBrowser/#/R-HSA-2029482
+ENSG00000125414,Q9UKX2,MYH2,R-HSA-9664422,FCGR3A-mediated phagocytosis,https://reactome.org/PathwayBrowser/#/R-HSA-9664422
+ENSG00000189129,,PLAC9,,,
+ENSG00000143228,Q9BZD4,NUF2,R-HSA-141444,Amplification  of signal from unattached  kinetochores via a MAD2  inhibitory signal,https://reactome.org/PathwayBrowser/#/R-HSA-141444
+ENSG00000143228,Q9BZD4,NUF2,R-HSA-2467813,Separation of Sister Chromatids,https://reactome.org/PathwayBrowser/#/R-HSA-2467813
+ENSG00000143228,Q9BZD4,NUF2,R-HSA-2500257,Resolution of Sister Chromatid Cohesion,https://reactome.org/PathwayBrowser/#/R-HSA-2500257
+ENSG00000143228,Q9BZD4,NUF2,R-HSA-5663220,RHO GTPases Activate Formins,https://reactome.org/PathwayBrowser/#/R-HSA-5663220
+ENSG00000143228,Q9BZD4,NUF2,R-HSA-68877,Mitotic Prometaphase,https://reactome.org/PathwayBrowser/#/R-HSA-68877
+ENSG00000143228,Q9BZD4,NUF2,R-HSA-9648025,EML4 and NUDC in mitotic spindle formation,https://reactome.org/PathwayBrowser/#/R-HSA-9648025
+ENSG00000101407,,TTI1,,,
+ENSG00000183607,,GKN2,,,
+ENSG00000129195,,PIMREG,,,
+ENSG00000072163,Q7Z4I7,LIMS2,R-HSA-446353,Cell-extracellular matrix interactions,https://reactome.org/PathwayBrowser/#/R-HSA-446353
+ENSG00000147526,,TACC1,,,
+ENSG00000138092,Q9BU64,CENPO,R-HSA-141444,Amplification  of signal from unattached  kinetochores via a MAD2  inhibitory signal,https://reactome.org/PathwayBrowser/#/R-HSA-141444
+ENSG00000138092,Q9BU64,CENPO,R-HSA-2467813,Separation of Sister Chromatids,https://reactome.org/PathwayBrowser/#/R-HSA-2467813
+ENSG00000138092,Q9BU64,CENPO,R-HSA-2500257,Resolution of Sister Chromatid Cohesion,https://reactome.org/PathwayBrowser/#/R-HSA-2500257
+ENSG00000138092,Q9BU64,CENPO,R-HSA-5663220,RHO GTPases Activate Formins,https://reactome.org/PathwayBrowser/#/R-HSA-5663220
+ENSG00000138092,Q9BU64,CENPO,R-HSA-606279,Deposition of new CENPA-containing nucleosomes at the centromere,https://reactome.org/PathwayBrowser/#/R-HSA-606279
+ENSG00000138092,Q9BU64,CENPO,R-HSA-68877,Mitotic Prometaphase,https://reactome.org/PathwayBrowser/#/R-HSA-68877
+ENSG00000138092,Q9BU64,CENPO,R-HSA-9648025,EML4 and NUDC in mitotic spindle formation,https://reactome.org/PathwayBrowser/#/R-HSA-9648025
+ENSG00000204949,,FAM83A-AS1,,,
+ENSG00000178726,P07204,THBD,R-HSA-140875,Common Pathway of Fibrin Clot Formation,https://reactome.org/PathwayBrowser/#/R-HSA-140875
+ENSG00000178726,P07204,THBD,R-HSA-202733,Cell surface interactions at the vascular wall,https://reactome.org/PathwayBrowser/#/R-HSA-202733
+ENSG00000154839,Q96BD8,SKA1,R-HSA-141444,Amplification  of signal from unattached  kinetochores via a MAD2  inhibitory signal,https://reactome.org/PathwayBrowser/#/R-HSA-141444
+ENSG00000154839,Q96BD8,SKA1,R-HSA-2467813,Separation of Sister Chromatids,https://reactome.org/PathwayBrowser/#/R-HSA-2467813
+ENSG00000154839,Q96BD8,SKA1,R-HSA-2500257,Resolution of Sister Chromatid Cohesion,https://reactome.org/PathwayBrowser/#/R-HSA-2500257
+ENSG00000154839,Q96BD8,SKA1,R-HSA-5663220,RHO GTPases Activate Formins,https://reactome.org/PathwayBrowser/#/R-HSA-5663220
+ENSG00000154839,Q96BD8,SKA1,R-HSA-68877,Mitotic Prometaphase,https://reactome.org/PathwayBrowser/#/R-HSA-68877
+ENSG00000154839,Q96BD8,SKA1,R-HSA-9648025,EML4 and NUDC in mitotic spindle formation,https://reactome.org/PathwayBrowser/#/R-HSA-9648025
+ENSG00000154736,Q9UNA0,ADAMTS5,R-HSA-1474228,Degradation of the extracellular matrix,https://reactome.org/PathwayBrowser/#/R-HSA-1474228
+ENSG00000154736,Q9UNA0,ADAMTS5,R-HSA-5083635,Defective B3GALTL causes PpS,https://reactome.org/PathwayBrowser/#/R-HSA-5083635
+ENSG00000154736,Q9UNA0,ADAMTS5,R-HSA-5173214,O-glycosylation of TSR domain-containing proteins,https://reactome.org/PathwayBrowser/#/R-HSA-5173214
+ENSG00000088325,Q9ULW0,TPX2,R-HSA-6804756,Regulation of TP53 Activity through Phosphorylation,https://reactome.org/PathwayBrowser/#/R-HSA-6804756
+ENSG00000088325,Q9ULW0,TPX2,R-HSA-8854518,AURKA Activation by TPX2,https://reactome.org/PathwayBrowser/#/R-HSA-8854518
+ENSG00000157654,,PALM2AKAP2,,,
+ENSG00000281852,,LINC00891,,,
+ENSG00000154783,Q6ZNL6,FGD5,R-HSA-9013149,RAC1 GTPase cycle,https://reactome.org/PathwayBrowser/#/R-HSA-9013149
+ENSG00000198478,,SH3BGRL2,,,
+ENSG00000168496,P39748,FEN1,R-HSA-110362,POLB-Dependent Long Patch Base Excision Repair,https://reactome.org/PathwayBrowser/#/R-HSA-110362
+ENSG00000168496,P39748,FEN1,R-HSA-162594,Early Phase of HIV Life Cycle,https://reactome.org/PathwayBrowser/#/R-HSA-162594
+ENSG00000168496,P39748,FEN1,R-HSA-174437,Removal of the Flap Intermediate from the C-strand,https://reactome.org/PathwayBrowser/#/R-HSA-174437
+ENSG00000168496,P39748,FEN1,R-HSA-5651801,PCNA-Dependent Long Patch Base Excision Repair,https://reactome.org/PathwayBrowser/#/R-HSA-5651801
+ENSG00000168496,P39748,FEN1,R-HSA-5685939,HDR through MMEJ (alt-NHEJ),https://reactome.org/PathwayBrowser/#/R-HSA-5685939
+ENSG00000168496,P39748,FEN1,R-HSA-69166,Removal of the Flap Intermediate,https://reactome.org/PathwayBrowser/#/R-HSA-69166
+ENSG00000180440,,SERTM1,,,
+ENSG00000079308,,TNS1,,,
+ENSG00000253642,,,,,
+ENSG00000181092,Q15848,ADIPOQ,R-HSA-163680,AMPK inhibits chREBP transcriptional activation activity,https://reactome.org/PathwayBrowser/#/R-HSA-163680
+ENSG00000181092,Q15848,ADIPOQ,R-HSA-381340,Transcriptional regulation of white adipocyte differentiation,https://reactome.org/PathwayBrowser/#/R-HSA-381340
+ENSG00000116711,P47712,PLA2G4A,R-HSA-111995,phospho-PLA2 pathway,https://reactome.org/PathwayBrowser/#/R-HSA-111995
+ENSG00000116711,P47712,PLA2G4A,R-HSA-1482788,Acyl chain remodelling of PC,https://reactome.org/PathwayBrowser/#/R-HSA-1482788
+ENSG00000116711,P47712,PLA2G4A,R-HSA-1482798,Acyl chain remodeling of CL,https://reactome.org/PathwayBrowser/#/R-HSA-1482798
+ENSG00000116711,P47712,PLA2G4A,R-HSA-1482801,Acyl chain remodelling of PS,https://reactome.org/PathwayBrowser/#/R-HSA-1482801
+ENSG00000116711,P47712,PLA2G4A,R-HSA-1482839,Acyl chain remodelling of PE,https://reactome.org/PathwayBrowser/#/R-HSA-1482839
+ENSG00000116711,P47712,PLA2G4A,R-HSA-1482922,Acyl chain remodelling of PI,https://reactome.org/PathwayBrowser/#/R-HSA-1482922
+ENSG00000116711,P47712,PLA2G4A,R-HSA-1482925,Acyl chain remodelling of PG,https://reactome.org/PathwayBrowser/#/R-HSA-1482925
+ENSG00000116711,P47712,PLA2G4A,R-HSA-1483115,Hydrolysis of LPC,https://reactome.org/PathwayBrowser/#/R-HSA-1483115
+ENSG00000116711,P47712,PLA2G4A,R-HSA-1483166,Synthesis of PA,https://reactome.org/PathwayBrowser/#/R-HSA-1483166
+ENSG00000116711,P47712,PLA2G4A,R-HSA-2142753,Arachidonic acid metabolism,https://reactome.org/PathwayBrowser/#/R-HSA-2142753
+ENSG00000116711,P47712,PLA2G4A,R-HSA-418592,ADP signalling through P2Y purinoceptor 1,https://reactome.org/PathwayBrowser/#/R-HSA-418592
+ENSG00000116711,P47712,PLA2G4A,R-HSA-432142,Platelet sensitization by LDL,https://reactome.org/PathwayBrowser/#/R-HSA-432142
+ENSG00000116711,P47712,PLA2G4A,R-HSA-6811436,COPI-independent Golgi-to-ER retrograde traffic,https://reactome.org/PathwayBrowser/#/R-HSA-6811436
+ENSG00000156052,P50148,GNAQ,R-HSA-112043,PLC beta mediated events,https://reactome.org/PathwayBrowser/#/R-HSA-112043
+ENSG00000156052,P50148,GNAQ,R-HSA-202040,G-protein activation,https://reactome.org/PathwayBrowser/#/R-HSA-202040
+ENSG00000156052,P50148,GNAQ,R-HSA-399997,Acetylcholine regulates insulin secretion,https://reactome.org/PathwayBrowser/#/R-HSA-399997
+ENSG00000156052,P50148,GNAQ,R-HSA-416476,G alpha (q) signalling events,https://reactome.org/PathwayBrowser/#/R-HSA-416476
+ENSG00000156052,P50148,GNAQ,R-HSA-418592,ADP signalling through P2Y purinoceptor 1,https://reactome.org/PathwayBrowser/#/R-HSA-418592
+ENSG00000156052,P50148,GNAQ,R-HSA-428930,Thromboxane signalling through TP receptor,https://reactome.org/PathwayBrowser/#/R-HSA-428930
+ENSG00000156052,P50148,GNAQ,R-HSA-434316,Fatty Acids bound to GPR40 (FFAR1) regulate insulin secretion,https://reactome.org/PathwayBrowser/#/R-HSA-434316
+ENSG00000156052,P50148,GNAQ,R-HSA-456926,Thrombin signalling through proteinase activated receptors (PARs),https://reactome.org/PathwayBrowser/#/R-HSA-456926
+ENSG00000156052,P50148,GNAQ,R-HSA-6814122,Cooperation of PDCL (PhLP1) and TRiC/CCT in G-protein beta folding,https://reactome.org/PathwayBrowser/#/R-HSA-6814122
+ENSG00000148488,P61647,ST8SIA6,R-HSA-4085001,Sialic acid metabolism,https://reactome.org/PathwayBrowser/#/R-HSA-4085001
+ENSG00000148488,P61647,ST8SIA6,R-HSA-975577,N-Glycan antennae elongation,https://reactome.org/PathwayBrowser/#/R-HSA-975577
+ENSG00000186185,Q86Y91,KIF18B,R-HSA-6811434,COPI-dependent Golgi-to-ER retrograde traffic,https://reactome.org/PathwayBrowser/#/R-HSA-6811434
+ENSG00000186185,Q86Y91,KIF18B,R-HSA-983189,Kinesins,https://reactome.org/PathwayBrowser/#/R-HSA-983189
+ENSG00000091651,Q9Y5N6,ORC6,R-HSA-113507,E2F-enabled inhibition of pre-replication complex formation,https://reactome.org/PathwayBrowser/#/R-HSA-113507
+ENSG00000091651,Q9Y5N6,ORC6,R-HSA-176187,Activation of ATR in response to replication stress,https://reactome.org/PathwayBrowser/#/R-HSA-176187
+ENSG00000091651,Q9Y5N6,ORC6,R-HSA-68616,Assembly of the ORC complex at the origin of replication,https://reactome.org/PathwayBrowser/#/R-HSA-68616
+ENSG00000091651,Q9Y5N6,ORC6,R-HSA-68689,CDC6 association with the ORC:origin complex,https://reactome.org/PathwayBrowser/#/R-HSA-68689
+ENSG00000091651,Q9Y5N6,ORC6,R-HSA-68867,Assembly of the pre-replicative complex,https://reactome.org/PathwayBrowser/#/R-HSA-68867
+ENSG00000091651,Q9Y5N6,ORC6,R-HSA-68949,Orc1 removal from chromatin,https://reactome.org/PathwayBrowser/#/R-HSA-68949
+ENSG00000091651,Q9Y5N6,ORC6,R-HSA-68962,Activation of the pre-replicative complex,https://reactome.org/PathwayBrowser/#/R-HSA-68962
+ENSG00000135052,Q8NBJ4,GOLM1,R-HSA-381426,Regulation of Insulin-like Growth Factor (IGF) transport and uptake by Insulin-like Growth Factor Binding Proteins (IGFBPs),https://reactome.org/PathwayBrowser/#/R-HSA-381426
+ENSG00000135052,Q8NBJ4,GOLM1,R-HSA-8957275,Post-translational protein phosphorylation,https://reactome.org/PathwayBrowser/#/R-HSA-8957275
+ENSG00000128944,,KNSTRN,,,
+ENSG00000227338,,,,,
+ENSG00000103241,Q12946,FOXF1,R-HSA-9758920,Formation of lateral plate mesoderm,https://reactome.org/PathwayBrowser/#/R-HSA-9758920
+ENSG00000103241,Q12946,FOXF1,R-HSA-9762293,Regulation of CDH11 gene transcription,https://reactome.org/PathwayBrowser/#/R-HSA-9762293
+ENSG00000237167,,,,,
+ENSG00000143590,P52797,EFNA3,R-HSA-2682334,EPH-Ephrin signaling,https://reactome.org/PathwayBrowser/#/R-HSA-2682334
+ENSG00000143590,P52797,EFNA3,R-HSA-3928663,EPHA-mediated growth cone collapse,https://reactome.org/PathwayBrowser/#/R-HSA-3928663
+ENSG00000143590,P52797,EFNA3,R-HSA-3928665,EPH-ephrin mediated repulsion of cells,https://reactome.org/PathwayBrowser/#/R-HSA-3928665
+ENSG00000248869,,LINC02511,,,
+ENSG00000075218,,GTSE1,R-HSA-69481,G2/M Checkpoints,https://reactome.org/PathwayBrowser/#/R-HSA-69481
+ENSG00000075218,,GTSE1,R-HSA-8852276,The role of GTSE1 in G2/M progression after G2 checkpoint,https://reactome.org/PathwayBrowser/#/R-HSA-8852276
+ENSG00000130829,Q99956,DUSP9,R-HSA-112409,RAF-independent MAPK1/3 activation,https://reactome.org/PathwayBrowser/#/R-HSA-112409
+ENSG00000130829,Q99956,DUSP9,R-HSA-5675221,Negative regulation of MAPK pathway,https://reactome.org/PathwayBrowser/#/R-HSA-5675221
+ENSG00000130829,Q99956,DUSP9,R-HSA-9652817,Signaling by MAPK mutants,https://reactome.org/PathwayBrowser/#/R-HSA-9652817
+ENSG00000093009,O75419,CDC45,R-HSA-176187,Activation of ATR in response to replication stress,https://reactome.org/PathwayBrowser/#/R-HSA-176187
+ENSG00000093009,O75419,CDC45,R-HSA-176974,Unwinding of DNA,https://reactome.org/PathwayBrowser/#/R-HSA-176974
+ENSG00000093009,O75419,CDC45,R-HSA-68962,Activation of the pre-replicative complex,https://reactome.org/PathwayBrowser/#/R-HSA-68962
+ENSG00000093009,O75419,CDC45,R-HSA-69205,G1/S-Specific Transcription,https://reactome.org/PathwayBrowser/#/R-HSA-69205
+ENSG00000152253,Q9HBM1,SPC25,R-HSA-141444,Amplification  of signal from unattached  kinetochores via a MAD2  inhibitory signal,https://reactome.org/PathwayBrowser/#/R-HSA-141444
+ENSG00000152253,Q9HBM1,SPC25,R-HSA-2467813,Separation of Sister Chromatids,https://reactome.org/PathwayBrowser/#/R-HSA-2467813
+ENSG00000152253,Q9HBM1,SPC25,R-HSA-2500257,Resolution of Sister Chromatid Cohesion,https://reactome.org/PathwayBrowser/#/R-HSA-2500257
+ENSG00000152253,Q9HBM1,SPC25,R-HSA-5663220,RHO GTPases Activate Formins,https://reactome.org/PathwayBrowser/#/R-HSA-5663220
+ENSG00000152253,Q9HBM1,SPC25,R-HSA-68877,Mitotic Prometaphase,https://reactome.org/PathwayBrowser/#/R-HSA-68877
+ENSG00000152253,Q9HBM1,SPC25,R-HSA-9648025,EML4 and NUDC in mitotic spindle formation,https://reactome.org/PathwayBrowser/#/R-HSA-9648025
+ENSG00000151418,Q96LB4,ATP6V1G3,R-HSA-1222556,ROS and RNS production in phagocytes,https://reactome.org/PathwayBrowser/#/R-HSA-1222556
+ENSG00000151418,Q96LB4,ATP6V1G3,R-HSA-77387,Insulin receptor recycling,https://reactome.org/PathwayBrowser/#/R-HSA-77387
+ENSG00000151418,Q96LB4,ATP6V1G3,R-HSA-917977,Transferrin endocytosis and recycling,https://reactome.org/PathwayBrowser/#/R-HSA-917977
+ENSG00000151418,Q96LB4,ATP6V1G3,R-HSA-9639288,Amino acids regulate mTORC1,https://reactome.org/PathwayBrowser/#/R-HSA-9639288
+ENSG00000151418,Q96LB4,ATP6V1G3,R-HSA-983712,Ion channel transport,https://reactome.org/PathwayBrowser/#/R-HSA-983712
+ENSG00000123473,,STIL,,,
+ENSG00000182253,,SYNM,,,
+ENSG00000175899,P01023,A2M,R-HSA-114608,Platelet degranulation ,https://reactome.org/PathwayBrowser/#/R-HSA-114608
+ENSG00000175899,P01023,A2M,R-HSA-140837,Intrinsic Pathway of Fibrin Clot Formation,https://reactome.org/PathwayBrowser/#/R-HSA-140837
+ENSG00000175899,P01023,A2M,R-HSA-1474228,Degradation of the extracellular matrix,https://reactome.org/PathwayBrowser/#/R-HSA-1474228
+ENSG00000175899,P01023,A2M,R-HSA-8963896,HDL assembly,https://reactome.org/PathwayBrowser/#/R-HSA-8963896
+ENSG00000162399,Q8WZ55,BSND,R-HSA-2672351,Stimuli-sensing channels,https://reactome.org/PathwayBrowser/#/R-HSA-2672351
+ENSG00000267259,,ERVE-1,,,
+ENSG00000144642,,RBMS3,,,
+ENSG00000134917,Q9UP79,ADAMTS8,R-HSA-1474228,Degradation of the extracellular matrix,https://reactome.org/PathwayBrowser/#/R-HSA-1474228
+ENSG00000134917,Q9UP79,ADAMTS8,R-HSA-5083635,Defective B3GALTL causes PpS,https://reactome.org/PathwayBrowser/#/R-HSA-5083635
+ENSG00000134917,Q9UP79,ADAMTS8,R-HSA-5173214,O-glycosylation of TSR domain-containing proteins,https://reactome.org/PathwayBrowser/#/R-HSA-5173214
+ENSG00000178999,Q96GD4,AURKB,R-HSA-141444,Amplification  of signal from unattached  kinetochores via a MAD2  inhibitory signal,https://reactome.org/PathwayBrowser/#/R-HSA-141444
+ENSG00000178999,Q96GD4,AURKB,R-HSA-174178,APC/C:Cdh1 mediated degradation of Cdc20 and other APC/C:Cdh1 targeted proteins in late mitosis/early G1,https://reactome.org/PathwayBrowser/#/R-HSA-174178
+ENSG00000178999,Q96GD4,AURKB,R-HSA-2467813,Separation of Sister Chromatids,https://reactome.org/PathwayBrowser/#/R-HSA-2467813
+ENSG00000178999,Q96GD4,AURKB,R-HSA-2500257,Resolution of Sister Chromatid Cohesion,https://reactome.org/PathwayBrowser/#/R-HSA-2500257
+ENSG00000178999,Q96GD4,AURKB,R-HSA-4615885,SUMOylation of DNA replication proteins,https://reactome.org/PathwayBrowser/#/R-HSA-4615885
+ENSG00000178999,Q96GD4,AURKB,R-HSA-5663220,RHO GTPases Activate Formins,https://reactome.org/PathwayBrowser/#/R-HSA-5663220
+ENSG00000178999,Q96GD4,AURKB,R-HSA-6804756,Regulation of TP53 Activity through Phosphorylation,https://reactome.org/PathwayBrowser/#/R-HSA-6804756
+ENSG00000178999,Q96GD4,AURKB,R-HSA-68877,Mitotic Prometaphase,https://reactome.org/PathwayBrowser/#/R-HSA-68877
+ENSG00000178999,Q96GD4,AURKB,R-HSA-9022692,Regulation of MECP2 expression and activity,https://reactome.org/PathwayBrowser/#/R-HSA-9022692
+ENSG00000178999,Q96GD4,AURKB,R-HSA-9648025,EML4 and NUDC in mitotic spindle formation,https://reactome.org/PathwayBrowser/#/R-HSA-9648025
+ENSG00000197465,,GYPE,,,
+ENSG00000154764,O00755,WNT7A,R-HSA-3238698,WNT ligand biogenesis and trafficking,https://reactome.org/PathwayBrowser/#/R-HSA-3238698
+ENSG00000154764,O00755,WNT7A,R-HSA-373080,Class B/2 (Secretin family receptors),https://reactome.org/PathwayBrowser/#/R-HSA-373080
+ENSG00000205213,Q9BXB1,LGR4,R-HSA-4641263,Regulation of FZD by ubiquitination,https://reactome.org/PathwayBrowser/#/R-HSA-4641263
+ENSG00000257588,,,,,
+ENSG00000069535,P27338,MAOB,R-HSA-141333,Biogenic amines are oxidatively deaminated to aldehydes by MAOA and MAOB,https://reactome.org/PathwayBrowser/#/R-HSA-141333
+ENSG00000164611,O95997,PTTG1,R-HSA-174154,APC/C:Cdc20 mediated degradation of Securin,https://reactome.org/PathwayBrowser/#/R-HSA-174154
+ENSG00000164611,O95997,PTTG1,R-HSA-174178,APC/C:Cdh1 mediated degradation of Cdc20 and other APC/C:Cdh1 targeted proteins in late mitosis/early G1,https://reactome.org/PathwayBrowser/#/R-HSA-174178
+ENSG00000164611,O95997,PTTG1,R-HSA-2467813,Separation of Sister Chromatids,https://reactome.org/PathwayBrowser/#/R-HSA-2467813
+ENSG00000111665,,CDCA3,,,
+ENSG00000061656,,SPAG4,,,
+ENSG00000106462,Q15910,EZH2,R-HSA-212300,PRC2 methylates histones and DNA,https://reactome.org/PathwayBrowser/#/R-HSA-212300
+ENSG00000106462,Q15910,EZH2,R-HSA-2559580,Oxidative Stress Induced Senescence,https://reactome.org/PathwayBrowser/#/R-HSA-2559580
+ENSG00000106462,Q15910,EZH2,R-HSA-3214841,PKMTs methylate histone lysines,https://reactome.org/PathwayBrowser/#/R-HSA-3214841
+ENSG00000106462,Q15910,EZH2,R-HSA-5617472,Activation of anterior HOX genes in hindbrain development during early embryogenesis,https://reactome.org/PathwayBrowser/#/R-HSA-5617472
+ENSG00000106462,Q15910,EZH2,R-HSA-8943724,Regulation of PTEN gene transcription,https://reactome.org/PathwayBrowser/#/R-HSA-8943724
+ENSG00000106462,Q15910,EZH2,R-HSA-8953750,Transcriptional Regulation by E2F6,https://reactome.org/PathwayBrowser/#/R-HSA-8953750
+ENSG00000106462,Q15910,EZH2,R-HSA-9609690,HCMV Early Events,https://reactome.org/PathwayBrowser/#/R-HSA-9609690
+ENSG00000106462,Q15910,EZH2,R-HSA-9710421,Defective pyroptosis,https://reactome.org/PathwayBrowser/#/R-HSA-9710421
+ENSG00000183347,Q6ZN66,GBP6,R-HSA-877300,Interferon gamma signaling,https://reactome.org/PathwayBrowser/#/R-HSA-877300
+ENSG00000077152,Q9NPD8,UBE2T,R-HSA-6783310,Fanconi Anemia Pathway,https://reactome.org/PathwayBrowser/#/R-HSA-6783310
+ENSG00000077152,Q9NPD8,UBE2T,R-HSA-8866652,Synthesis of active ubiquitin: roles of E1 and E2 enzymes,https://reactome.org/PathwayBrowser/#/R-HSA-8866652
+ENSG00000112782,Q9NZA1,CLIC5,R-HSA-9662360,Sensory processing of sound by inner hair cells of the cochlea,https://reactome.org/PathwayBrowser/#/R-HSA-9662360
+ENSG00000112782,Q9NZA1,CLIC5,R-HSA-9662361,Sensory processing of sound by outer hair cells of the cochlea,https://reactome.org/PathwayBrowser/#/R-HSA-9662361
+ENSG00000183378,,OVCH2,,,
+ENSG00000140600,Q99963,SH3GL3,R-HSA-182971,EGFR downregulation,https://reactome.org/PathwayBrowser/#/R-HSA-182971
+ENSG00000140600,Q99963,SH3GL3,R-HSA-6807004,Negative regulation of MET activity,https://reactome.org/PathwayBrowser/#/R-HSA-6807004
+ENSG00000140600,Q99963,SH3GL3,R-HSA-8856825,Cargo recognition for clathrin-mediated endocytosis,https://reactome.org/PathwayBrowser/#/R-HSA-8856825
+ENSG00000140600,Q99963,SH3GL3,R-HSA-8856828,Clathrin-mediated endocytosis,https://reactome.org/PathwayBrowser/#/R-HSA-8856828
+ENSG00000140600,Q99963,SH3GL3,R-HSA-8875360,InlB-mediated entry of Listeria monocytogenes into host cell,https://reactome.org/PathwayBrowser/#/R-HSA-8875360
+ENSG00000140600,Q99963,SH3GL3,R-HSA-9031628,NGF-stimulated transcription,https://reactome.org/PathwayBrowser/#/R-HSA-9031628
+ENSG00000171004,Q96MM7,HS6ST2,R-HSA-2022928,HS-GAG biosynthesis,https://reactome.org/PathwayBrowser/#/R-HSA-2022928
+ENSG00000101331,,CCM2L,,,
+ENSG00000171101,,SIGLEC17P,,,
+ENSG00000146410,,MTFR2,,,
+ENSG00000138180,,CEP55,,,
+ENSG00000285640,,,,,
+ENSG00000157456,O95067,CCNB2,R-HSA-156711,Polo-like kinase mediated events,https://reactome.org/PathwayBrowser/#/R-HSA-156711
+ENSG00000157456,O95067,CCNB2,R-HSA-162658,Golgi Cisternae Pericentriolar Stack Reorganization,https://reactome.org/PathwayBrowser/#/R-HSA-162658
+ENSG00000157456,O95067,CCNB2,R-HSA-2500257,Resolution of Sister Chromatid Cohesion,https://reactome.org/PathwayBrowser/#/R-HSA-2500257
+ENSG00000157456,O95067,CCNB2,R-HSA-2514853,Condensation of Prometaphase Chromosomes,https://reactome.org/PathwayBrowser/#/R-HSA-2514853
+ENSG00000157456,O95067,CCNB2,R-HSA-2565942,Regulation of PLK1 Activity at G2/M Transition,https://reactome.org/PathwayBrowser/#/R-HSA-2565942
+ENSG00000157456,O95067,CCNB2,R-HSA-2980767,"Activation of NIMA Kinases NEK9, NEK6, NEK7",https://reactome.org/PathwayBrowser/#/R-HSA-2980767
+ENSG00000157456,O95067,CCNB2,R-HSA-2995383,Initiation of Nuclear Envelope (NE) Reformation,https://reactome.org/PathwayBrowser/#/R-HSA-2995383
+ENSG00000157456,O95067,CCNB2,R-HSA-3301854,Nuclear Pore Complex (NPC) Disassembly,https://reactome.org/PathwayBrowser/#/R-HSA-3301854
+ENSG00000157456,O95067,CCNB2,R-HSA-69273,Cyclin A/B1/B2 associated events during G2/M transition,https://reactome.org/PathwayBrowser/#/R-HSA-69273
+ENSG00000157456,O95067,CCNB2,R-HSA-69478,G2/M DNA replication checkpoint,https://reactome.org/PathwayBrowser/#/R-HSA-69478
+ENSG00000157456,O95067,CCNB2,R-HSA-8852276,The role of GTSE1 in G2/M progression after G2 checkpoint,https://reactome.org/PathwayBrowser/#/R-HSA-8852276
+ENSG00000197083,,ZNF300P1,,,
+ENSG00000197565,,COL4A6,R-HSA-3371453,Regulation of HSF1-mediated heat shock response,https://reactome.org/PathwayBrowser/#/R-HSA-3371453
+ENSG00000197565,,COL4A6,R-HSA-3371511,HSF1 activation,https://reactome.org/PathwayBrowser/#/R-HSA-3371511
+ENSG00000197565,,COL4A6,R-HSA-3371568,Attenuation phase,https://reactome.org/PathwayBrowser/#/R-HSA-3371568
+ENSG00000197565,,COL4A6,R-HSA-3371571,HSF1-dependent transactivation,https://reactome.org/PathwayBrowser/#/R-HSA-3371571
+ENSG00000197565,Q14031,COL4A6,R-HSA-1442490,Collagen degradation,https://reactome.org/PathwayBrowser/#/R-HSA-1442490
+ENSG00000197565,Q14031,COL4A6,R-HSA-1474244,Extracellular matrix organization,https://reactome.org/PathwayBrowser/#/R-HSA-1474244
+ENSG00000197565,Q14031,COL4A6,R-HSA-1650814,Collagen biosynthesis and modifying enzymes,https://reactome.org/PathwayBrowser/#/R-HSA-1650814
+ENSG00000197565,Q14031,COL4A6,R-HSA-2022090,Assembly of collagen fibrils and other multimeric structures,https://reactome.org/PathwayBrowser/#/R-HSA-2022090
+ENSG00000197565,Q14031,COL4A6,R-HSA-216083,Integrin cell surface interactions,https://reactome.org/PathwayBrowser/#/R-HSA-216083
+ENSG00000197565,Q14031,COL4A6,R-HSA-2214320,Anchoring fibril formation,https://reactome.org/PathwayBrowser/#/R-HSA-2214320
+ENSG00000197565,Q14031,COL4A6,R-HSA-2243919,Crosslinking of collagen fibrils,https://reactome.org/PathwayBrowser/#/R-HSA-2243919
+ENSG00000197565,Q14031,COL4A6,R-HSA-3000157,Laminin interactions,https://reactome.org/PathwayBrowser/#/R-HSA-3000157
+ENSG00000197565,Q14031,COL4A6,R-HSA-3000171,Non-integrin membrane-ECM interactions,https://reactome.org/PathwayBrowser/#/R-HSA-3000171
+ENSG00000197565,Q14031,COL4A6,R-HSA-3000178,ECM proteoglycans,https://reactome.org/PathwayBrowser/#/R-HSA-3000178
+ENSG00000197565,Q14031,COL4A6,R-HSA-8948216,Collagen chain trimerization,https://reactome.org/PathwayBrowser/#/R-HSA-8948216
+ENSG00000268388,,FENDRR,,,
+ENSG00000117399,Q12834,CDC20,R-HSA-141405,Inhibition of the proteolytic activity of APC/C required for the onset of anaphase by mitotic spindle checkpoint components,https://reactome.org/PathwayBrowser/#/R-HSA-141405
+ENSG00000117399,Q12834,CDC20,R-HSA-141430,Inactivation of APC/C via direct inhibition of the APC/C complex,https://reactome.org/PathwayBrowser/#/R-HSA-141430
+ENSG00000117399,Q12834,CDC20,R-HSA-141444,Amplification  of signal from unattached  kinetochores via a MAD2  inhibitory signal,https://reactome.org/PathwayBrowser/#/R-HSA-141444
+ENSG00000117399,Q12834,CDC20,R-HSA-174048,APC/C:Cdc20 mediated degradation of Cyclin B,https://reactome.org/PathwayBrowser/#/R-HSA-174048
+ENSG00000117399,Q12834,CDC20,R-HSA-174113,SCF-beta-TrCP mediated degradation of Emi1,https://reactome.org/PathwayBrowser/#/R-HSA-174113
+ENSG00000117399,Q12834,CDC20,R-HSA-174154,APC/C:Cdc20 mediated degradation of Securin,https://reactome.org/PathwayBrowser/#/R-HSA-174154
+ENSG00000117399,Q12834,CDC20,R-HSA-174178,APC/C:Cdh1 mediated degradation of Cdc20 and other APC/C:Cdh1 targeted proteins in late mitosis/early G1,https://reactome.org/PathwayBrowser/#/R-HSA-174178
+ENSG00000117399,Q12834,CDC20,R-HSA-174184,Cdc20:Phospho-APC/C mediated degradation of Cyclin A,https://reactome.org/PathwayBrowser/#/R-HSA-174184
+ENSG00000117399,Q12834,CDC20,R-HSA-176407,Conversion from APC/C:Cdc20 to APC/C:Cdh1 in late anaphase,https://reactome.org/PathwayBrowser/#/R-HSA-176407
+ENSG00000117399,Q12834,CDC20,R-HSA-176408,Regulation of APC/C activators between G1/S and early anaphase,https://reactome.org/PathwayBrowser/#/R-HSA-176408
+ENSG00000117399,Q12834,CDC20,R-HSA-176409,APC/C:Cdc20 mediated degradation of mitotic proteins,https://reactome.org/PathwayBrowser/#/R-HSA-176409
+ENSG00000117399,Q12834,CDC20,R-HSA-176417,Phosphorylation of Emi1,https://reactome.org/PathwayBrowser/#/R-HSA-176417
+ENSG00000117399,Q12834,CDC20,R-HSA-179409,APC-Cdc20 mediated degradation of Nek2A,https://reactome.org/PathwayBrowser/#/R-HSA-179409
+ENSG00000117399,Q12834,CDC20,R-HSA-2467813,Separation of Sister Chromatids,https://reactome.org/PathwayBrowser/#/R-HSA-2467813
+ENSG00000117399,Q12834,CDC20,R-HSA-2500257,Resolution of Sister Chromatid Cohesion,https://reactome.org/PathwayBrowser/#/R-HSA-2500257
+ENSG00000117399,Q12834,CDC20,R-HSA-5663220,RHO GTPases Activate Formins,https://reactome.org/PathwayBrowser/#/R-HSA-5663220
+ENSG00000117399,Q12834,CDC20,R-HSA-5689880,Ub-specific processing proteases,https://reactome.org/PathwayBrowser/#/R-HSA-5689880
+ENSG00000117399,Q12834,CDC20,R-HSA-68877,Mitotic Prometaphase,https://reactome.org/PathwayBrowser/#/R-HSA-68877
+ENSG00000117399,Q12834,CDC20,R-HSA-9648025,EML4 and NUDC in mitotic spindle formation,https://reactome.org/PathwayBrowser/#/R-HSA-9648025
+ENSG00000117399,Q12834,CDC20,R-HSA-983168,Antigen processing: Ubiquitination & Proteasome degradation,https://reactome.org/PathwayBrowser/#/R-HSA-983168
+ENSG00000126602,Q12931,TRAP1,R-HSA-611105,Respiratory electron transport,https://reactome.org/PathwayBrowser/#/R-HSA-611105
+ENSG00000126602,Q12931,TRAP1,R-HSA-71403,Citric acid cycle (TCA cycle),https://reactome.org/PathwayBrowser/#/R-HSA-71403
+ENSG00000250874,,,,,
+ENSG00000156284,P56748,CLDN8,R-HSA-420029,Tight junction interactions,https://reactome.org/PathwayBrowser/#/R-HSA-420029
+ENSG00000137225,Q9UMQ6,CAPN11,R-HSA-1474228,Degradation of the extracellular matrix,https://reactome.org/PathwayBrowser/#/R-HSA-1474228
+ENSG00000140835,Q8NCG5,CHST4,R-HSA-913709,O-linked glycosylation of mucins,https://reactome.org/PathwayBrowser/#/R-HSA-913709
+ENSG00000101057,P10244,MYBL2,R-HSA-1362300,Transcription of E2F targets under negative control by p107 (RBL1) and p130 (RBL2) in complex with HDAC1,https://reactome.org/PathwayBrowser/#/R-HSA-1362300
+ENSG00000101057,P10244,MYBL2,R-HSA-156711,Polo-like kinase mediated events,https://reactome.org/PathwayBrowser/#/R-HSA-156711
+ENSG00000101057,P10244,MYBL2,R-HSA-8869496,TFAP2A acts as a transcriptional repressor during retinoic acid induced cell differentiation,https://reactome.org/PathwayBrowser/#/R-HSA-8869496
+ENSG00000129009,O14498,ISLR,R-HSA-114608,Platelet degranulation ,https://reactome.org/PathwayBrowser/#/R-HSA-114608
+ENSG00000246430,,LINC00968,,,
+ENSG00000250529,,LINC02121,,,
+ENSG00000087589,,CASS4,,,
+ENSG00000184374,Q9Y6Z7,COLEC10,R-HSA-166662,Lectin pathway of complement activation,https://reactome.org/PathwayBrowser/#/R-HSA-166662
+ENSG00000184374,Q9Y6Z7,COLEC10,R-HSA-166663,Initial triggering of complement,https://reactome.org/PathwayBrowser/#/R-HSA-166663
+ENSG00000091704,,CPA1,,,
+ENSG00000147614,Q8N8Y2,ATP6V0D2,R-HSA-1222556,ROS and RNS production in phagocytes,https://reactome.org/PathwayBrowser/#/R-HSA-1222556
+ENSG00000147614,Q8N8Y2,ATP6V0D2,R-HSA-77387,Insulin receptor recycling,https://reactome.org/PathwayBrowser/#/R-HSA-77387
+ENSG00000147614,Q8N8Y2,ATP6V0D2,R-HSA-917977,Transferrin endocytosis and recycling,https://reactome.org/PathwayBrowser/#/R-HSA-917977
+ENSG00000147614,Q8N8Y2,ATP6V0D2,R-HSA-9639288,Amino acids regulate mTORC1,https://reactome.org/PathwayBrowser/#/R-HSA-9639288
+ENSG00000147614,Q8N8Y2,ATP6V0D2,R-HSA-983712,Ion channel transport,https://reactome.org/PathwayBrowser/#/R-HSA-983712
+ENSG00000273335,,,,,
+ENSG00000166482,P55083,MFAP4,R-HSA-2129379,Molecules associated with elastic fibres,https://reactome.org/PathwayBrowser/#/R-HSA-2129379
+ENSG00000146670,Q96FF9,CDCA5,R-HSA-2467813,Separation of Sister Chromatids,https://reactome.org/PathwayBrowser/#/R-HSA-2467813
+ENSG00000146670,Q96FF9,CDCA5,R-HSA-2468052,Establishment of Sister Chromatid Cohesion,https://reactome.org/PathwayBrowser/#/R-HSA-2468052
+ENSG00000146670,Q96FF9,CDCA5,R-HSA-2500257,Resolution of Sister Chromatid Cohesion,https://reactome.org/PathwayBrowser/#/R-HSA-2500257
+ENSG00000248551,,,,,
+ENSG00000128710,,HOXD10,,,
+ENSG00000160688,Q8NFF5,FLAD1,R-HSA-196843,Vitamin B2 (riboflavin) metabolism,https://reactome.org/PathwayBrowser/#/R-HSA-196843
+ENSG00000188175,,HEPACAM2,,,
+ENSG00000276365,,MIR145,,,
+ENSG00000161649,Q6UXG3,CD300LG,R-HSA-198933,Immunoregulatory interactions between a Lymphoid and a non-Lymphoid cell,https://reactome.org/PathwayBrowser/#/R-HSA-198933
+ENSG00000164087,,POC1A,,,
+ENSG00000135451,,TROAP,,,
+ENSG00000113889,P01042,KNG1,R-HSA-114608,Platelet degranulation ,https://reactome.org/PathwayBrowser/#/R-HSA-114608
+ENSG00000113889,P01042,KNG1,R-HSA-140837,Intrinsic Pathway of Fibrin Clot Formation,https://reactome.org/PathwayBrowser/#/R-HSA-140837
+ENSG00000113889,P01042,KNG1,R-HSA-375276,Peptide ligand-binding receptors,https://reactome.org/PathwayBrowser/#/R-HSA-375276
+ENSG00000113889,P01042,KNG1,R-HSA-381426,Regulation of Insulin-like Growth Factor (IGF) transport and uptake by Insulin-like Growth Factor Binding Proteins (IGFBPs),https://reactome.org/PathwayBrowser/#/R-HSA-381426
+ENSG00000113889,P01042,KNG1,R-HSA-416476,G alpha (q) signalling events,https://reactome.org/PathwayBrowser/#/R-HSA-416476
+ENSG00000113889,P01042,KNG1,R-HSA-418594,G alpha (i) signalling events,https://reactome.org/PathwayBrowser/#/R-HSA-418594
+ENSG00000113889,P01042,KNG1,R-HSA-8957275,Post-translational protein phosphorylation,https://reactome.org/PathwayBrowser/#/R-HSA-8957275
+ENSG00000104332,Q8N474,SFRP1,R-HSA-201681,TCF dependent signaling in response to WNT,https://reactome.org/PathwayBrowser/#/R-HSA-201681
+ENSG00000104332,Q8N474,SFRP1,R-HSA-3772470,Negative regulation of TCF-dependent signaling by WNT ligand antagonists,https://reactome.org/PathwayBrowser/#/R-HSA-3772470
+ENSG00000168743,Q6UXI9,NPNT,R-HSA-9830364,Formation of the nephric duct,https://reactome.org/PathwayBrowser/#/R-HSA-9830364
+ENSG00000168743,Q6UXI9,NPNT,R-HSA-9830674,Formation of the ureteric bud,https://reactome.org/PathwayBrowser/#/R-HSA-9830674
+ENSG00000134020,,PEBP4,,,
+ENSG00000257634,,,,,
+ENSG00000206384,A6NMZ7,COL6A6,R-HSA-1442490,Collagen degradation,https://reactome.org/PathwayBrowser/#/R-HSA-1442490
+ENSG00000206384,A6NMZ7,COL6A6,R-HSA-1650814,Collagen biosynthesis and modifying enzymes,https://reactome.org/PathwayBrowser/#/R-HSA-1650814
+ENSG00000206384,A6NMZ7,COL6A6,R-HSA-186797,Signaling by PDGF,https://reactome.org/PathwayBrowser/#/R-HSA-186797
+ENSG00000206384,A6NMZ7,COL6A6,R-HSA-2022090,Assembly of collagen fibrils and other multimeric structures,https://reactome.org/PathwayBrowser/#/R-HSA-2022090
+ENSG00000206384,A6NMZ7,COL6A6,R-HSA-216083,Integrin cell surface interactions,https://reactome.org/PathwayBrowser/#/R-HSA-216083
+ENSG00000206384,A6NMZ7,COL6A6,R-HSA-3000178,ECM proteoglycans,https://reactome.org/PathwayBrowser/#/R-HSA-3000178
+ENSG00000206384,A6NMZ7,COL6A6,R-HSA-419037,NCAM1 interactions,https://reactome.org/PathwayBrowser/#/R-HSA-419037
+ENSG00000206384,A6NMZ7,COL6A6,R-HSA-8948216,Collagen chain trimerization,https://reactome.org/PathwayBrowser/#/R-HSA-8948216
+ENSG00000165197,O43915,VEGFD,R-HSA-114608,Platelet degranulation ,https://reactome.org/PathwayBrowser/#/R-HSA-114608
+ENSG00000165197,O43915,VEGFD,R-HSA-194313,VEGF ligand-receptor interactions,https://reactome.org/PathwayBrowser/#/R-HSA-194313
+ENSG00000165197,O43915,VEGFD,R-HSA-195399,VEGF binds to VEGFR leading to receptor dimerization,https://reactome.org/PathwayBrowser/#/R-HSA-195399
+ENSG00000171954,Q6NT55,CYP4F22,R-HSA-211935,Fatty acids,https://reactome.org/PathwayBrowser/#/R-HSA-211935
+ENSG00000171954,Q6NT55,CYP4F22,R-HSA-211958,Miscellaneous substrates,https://reactome.org/PathwayBrowser/#/R-HSA-211958
+ENSG00000171954,Q6NT55,CYP4F22,R-HSA-211979,Eicosanoids,https://reactome.org/PathwayBrowser/#/R-HSA-211979
+ENSG00000171954,Q6NT55,CYP4F22,R-HSA-2142691,Synthesis of Leukotrienes (LT) and Eoxins (EX),https://reactome.org/PathwayBrowser/#/R-HSA-2142691
+ENSG00000171954,Q6NT55,CYP4F22,R-HSA-5579005,Defective CYP4F22 causes ARCI5,https://reactome.org/PathwayBrowser/#/R-HSA-5579005
+ENSG00000102683,,SGCG,,,
+ENSG00000034971,,MYOC,,,
+ENSG00000261761,,LINC02616,,,
+ENSG00000168539,P11229,CHRM1,R-HSA-390648,Muscarinic acetylcholine receptors,https://reactome.org/PathwayBrowser/#/R-HSA-390648
+ENSG00000168539,P11229,CHRM1,R-HSA-416476,G alpha (q) signalling events,https://reactome.org/PathwayBrowser/#/R-HSA-416476
+ENSG00000105538,,RASIP1,,,
+ENSG00000105971,P51636,CAV2,R-HSA-9009391,Extra-nuclear estrogen signaling,https://reactome.org/PathwayBrowser/#/R-HSA-9009391
+ENSG00000145777,Q969D9,TSLP,R-HSA-1266695,Interleukin-7 signaling,https://reactome.org/PathwayBrowser/#/R-HSA-1266695
+ENSG00000089685,,BIRC5,R-HSA-141444,Amplification  of signal from unattached  kinetochores via a MAD2  inhibitory signal,https://reactome.org/PathwayBrowser/#/R-HSA-141444
+ENSG00000089685,,BIRC5,R-HSA-2467813,Separation of Sister Chromatids,https://reactome.org/PathwayBrowser/#/R-HSA-2467813
+ENSG00000089685,,BIRC5,R-HSA-2500257,Resolution of Sister Chromatid Cohesion,https://reactome.org/PathwayBrowser/#/R-HSA-2500257
+ENSG00000089685,,BIRC5,R-HSA-4615885,SUMOylation of DNA replication proteins,https://reactome.org/PathwayBrowser/#/R-HSA-4615885
+ENSG00000089685,,BIRC5,R-HSA-5663220,RHO GTPases Activate Formins,https://reactome.org/PathwayBrowser/#/R-HSA-5663220
+ENSG00000089685,,BIRC5,R-HSA-6785807,Interleukin-4 and Interleukin-13 signaling,https://reactome.org/PathwayBrowser/#/R-HSA-6785807
+ENSG00000089685,,BIRC5,R-HSA-6803205,TP53 regulates transcription of several additional cell death genes whose specific roles in p53-dependent apoptosis remain uncertain,https://reactome.org/PathwayBrowser/#/R-HSA-6803205
+ENSG00000089685,,BIRC5,R-HSA-68877,Mitotic Prometaphase,https://reactome.org/PathwayBrowser/#/R-HSA-68877
+ENSG00000089685,,BIRC5,R-HSA-8951664,Neddylation,https://reactome.org/PathwayBrowser/#/R-HSA-8951664
+ENSG00000089685,,BIRC5,R-HSA-9648025,EML4 and NUDC in mitotic spindle formation,https://reactome.org/PathwayBrowser/#/R-HSA-9648025
+ENSG00000117724,P49454,CENPF,R-HSA-141444,Amplification  of signal from unattached  kinetochores via a MAD2  inhibitory signal,https://reactome.org/PathwayBrowser/#/R-HSA-141444
+ENSG00000117724,P49454,CENPF,R-HSA-156711,Polo-like kinase mediated events,https://reactome.org/PathwayBrowser/#/R-HSA-156711
+ENSG00000117724,P49454,CENPF,R-HSA-2467813,Separation of Sister Chromatids,https://reactome.org/PathwayBrowser/#/R-HSA-2467813
+ENSG00000117724,P49454,CENPF,R-HSA-2500257,Resolution of Sister Chromatid Cohesion,https://reactome.org/PathwayBrowser/#/R-HSA-2500257
+ENSG00000117724,P49454,CENPF,R-HSA-5663220,RHO GTPases Activate Formins,https://reactome.org/PathwayBrowser/#/R-HSA-5663220
+ENSG00000117724,P49454,CENPF,R-HSA-68877,Mitotic Prometaphase,https://reactome.org/PathwayBrowser/#/R-HSA-68877
+ENSG00000117724,P49454,CENPF,R-HSA-9648025,EML4 and NUDC in mitotic spindle formation,https://reactome.org/PathwayBrowser/#/R-HSA-9648025
+ENSG00000177098,Q8IWT1,SCN4B,R-HSA-445095,Interaction between L1 and Ankyrins,https://reactome.org/PathwayBrowser/#/R-HSA-445095
+ENSG00000177098,Q8IWT1,SCN4B,R-HSA-5576892,Phase 0 - rapid depolarisation,https://reactome.org/PathwayBrowser/#/R-HSA-5576892
+ENSG00000177098,Q8IWT1,SCN4B,R-HSA-9717207,"Sensory perception of sweet, bitter, and umami (glutamate) taste",https://reactome.org/PathwayBrowser/#/R-HSA-9717207
+ENSG00000266524,,GDF10,,,
+ENSG00000234281,,LANCL1-AS1,,,
+ENSG00000122952,O95229,ZWINT,R-HSA-141444,Amplification  of signal from unattached  kinetochores via a MAD2  inhibitory signal,https://reactome.org/PathwayBrowser/#/R-HSA-141444
+ENSG00000122952,O95229,ZWINT,R-HSA-2467813,Separation of Sister Chromatids,https://reactome.org/PathwayBrowser/#/R-HSA-2467813
+ENSG00000122952,O95229,ZWINT,R-HSA-2500257,Resolution of Sister Chromatid Cohesion,https://reactome.org/PathwayBrowser/#/R-HSA-2500257
+ENSG00000122952,O95229,ZWINT,R-HSA-5663220,RHO GTPases Activate Formins,https://reactome.org/PathwayBrowser/#/R-HSA-5663220
+ENSG00000122952,O95229,ZWINT,R-HSA-68877,Mitotic Prometaphase,https://reactome.org/PathwayBrowser/#/R-HSA-68877
+ENSG00000122952,O95229,ZWINT,R-HSA-9648025,EML4 and NUDC in mitotic spindle formation,https://reactome.org/PathwayBrowser/#/R-HSA-9648025
+ENSG00000142945,Q99661,KIF2C,R-HSA-141444,Amplification  of signal from unattached  kinetochores via a MAD2  inhibitory signal,https://reactome.org/PathwayBrowser/#/R-HSA-141444
+ENSG00000142945,Q99661,KIF2C,R-HSA-2132295,MHC class II antigen presentation,https://reactome.org/PathwayBrowser/#/R-HSA-2132295
+ENSG00000142945,Q99661,KIF2C,R-HSA-2467813,Separation of Sister Chromatids,https://reactome.org/PathwayBrowser/#/R-HSA-2467813
+ENSG00000142945,Q99661,KIF2C,R-HSA-2500257,Resolution of Sister Chromatid Cohesion,https://reactome.org/PathwayBrowser/#/R-HSA-2500257
+ENSG00000142945,Q99661,KIF2C,R-HSA-5663220,RHO GTPases Activate Formins,https://reactome.org/PathwayBrowser/#/R-HSA-5663220
+ENSG00000142945,Q99661,KIF2C,R-HSA-6811434,COPI-dependent Golgi-to-ER retrograde traffic,https://reactome.org/PathwayBrowser/#/R-HSA-6811434
+ENSG00000142945,Q99661,KIF2C,R-HSA-68877,Mitotic Prometaphase,https://reactome.org/PathwayBrowser/#/R-HSA-68877
+ENSG00000142945,Q99661,KIF2C,R-HSA-9648025,EML4 and NUDC in mitotic spindle formation,https://reactome.org/PathwayBrowser/#/R-HSA-9648025
+ENSG00000142945,Q99661,KIF2C,R-HSA-983189,Kinesins,https://reactome.org/PathwayBrowser/#/R-HSA-983189
+ENSG00000254789,,,,,
+ENSG00000112984,O95235,KIF20A,R-HSA-2132295,MHC class II antigen presentation,https://reactome.org/PathwayBrowser/#/R-HSA-2132295
+ENSG00000112984,O95235,KIF20A,R-HSA-6811434,COPI-dependent Golgi-to-ER retrograde traffic,https://reactome.org/PathwayBrowser/#/R-HSA-6811434
+ENSG00000112984,O95235,KIF20A,R-HSA-68884,Mitotic Telophase/Cytokinesis,https://reactome.org/PathwayBrowser/#/R-HSA-68884
+ENSG00000112984,O95235,KIF20A,R-HSA-983189,Kinesins,https://reactome.org/PathwayBrowser/#/R-HSA-983189
+ENSG00000198826,Q6P4F7,ARHGAP11A,R-HSA-8980692,RHOA GTPase cycle,https://reactome.org/PathwayBrowser/#/R-HSA-8980692
+ENSG00000154263,Q8WWZ4,ABCA10,R-HSA-1369062,ABC transporters in lipid homeostasis,https://reactome.org/PathwayBrowser/#/R-HSA-1369062
+ENSG00000183807,,FAM162B,,,
+ENSG00000253898,,LINC01419,,,
+ENSG00000007968,Q14209,E2F2,R-HSA-2559580,Oxidative Stress Induced Senescence,https://reactome.org/PathwayBrowser/#/R-HSA-2559580
+ENSG00000007968,Q14209,E2F2,R-HSA-2559585,Oncogene Induced Senescence,https://reactome.org/PathwayBrowser/#/R-HSA-2559585
+ENSG00000007968,Q14209,E2F2,R-HSA-69231,Cyclin D associated events in G1,https://reactome.org/PathwayBrowser/#/R-HSA-69231
+ENSG00000007968,Q14209,E2F2,R-HSA-9661069,"Defective binding of RB1 mutants to E2F1,(E2F2, E2F3)",https://reactome.org/PathwayBrowser/#/R-HSA-9661069
+ENSG00000179776,P33151,CDH5,R-HSA-418990,Adherens junctions interactions,https://reactome.org/PathwayBrowser/#/R-HSA-418990
+ENSG00000179776,P33151,CDH5,R-HSA-5218920,VEGFR2 mediated vascular permeability,https://reactome.org/PathwayBrowser/#/R-HSA-5218920
+ENSG00000143549,P06753,TPM3,R-HSA-390522,Striated Muscle Contraction,https://reactome.org/PathwayBrowser/#/R-HSA-390522
+ENSG00000143549,P06753,TPM3,R-HSA-445355,Smooth Muscle Contraction,https://reactome.org/PathwayBrowser/#/R-HSA-445355
+ENSG00000143549,P06753,TPM3,R-HSA-9013424,RHOV GTPase cycle,https://reactome.org/PathwayBrowser/#/R-HSA-9013424
+ENSG00000143549,P06753,TPM3,R-HSA-9725370,Signaling by ALK fusions and activated point mutants,https://reactome.org/PathwayBrowser/#/R-HSA-9725370
+ENSG00000155660,,PDIA4,,,
+ENSG00000101447,Q9H4H8,FAM83D,R-HSA-177929,Signaling by EGFR,https://reactome.org/PathwayBrowser/#/R-HSA-177929
+ENSG00000233154,,LINC01762,,,
+ENSG00000025423,O14756,HSD17B6,R-HSA-2453902,The canonical retinoid cycle in rods (twilight vision),https://reactome.org/PathwayBrowser/#/R-HSA-2453902
+ENSG00000143369,Q16610,ECM1,R-HSA-114608,Platelet degranulation ,https://reactome.org/PathwayBrowser/#/R-HSA-114608
+ENSG00000123975,,CKS2,,,
+ENSG00000126787,Q15398,DLGAP5,R-HSA-9013508,NOTCH3 Intracellular Domain Regulates Transcription,https://reactome.org/PathwayBrowser/#/R-HSA-9013508
+ENSG00000244280,,ECEL1P2,,,
+ENSG00000168269,,FOXI1,,,
+ENSG00000169550,Q8N387,MUC15,R-HSA-5083625,Defective GALNT3 causes HFTC,https://reactome.org/PathwayBrowser/#/R-HSA-5083625
+ENSG00000169550,Q8N387,MUC15,R-HSA-5083632,Defective C1GALT1C1 causes TNPS,https://reactome.org/PathwayBrowser/#/R-HSA-5083632
+ENSG00000169550,Q8N387,MUC15,R-HSA-5083636,Defective GALNT12 causes CRCS1,https://reactome.org/PathwayBrowser/#/R-HSA-5083636
+ENSG00000169550,Q8N387,MUC15,R-HSA-5621480,Dectin-2 family,https://reactome.org/PathwayBrowser/#/R-HSA-5621480
+ENSG00000169550,Q8N387,MUC15,R-HSA-913709,O-linked glycosylation of mucins,https://reactome.org/PathwayBrowser/#/R-HSA-913709
+ENSG00000169550,Q8N387,MUC15,R-HSA-977068,Termination of O-glycan biosynthesis,https://reactome.org/PathwayBrowser/#/R-HSA-977068
+ENSG00000178222,,RNF212,,,
+ENSG00000163431,P29536,LMOD1,R-HSA-445355,Smooth Muscle Contraction,https://reactome.org/PathwayBrowser/#/R-HSA-445355
+ENSG00000107159,Q16790,CA9,R-HSA-1234158,Regulation of gene expression by Hypoxia-inducible Factor,https://reactome.org/PathwayBrowser/#/R-HSA-1234158
+ENSG00000107159,Q16790,CA9,R-HSA-1475029,Reversible hydration of carbon dioxide,https://reactome.org/PathwayBrowser/#/R-HSA-1475029
+ENSG00000133687,,TMTC1,,,
+ENSG00000166803,Q15004,PCLAF,R-HSA-5656169,Termination of translesion DNA synthesis,https://reactome.org/PathwayBrowser/#/R-HSA-5656169
+ENSG00000175395,P17030,ZNF25,R-HSA-212436,Generic Transcription Pathway,https://reactome.org/PathwayBrowser/#/R-HSA-212436
+ENSG00000183155,,RABIF,,,
+ENSG00000224960,,PPP4R3C,,,
+ENSG00000273706,P48742,LHX1,R-HSA-9761174,Formation of intermediate mesoderm,https://reactome.org/PathwayBrowser/#/R-HSA-9761174
+ENSG00000273706,P48742,LHX1,R-HSA-9830364,Formation of the nephric duct,https://reactome.org/PathwayBrowser/#/R-HSA-9830364
+ENSG00000273706,P48742,LHX1,R-HSA-9831926,Nephron development,https://reactome.org/PathwayBrowser/#/R-HSA-9831926
+ENSG00000115163,P49450,CENPA,R-HSA-141444,Amplification  of signal from unattached  kinetochores via a MAD2  inhibitory signal,https://reactome.org/PathwayBrowser/#/R-HSA-141444
+ENSG00000115163,P49450,CENPA,R-HSA-2467813,Separation of Sister Chromatids,https://reactome.org/PathwayBrowser/#/R-HSA-2467813
+ENSG00000115163,P49450,CENPA,R-HSA-2500257,Resolution of Sister Chromatid Cohesion,https://reactome.org/PathwayBrowser/#/R-HSA-2500257
+ENSG00000115163,P49450,CENPA,R-HSA-5663220,RHO GTPases Activate Formins,https://reactome.org/PathwayBrowser/#/R-HSA-5663220
+ENSG00000115163,P49450,CENPA,R-HSA-606279,Deposition of new CENPA-containing nucleosomes at the centromere,https://reactome.org/PathwayBrowser/#/R-HSA-606279
+ENSG00000115163,P49450,CENPA,R-HSA-68877,Mitotic Prometaphase,https://reactome.org/PathwayBrowser/#/R-HSA-68877
+ENSG00000115163,P49450,CENPA,R-HSA-9648025,EML4 and NUDC in mitotic spindle formation,https://reactome.org/PathwayBrowser/#/R-HSA-9648025
+ENSG00000225398,,PGM5P4,,,
+ENSG00000169344,P07911,UMOD,R-HSA-446203,Asparagine N-linked glycosylation,https://reactome.org/PathwayBrowser/#/R-HSA-446203
+ENSG00000119715,,ESRRB,R-HSA-383280,Nuclear Receptor transcription pathway,https://reactome.org/PathwayBrowser/#/R-HSA-383280
+ENSG00000136158,O43597,SPRY2,R-HSA-1295596,Spry regulation of FGF signaling,https://reactome.org/PathwayBrowser/#/R-HSA-1295596
+ENSG00000136158,O43597,SPRY2,R-HSA-182971,EGFR downregulation,https://reactome.org/PathwayBrowser/#/R-HSA-182971
+ENSG00000263761,Q9UK05,GDF2,R-HSA-201451,Signaling by BMP,https://reactome.org/PathwayBrowser/#/R-HSA-201451
+ENSG00000072657,,TRHDE,,,
+ENSG00000168309,,FAM107A,,,
+ENSG00000258808,,LINC02310,,,
+ENSG00000286289,,,,,
+ENSG00000120913,,PDLIM2,,,
+ENSG00000198873,P34947,GRK5,R-HSA-416476,G alpha (q) signalling events,https://reactome.org/PathwayBrowser/#/R-HSA-416476
+ENSG00000198873,P34947,GRK5,R-HSA-418555,G alpha (s) signalling events,https://reactome.org/PathwayBrowser/#/R-HSA-418555
+ENSG00000144381,P10809,HSPD1,R-HSA-1268020,Mitochondrial protein import,https://reactome.org/PathwayBrowser/#/R-HSA-1268020
+ENSG00000144381,P10809,HSPD1,R-HSA-8869496,TFAP2A acts as a transcriptional repressor during retinoic acid induced cell differentiation,https://reactome.org/PathwayBrowser/#/R-HSA-8869496
+ENSG00000144381,P10809,HSPD1,R-HSA-9837999,Mitochondrial protein degradation,https://reactome.org/PathwayBrowser/#/R-HSA-9837999
+ENSG00000183856,Q86VI3,IQGAP3,R-HSA-5626467,RHO GTPases activate IQGAPs,https://reactome.org/PathwayBrowser/#/R-HSA-5626467
+ENSG00000183856,Q86VI3,IQGAP3,R-HSA-8980692,RHOA GTPase cycle,https://reactome.org/PathwayBrowser/#/R-HSA-8980692
+ENSG00000183856,Q86VI3,IQGAP3,R-HSA-9013026,RHOB GTPase cycle,https://reactome.org/PathwayBrowser/#/R-HSA-9013026
+ENSG00000183856,Q86VI3,IQGAP3,R-HSA-9013106,RHOC GTPase cycle,https://reactome.org/PathwayBrowser/#/R-HSA-9013106
+ENSG00000183856,Q86VI3,IQGAP3,R-HSA-9013148,CDC42 GTPase cycle,https://reactome.org/PathwayBrowser/#/R-HSA-9013148
+ENSG00000183856,Q86VI3,IQGAP3,R-HSA-9013149,RAC1 GTPase cycle,https://reactome.org/PathwayBrowser/#/R-HSA-9013149
+ENSG00000183856,Q86VI3,IQGAP3,R-HSA-9013406,RHOQ GTPase cycle,https://reactome.org/PathwayBrowser/#/R-HSA-9013406
+ENSG00000183856,Q86VI3,IQGAP3,R-HSA-9013409,RHOJ GTPase cycle,https://reactome.org/PathwayBrowser/#/R-HSA-9013409
+ENSG00000024422,Q9NZN4,EHD2,R-HSA-983231,Factors involved in megakaryocyte development and platelet production,https://reactome.org/PathwayBrowser/#/R-HSA-983231
+ENSG00000138160,P52732,KIF11,R-HSA-2132295,MHC class II antigen presentation,https://reactome.org/PathwayBrowser/#/R-HSA-2132295
+ENSG00000138160,P52732,KIF11,R-HSA-6811434,COPI-dependent Golgi-to-ER retrograde traffic,https://reactome.org/PathwayBrowser/#/R-HSA-6811434
+ENSG00000138160,P52732,KIF11,R-HSA-983189,Kinesins,https://reactome.org/PathwayBrowser/#/R-HSA-983189
+ENSG00000213853,,EMP2,,,
+ENSG00000131097,,HIGD1B,,,
+ENSG00000105929,Q9HBG4,ATP6V0A4,R-HSA-1222556,ROS and RNS production in phagocytes,https://reactome.org/PathwayBrowser/#/R-HSA-1222556
+ENSG00000105929,Q9HBG4,ATP6V0A4,R-HSA-77387,Insulin receptor recycling,https://reactome.org/PathwayBrowser/#/R-HSA-77387
+ENSG00000105929,Q9HBG4,ATP6V0A4,R-HSA-917977,Transferrin endocytosis and recycling,https://reactome.org/PathwayBrowser/#/R-HSA-917977
+ENSG00000105929,Q9HBG4,ATP6V0A4,R-HSA-983712,Ion channel transport,https://reactome.org/PathwayBrowser/#/R-HSA-983712
+ENSG00000248517,,LINC02437,,,
+ENSG00000187134,Q04828,AKR1C1,R-HSA-193368,Synthesis of bile acids and bile salts via 7alpha-hydroxycholesterol,https://reactome.org/PathwayBrowser/#/R-HSA-193368
+ENSG00000187134,Q04828,AKR1C1,R-HSA-193775,Synthesis of bile acids and bile salts via 24-hydroxycholesterol,https://reactome.org/PathwayBrowser/#/R-HSA-193775
+ENSG00000187134,Q04828,AKR1C1,R-HSA-193807,Synthesis of bile acids and bile salts via 27-hydroxycholesterol,https://reactome.org/PathwayBrowser/#/R-HSA-193807
+ENSG00000187134,Q04828,AKR1C1,R-HSA-975634,Retinoid metabolism and transport,https://reactome.org/PathwayBrowser/#/R-HSA-975634
+ENSG00000187134,Q04828,AKR1C1,R-HSA-9757110,Prednisone ADME,https://reactome.org/PathwayBrowser/#/R-HSA-9757110
+ENSG00000241158,,ADAMTS9-AS1,,,
+ENSG00000151834,P47869,GABRA2,R-HSA-977443,GABA receptor activation,https://reactome.org/PathwayBrowser/#/R-HSA-977443
+ENSG00000129810,Q5FBB7,SGO1,R-HSA-141444,Amplification  of signal from unattached  kinetochores via a MAD2  inhibitory signal,https://reactome.org/PathwayBrowser/#/R-HSA-141444
+ENSG00000129810,Q5FBB7,SGO1,R-HSA-2467813,Separation of Sister Chromatids,https://reactome.org/PathwayBrowser/#/R-HSA-2467813
+ENSG00000129810,Q5FBB7,SGO1,R-HSA-2500257,Resolution of Sister Chromatid Cohesion,https://reactome.org/PathwayBrowser/#/R-HSA-2500257
+ENSG00000129810,Q5FBB7,SGO1,R-HSA-5663220,RHO GTPases Activate Formins,https://reactome.org/PathwayBrowser/#/R-HSA-5663220
+ENSG00000129810,Q5FBB7,SGO1,R-HSA-68877,Mitotic Prometaphase,https://reactome.org/PathwayBrowser/#/R-HSA-68877
+ENSG00000129810,Q5FBB7,SGO1,R-HSA-9648025,EML4 and NUDC in mitotic spindle formation,https://reactome.org/PathwayBrowser/#/R-HSA-9648025
+ENSG00000043355,O95409,ZIC2,R-HSA-9823739,Formation of the anterior neural plate,https://reactome.org/PathwayBrowser/#/R-HSA-9823739
+ENSG00000170231,P51161,FABP6,R-HSA-159418,Recycling of bile acids and salts,https://reactome.org/PathwayBrowser/#/R-HSA-159418
+ENSG00000170231,P51161,FABP6,R-HSA-163560,Triglyceride catabolism,https://reactome.org/PathwayBrowser/#/R-HSA-163560
+ENSG00000170231,P51161,FABP6,R-HSA-9623433,NR1H2 & NR1H3 regulate gene expression to control bile acid homeostasis,https://reactome.org/PathwayBrowser/#/R-HSA-9623433
+ENSG00000237413,,,,,
+ENSG00000137727,Q9P2F6,ARHGAP20,R-HSA-8980692,RHOA GTPase cycle,https://reactome.org/PathwayBrowser/#/R-HSA-8980692
+ENSG00000137727,Q9P2F6,ARHGAP20,R-HSA-9013148,CDC42 GTPase cycle,https://reactome.org/PathwayBrowser/#/R-HSA-9013148
+ENSG00000137727,Q9P2F6,ARHGAP20,R-HSA-9013149,RAC1 GTPase cycle,https://reactome.org/PathwayBrowser/#/R-HSA-9013149
+ENSG00000169862,,CTNND2,,,
+ENSG00000163788,,SNRK,,,
+ENSG00000276668,,,,,
+ENSG00000171885,P55087,AQP4,R-HSA-432040,Vasopressin regulates renal water homeostasis via Aquaporins,https://reactome.org/PathwayBrowser/#/R-HSA-432040
+ENSG00000171885,P55087,AQP4,R-HSA-432047,Passive transport by Aquaporins,https://reactome.org/PathwayBrowser/#/R-HSA-432047
+ENSG00000185133,Q15735,INPP5J,R-HSA-1660499,Synthesis of PIPs at the plasma membrane,https://reactome.org/PathwayBrowser/#/R-HSA-1660499
+ENSG00000185133,Q15735,INPP5J,R-HSA-1855183,"Synthesis of IP2, IP, and Ins in the cytosol",https://reactome.org/PathwayBrowser/#/R-HSA-1855183
+ENSG00000185133,Q15735,INPP5J,R-HSA-1855204,Synthesis of IP3 and IP4 in the cytosol,https://reactome.org/PathwayBrowser/#/R-HSA-1855204
+ENSG00000088305,Q9UBC3,DNMT3B,R-HSA-212300,PRC2 methylates histones and DNA,https://reactome.org/PathwayBrowser/#/R-HSA-212300
+ENSG00000088305,Q9UBC3,DNMT3B,R-HSA-427413,NoRC negatively regulates rRNA expression,https://reactome.org/PathwayBrowser/#/R-HSA-427413
+ENSG00000088305,Q9UBC3,DNMT3B,R-HSA-4655427,SUMOylation of DNA methylation proteins,https://reactome.org/PathwayBrowser/#/R-HSA-4655427
+ENSG00000088305,Q9UBC3,DNMT3B,R-HSA-5334118,DNA methylation,https://reactome.org/PathwayBrowser/#/R-HSA-5334118
+ENSG00000088305,Q9UBC3,DNMT3B,R-HSA-9710421,Defective pyroptosis,https://reactome.org/PathwayBrowser/#/R-HSA-9710421
+ENSG00000228288,,PCAT6,,,
+ENSG00000228401,,,,,
+ENSG00000157554,,ERG,,,
+ENSG00000126878,,AIF1L,,,
+ENSG00000092068,Q9UHI5,SLC7A8,R-HSA-210991,Basigin interactions,https://reactome.org/PathwayBrowser/#/R-HSA-210991
+ENSG00000092068,Q9UHI5,SLC7A8,R-HSA-352230,Amino acid transport across the plasma membrane,https://reactome.org/PathwayBrowser/#/R-HSA-352230
+ENSG00000249601,,LINC01187,,,
+ENSG00000164879,P07451,CA3,R-HSA-1475029,Reversible hydration of carbon dioxide,https://reactome.org/PathwayBrowser/#/R-HSA-1475029
+ENSG00000087586,,AURKA,R-HSA-174178,APC/C:Cdh1 mediated degradation of Cdc20 and other APC/C:Cdh1 targeted proteins in late mitosis/early G1,https://reactome.org/PathwayBrowser/#/R-HSA-174178
+ENSG00000087586,,AURKA,R-HSA-2565942,Regulation of PLK1 Activity at G2/M Transition,https://reactome.org/PathwayBrowser/#/R-HSA-2565942
+ENSG00000087586,,AURKA,R-HSA-4615885,SUMOylation of DNA replication proteins,https://reactome.org/PathwayBrowser/#/R-HSA-4615885
+ENSG00000087586,,AURKA,R-HSA-6804114,TP53 Regulates Transcription of Genes Involved in G2 Cell Cycle Arrest,https://reactome.org/PathwayBrowser/#/R-HSA-6804114
+ENSG00000087586,,AURKA,R-HSA-6804756,Regulation of TP53 Activity through Phosphorylation,https://reactome.org/PathwayBrowser/#/R-HSA-6804756
+ENSG00000087586,,AURKA,R-HSA-8854050,FBXL7 down-regulates AURKA during mitotic entry and in early mitosis,https://reactome.org/PathwayBrowser/#/R-HSA-8854050
+ENSG00000087586,,AURKA,R-HSA-8854518,AURKA Activation by TPX2,https://reactome.org/PathwayBrowser/#/R-HSA-8854518
+ENSG00000087586,,AURKA,R-HSA-8854521,Interaction between PHLDA1 and AURKA,https://reactome.org/PathwayBrowser/#/R-HSA-8854521
+ENSG00000189369,Q8IYD1,GSPT2,R-HSA-72764,Eukaryotic Translation Termination,https://reactome.org/PathwayBrowser/#/R-HSA-72764
+ENSG00000189369,Q8IYD1,GSPT2,R-HSA-9010553,Regulation of expression of SLITs and ROBOs,https://reactome.org/PathwayBrowser/#/R-HSA-9010553
+ENSG00000189369,Q8IYD1,GSPT2,R-HSA-975956,Nonsense Mediated Decay (NMD) independent of the Exon Junction Complex (EJC),https://reactome.org/PathwayBrowser/#/R-HSA-975956
+ENSG00000189369,Q8IYD1,GSPT2,R-HSA-975957,Nonsense Mediated Decay (NMD) enhanced by the Exon Junction Complex (EJC),https://reactome.org/PathwayBrowser/#/R-HSA-975957
+ENSG00000151704,P48048,KCNJ1,R-HSA-1296067,Potassium transport channels,https://reactome.org/PathwayBrowser/#/R-HSA-1296067
+ENSG00000096088,,PGC,,,
+ENSG00000117650,P51955,NEK2,R-HSA-179409,APC-Cdc20 mediated degradation of Nek2A,https://reactome.org/PathwayBrowser/#/R-HSA-179409
+ENSG00000117650,P51955,NEK2,R-HSA-2565942,Regulation of PLK1 Activity at G2/M Transition,https://reactome.org/PathwayBrowser/#/R-HSA-2565942
+ENSG00000117650,P51955,NEK2,R-HSA-380259,Loss of Nlp from mitotic centrosomes,https://reactome.org/PathwayBrowser/#/R-HSA-380259
+ENSG00000117650,P51955,NEK2,R-HSA-380270,Recruitment of mitotic centrosome proteins and complexes,https://reactome.org/PathwayBrowser/#/R-HSA-380270
+ENSG00000117650,P51955,NEK2,R-HSA-380284,Loss of proteins required for interphase microtubule organization from the centrosome,https://reactome.org/PathwayBrowser/#/R-HSA-380284
+ENSG00000117650,P51955,NEK2,R-HSA-380320,Recruitment of NuMA to mitotic centrosomes,https://reactome.org/PathwayBrowser/#/R-HSA-380320
+ENSG00000117650,P51955,NEK2,R-HSA-5620912,Anchoring of the basal body to the plasma membrane,https://reactome.org/PathwayBrowser/#/R-HSA-5620912
+ENSG00000117650,P51955,NEK2,R-HSA-8854518,AURKA Activation by TPX2,https://reactome.org/PathwayBrowser/#/R-HSA-8854518
+ENSG00000228055,,FAM245A,,,
+ENSG00000101335,P24844,MYL9,R-HSA-3928663,EPHA-mediated growth cone collapse,https://reactome.org/PathwayBrowser/#/R-HSA-3928663
+ENSG00000101335,P24844,MYL9,R-HSA-416572,Sema4D induced cell migration and growth-cone collapse,https://reactome.org/PathwayBrowser/#/R-HSA-416572
+ENSG00000101335,P24844,MYL9,R-HSA-445355,Smooth Muscle Contraction,https://reactome.org/PathwayBrowser/#/R-HSA-445355
+ENSG00000101335,P24844,MYL9,R-HSA-5625740,RHO GTPases activate PKNs,https://reactome.org/PathwayBrowser/#/R-HSA-5625740
+ENSG00000101335,P24844,MYL9,R-HSA-5625900,RHO GTPases activate CIT,https://reactome.org/PathwayBrowser/#/R-HSA-5625900
+ENSG00000101335,P24844,MYL9,R-HSA-5627117,RHO GTPases Activate ROCKs,https://reactome.org/PathwayBrowser/#/R-HSA-5627117
+ENSG00000101335,P24844,MYL9,R-HSA-5627123,RHO GTPases activate PAKs,https://reactome.org/PathwayBrowser/#/R-HSA-5627123
+ENSG00000101335,P24844,MYL9,R-HSA-8936459,RUNX1 regulates genes involved in megakaryocyte differentiation and platelet function,https://reactome.org/PathwayBrowser/#/R-HSA-8936459
+ENSG00000013810,Q9Y6A5,TACC3,R-HSA-9013507,NOTCH3 Activation and Transmission of Signal to the Nucleus,https://reactome.org/PathwayBrowser/#/R-HSA-9013507
+ENSG00000013810,Q9Y6A5,TACC3,R-HSA-9604323,Negative regulation of NOTCH4 signaling,https://reactome.org/PathwayBrowser/#/R-HSA-9604323
+ENSG00000100526,,CDKN3,,,
+ENSG00000117594,P28845,HSD11B1,R-HSA-194002,Glucocorticoid biosynthesis,https://reactome.org/PathwayBrowser/#/R-HSA-194002
+ENSG00000117594,P28845,HSD11B1,R-HSA-9757110,Prednisone ADME,https://reactome.org/PathwayBrowser/#/R-HSA-9757110
+ENSG00000131831,,RAI2,,,
+ENSG00000280339,,,,,
+ENSG00000263155,,MYZAP,,,
+ENSG00000112742,,TTK,,,
+ENSG00000168481,Q8N145,LGI3,R-HSA-5682910,LGI-ADAM interactions,https://reactome.org/PathwayBrowser/#/R-HSA-5682910
+ENSG00000148053,Q16620,NTRK2,R-HSA-1257604,PIP3 activates AKT signaling,https://reactome.org/PathwayBrowser/#/R-HSA-1257604
+ENSG00000148053,Q16620,NTRK2,R-HSA-187024,NGF-independant TRKA activation,https://reactome.org/PathwayBrowser/#/R-HSA-187024
+ENSG00000148053,Q16620,NTRK2,R-HSA-2219530,Constitutive Signaling by Aberrant PI3K in Cancer,https://reactome.org/PathwayBrowser/#/R-HSA-2219530
+ENSG00000148053,Q16620,NTRK2,R-HSA-6811558,"PI5P, PP2A and IER3 Regulate PI3K/AKT Signaling",https://reactome.org/PathwayBrowser/#/R-HSA-6811558
+ENSG00000148053,Q16620,NTRK2,R-HSA-9024909,BDNF activates NTRK2 (TRKB) signaling,https://reactome.org/PathwayBrowser/#/R-HSA-9024909
+ENSG00000148053,Q16620,NTRK2,R-HSA-9025046,NTF3 activates NTRK2 (TRKB) signaling,https://reactome.org/PathwayBrowser/#/R-HSA-9025046
+ENSG00000148053,Q16620,NTRK2,R-HSA-9026357,NTF4 activates NTRK2 (TRKB) signaling,https://reactome.org/PathwayBrowser/#/R-HSA-9026357
+ENSG00000148053,Q16620,NTRK2,R-HSA-9026519,Activated NTRK2 signals through RAS,https://reactome.org/PathwayBrowser/#/R-HSA-9026519
+ENSG00000148053,Q16620,NTRK2,R-HSA-9026527,Activated NTRK2 signals through PLCG1,https://reactome.org/PathwayBrowser/#/R-HSA-9026527
+ENSG00000148053,Q16620,NTRK2,R-HSA-9028335,Activated NTRK2 signals through PI3K,https://reactome.org/PathwayBrowser/#/R-HSA-9028335
+ENSG00000148053,Q16620,NTRK2,R-HSA-9028731,Activated NTRK2 signals through FRS2 and FRS3,https://reactome.org/PathwayBrowser/#/R-HSA-9028731
+ENSG00000148053,Q16620,NTRK2,R-HSA-9032500,Activated NTRK2 signals through FYN,https://reactome.org/PathwayBrowser/#/R-HSA-9032500
+ENSG00000148053,Q16620,NTRK2,R-HSA-9032759,NTRK2 activates RAC1,https://reactome.org/PathwayBrowser/#/R-HSA-9032759
+ENSG00000148053,Q16620,NTRK2,R-HSA-9032845,Activated NTRK2 signals through CDK5,https://reactome.org/PathwayBrowser/#/R-HSA-9032845
+ENSG00000137135,Q8N4T4,ARHGEF39,R-HSA-193648,NRAGE signals death through JNK,https://reactome.org/PathwayBrowser/#/R-HSA-193648
+ENSG00000137135,Q8N4T4,ARHGEF39,R-HSA-416482,G alpha (12/13) signalling events,https://reactome.org/PathwayBrowser/#/R-HSA-416482
+ENSG00000137135,Q8N4T4,ARHGEF39,R-HSA-9013149,RAC1 GTPase cycle,https://reactome.org/PathwayBrowser/#/R-HSA-9013149
+ENSG00000134057,P14635,CCNB1,R-HSA-113507,E2F-enabled inhibition of pre-replication complex formation,https://reactome.org/PathwayBrowser/#/R-HSA-113507
+ENSG00000134057,P14635,CCNB1,R-HSA-156711,Polo-like kinase mediated events,https://reactome.org/PathwayBrowser/#/R-HSA-156711
+ENSG00000134057,P14635,CCNB1,R-HSA-162658,Golgi Cisternae Pericentriolar Stack Reorganization,https://reactome.org/PathwayBrowser/#/R-HSA-162658
+ENSG00000134057,P14635,CCNB1,R-HSA-174048,APC/C:Cdc20 mediated degradation of Cyclin B,https://reactome.org/PathwayBrowser/#/R-HSA-174048
+ENSG00000134057,P14635,CCNB1,R-HSA-176408,Regulation of APC/C activators between G1/S and early anaphase,https://reactome.org/PathwayBrowser/#/R-HSA-176408
+ENSG00000134057,P14635,CCNB1,R-HSA-176412,Phosphorylation of the APC/C,https://reactome.org/PathwayBrowser/#/R-HSA-176412
+ENSG00000134057,P14635,CCNB1,R-HSA-176417,Phosphorylation of Emi1,https://reactome.org/PathwayBrowser/#/R-HSA-176417
+ENSG00000134057,P14635,CCNB1,R-HSA-2299718,Condensation of Prophase Chromosomes,https://reactome.org/PathwayBrowser/#/R-HSA-2299718
+ENSG00000134057,P14635,CCNB1,R-HSA-2465910,MASTL Facilitates Mitotic Progression,https://reactome.org/PathwayBrowser/#/R-HSA-2465910
+ENSG00000134057,P14635,CCNB1,R-HSA-2500257,Resolution of Sister Chromatid Cohesion,https://reactome.org/PathwayBrowser/#/R-HSA-2500257
+ENSG00000134057,P14635,CCNB1,R-HSA-2514853,Condensation of Prometaphase Chromosomes,https://reactome.org/PathwayBrowser/#/R-HSA-2514853
+ENSG00000134057,P14635,CCNB1,R-HSA-2565942,Regulation of PLK1 Activity at G2/M Transition,https://reactome.org/PathwayBrowser/#/R-HSA-2565942
+ENSG00000134057,P14635,CCNB1,R-HSA-2980767,"Activation of NIMA Kinases NEK9, NEK6, NEK7",https://reactome.org/PathwayBrowser/#/R-HSA-2980767
+ENSG00000134057,P14635,CCNB1,R-HSA-2995383,Initiation of Nuclear Envelope (NE) Reformation,https://reactome.org/PathwayBrowser/#/R-HSA-2995383
+ENSG00000134057,P14635,CCNB1,R-HSA-3301854,Nuclear Pore Complex (NPC) Disassembly,https://reactome.org/PathwayBrowser/#/R-HSA-3301854
+ENSG00000134057,P14635,CCNB1,R-HSA-4419969,Depolymerization of the Nuclear Lamina,https://reactome.org/PathwayBrowser/#/R-HSA-4419969
+ENSG00000134057,P14635,CCNB1,R-HSA-6804114,TP53 Regulates Transcription of Genes Involved in G2 Cell Cycle Arrest,https://reactome.org/PathwayBrowser/#/R-HSA-6804114
+ENSG00000134057,P14635,CCNB1,R-HSA-68875,Mitotic Prophase,https://reactome.org/PathwayBrowser/#/R-HSA-68875
+ENSG00000134057,P14635,CCNB1,R-HSA-69273,Cyclin A/B1/B2 associated events during G2/M transition,https://reactome.org/PathwayBrowser/#/R-HSA-69273
+ENSG00000134057,P14635,CCNB1,R-HSA-69478,G2/M DNA replication checkpoint,https://reactome.org/PathwayBrowser/#/R-HSA-69478
+ENSG00000134057,P14635,CCNB1,R-HSA-75035,Chk1/Chk2(Cds1) mediated inactivation of Cyclin B:Cdk1 complex,https://reactome.org/PathwayBrowser/#/R-HSA-75035
+ENSG00000134057,P14635,CCNB1,R-HSA-8852276,The role of GTSE1 in G2/M progression after G2 checkpoint,https://reactome.org/PathwayBrowser/#/R-HSA-8852276
+ENSG00000134057,P14635,CCNB1,R-HSA-8878166,Transcriptional regulation by RUNX2,https://reactome.org/PathwayBrowser/#/R-HSA-8878166
+ENSG00000134057,P14635,CCNB1,R-HSA-9725371,Nuclear events stimulated by ALK signaling in cancer,https://reactome.org/PathwayBrowser/#/R-HSA-9725371
+ENSG00000134057,P14635,CCNB1,R-HSA-9825892,Regulation of MITF-M-dependent genes involved in cell cycle and proliferation,https://reactome.org/PathwayBrowser/#/R-HSA-9825892
+ENSG00000167641,Q96A00,PPP1R14A,R-HSA-5625740,RHO GTPases activate PKNs,https://reactome.org/PathwayBrowser/#/R-HSA-5625740
+ENSG00000125810,Q9NPY3,CD93,R-HSA-6798695,Neutrophil degranulation,https://reactome.org/PathwayBrowser/#/R-HSA-6798695
+ENSG00000286214,,,,,
+ENSG00000117595,O14896,IRF6,R-HSA-877300,Interferon gamma signaling,https://reactome.org/PathwayBrowser/#/R-HSA-877300
+ENSG00000117595,O14896,IRF6,R-HSA-909733,Interferon alpha/beta signaling,https://reactome.org/PathwayBrowser/#/R-HSA-909733
+ENSG00000243694,,LINC02027,,,
+ENSG00000160801,Q03431,PTH1R,R-HSA-373080,Class B/2 (Secretin family receptors),https://reactome.org/PathwayBrowser/#/R-HSA-373080
+ENSG00000160801,Q03431,PTH1R,R-HSA-418555,G alpha (s) signalling events,https://reactome.org/PathwayBrowser/#/R-HSA-418555
+ENSG00000081818,,PCDHB4,,,
+ENSG00000102104,,RS1,,,
+ENSG00000151715,,TMEM45B,,,
+ENSG00000169679,O43683,BUB1,R-HSA-141444,Amplification  of signal from unattached  kinetochores via a MAD2  inhibitory signal,https://reactome.org/PathwayBrowser/#/R-HSA-141444
+ENSG00000169679,O43683,BUB1,R-HSA-2467813,Separation of Sister Chromatids,https://reactome.org/PathwayBrowser/#/R-HSA-2467813
+ENSG00000169679,O43683,BUB1,R-HSA-2500257,Resolution of Sister Chromatid Cohesion,https://reactome.org/PathwayBrowser/#/R-HSA-2500257
+ENSG00000169679,O43683,BUB1,R-HSA-5663220,RHO GTPases Activate Formins,https://reactome.org/PathwayBrowser/#/R-HSA-5663220
+ENSG00000169679,O43683,BUB1,R-HSA-68877,Mitotic Prometaphase,https://reactome.org/PathwayBrowser/#/R-HSA-68877
+ENSG00000169679,O43683,BUB1,R-HSA-9648025,EML4 and NUDC in mitotic spindle formation,https://reactome.org/PathwayBrowser/#/R-HSA-9648025
+ENSG00000176435,,CLEC14A,,,
+ENSG00000277494,,GPIHBP1,R-HSA-163125,Post-translational modification: synthesis of GPI-anchored proteins,https://reactome.org/PathwayBrowser/#/R-HSA-163125
+ENSG00000277494,,GPIHBP1,R-HSA-8963889,Assembly of active LPL and LIPC lipase complexes,https://reactome.org/PathwayBrowser/#/R-HSA-8963889
+ENSG00000277494,,GPIHBP1,R-HSA-8963901,Chylomicron remodeling,https://reactome.org/PathwayBrowser/#/R-HSA-8963901
+ENSG00000277494,,GPIHBP1,R-HSA-975634,Retinoid metabolism and transport,https://reactome.org/PathwayBrowser/#/R-HSA-975634
+ENSG00000121152,Q15003,NCAPH,R-HSA-2514853,Condensation of Prometaphase Chromosomes,https://reactome.org/PathwayBrowser/#/R-HSA-2514853
+ENSG00000115368,Q8IWA0,WDR75,R-HSA-6790901,rRNA modification in the nucleus and cytosol,https://reactome.org/PathwayBrowser/#/R-HSA-6790901
+ENSG00000115368,Q8IWA0,WDR75,R-HSA-6791226,Major pathway of rRNA processing in the nucleolus and cytosol,https://reactome.org/PathwayBrowser/#/R-HSA-6791226
+ENSG00000037965,P31273,HOXC8,R-HSA-9762293,Regulation of CDH11 gene transcription,https://reactome.org/PathwayBrowser/#/R-HSA-9762293
+ENSG00000132561,,MATN2,,,
+ENSG00000276043,Q96T88,UHRF1,R-HSA-5334118,DNA methylation,https://reactome.org/PathwayBrowser/#/R-HSA-5334118
+ENSG00000276043,Q96T88,UHRF1,R-HSA-9821002,Chromatin modifications during the maternal to zygotic transition (MZT),https://reactome.org/PathwayBrowser/#/R-HSA-9821002
+ENSG00000154920,Q96AY2,EME1,R-HSA-5693568,Resolution of D-loop Structures through Holliday Junction Intermediates,https://reactome.org/PathwayBrowser/#/R-HSA-5693568
+ENSG00000154920,Q96AY2,EME1,R-HSA-6783310,Fanconi Anemia Pathway,https://reactome.org/PathwayBrowser/#/R-HSA-6783310
+ENSG00000114698,,PLSCR4,,,
+ENSG00000145824,,CXCL14,,,
+ENSG00000146374,Q9BXY4,RSPO3,R-HSA-4641263,Regulation of FZD by ubiquitination,https://reactome.org/PathwayBrowser/#/R-HSA-4641263
+ENSG00000146374,Q9BXY4,RSPO3,R-HSA-8939256,RUNX1 regulates transcription of genes involved in WNT signaling,https://reactome.org/PathwayBrowser/#/R-HSA-8939256
+ENSG00000115616,Q9UBY0,SLC9A2,R-HSA-425986,Sodium/Proton exchangers,https://reactome.org/PathwayBrowser/#/R-HSA-425986
+ENSG00000154721,P57087,JAM2,R-HSA-202733,Cell surface interactions at the vascular wall,https://reactome.org/PathwayBrowser/#/R-HSA-202733
+ENSG00000154721,P57087,JAM2,R-HSA-216083,Integrin cell surface interactions,https://reactome.org/PathwayBrowser/#/R-HSA-216083
+ENSG00000180251,Q6AI14,SLC9A4,R-HSA-425986,Sodium/Proton exchangers,https://reactome.org/PathwayBrowser/#/R-HSA-425986
+ENSG00000183087,Q14393,GAS6,R-HSA-114608,Platelet degranulation ,https://reactome.org/PathwayBrowser/#/R-HSA-114608
+ENSG00000183087,Q14393,GAS6,R-HSA-159740,Gamma-carboxylation of protein precursors,https://reactome.org/PathwayBrowser/#/R-HSA-159740
+ENSG00000183087,Q14393,GAS6,R-HSA-159763,Transport of gamma-carboxylated protein precursors from the endoplasmic reticulum to the Golgi apparatus,https://reactome.org/PathwayBrowser/#/R-HSA-159763
+ENSG00000183087,Q14393,GAS6,R-HSA-159782,Removal of aminoterminal propeptides from gamma-carboxylated proteins,https://reactome.org/PathwayBrowser/#/R-HSA-159782
+ENSG00000183087,Q14393,GAS6,R-HSA-202733,Cell surface interactions at the vascular wall,https://reactome.org/PathwayBrowser/#/R-HSA-202733
+ENSG00000183087,Q14393,GAS6,R-HSA-381426,Regulation of Insulin-like Growth Factor (IGF) transport and uptake by Insulin-like Growth Factor Binding Proteins (IGFBPs),https://reactome.org/PathwayBrowser/#/R-HSA-381426
+ENSG00000183087,Q14393,GAS6,R-HSA-8957275,Post-translational protein phosphorylation,https://reactome.org/PathwayBrowser/#/R-HSA-8957275
+ENSG00000214491,,SEC14L6,,,
+ENSG00000184012,O15393,TMPRSS2,R-HSA-9678110,Attachment and Entry,https://reactome.org/PathwayBrowser/#/R-HSA-9678110
+ENSG00000184012,O15393,TMPRSS2,R-HSA-9694614,Attachment and Entry,https://reactome.org/PathwayBrowser/#/R-HSA-9694614
+ENSG00000184012,O15393,TMPRSS2,R-HSA-9733458,Induction of Cell-Cell Fusion,https://reactome.org/PathwayBrowser/#/R-HSA-9733458
+ENSG00000163399,P05023,ATP1A1,R-HSA-5578775,Ion homeostasis,https://reactome.org/PathwayBrowser/#/R-HSA-5578775
+ENSG00000163399,P05023,ATP1A1,R-HSA-936837,Ion transport by P-type ATPases,https://reactome.org/PathwayBrowser/#/R-HSA-936837
+ENSG00000163399,P05023,ATP1A1,R-HSA-9679191,Potential therapeutics for SARS,https://reactome.org/PathwayBrowser/#/R-HSA-9679191
+ENSG00000188488,P05154,SERPINA5,R-HSA-140837,Intrinsic Pathway of Fibrin Clot Formation,https://reactome.org/PathwayBrowser/#/R-HSA-140837
+ENSG00000188488,P05154,SERPINA5,R-HSA-140875,Common Pathway of Fibrin Clot Formation,https://reactome.org/PathwayBrowser/#/R-HSA-140875
+ENSG00000281769,,LINC01230,,,
+ENSG00000152642,Q8N335,GPD1L,R-HSA-1483166,Synthesis of PA,https://reactome.org/PathwayBrowser/#/R-HSA-1483166
+ENSG00000244128,,LINC01322,,,
+ENSG00000132677,,RHBG,R-HSA-444411,Rhesus glycoproteins mediate ammonium transport.,https://reactome.org/PathwayBrowser/#/R-HSA-444411
+ENSG00000229246,,LINC00377,,,
+ENSG00000099953,P24347,MMP11,R-HSA-1442490,Collagen degradation,https://reactome.org/PathwayBrowser/#/R-HSA-1442490
+ENSG00000099953,P24347,MMP11,R-HSA-1474228,Degradation of the extracellular matrix,https://reactome.org/PathwayBrowser/#/R-HSA-1474228
+ENSG00000099953,P24347,MMP11,R-HSA-1592389,Activation of Matrix Metalloproteinases,https://reactome.org/PathwayBrowser/#/R-HSA-1592389
+ENSG00000196549,P08473,MME,R-HSA-2022377,Metabolism of Angiotensinogen to Angiotensins,https://reactome.org/PathwayBrowser/#/R-HSA-2022377
+ENSG00000196549,P08473,MME,R-HSA-5578768,Physiological factors,https://reactome.org/PathwayBrowser/#/R-HSA-5578768
+ENSG00000196549,P08473,MME,R-HSA-6798695,Neutrophil degranulation,https://reactome.org/PathwayBrowser/#/R-HSA-6798695
+ENSG00000134690,Q53HL2,CDCA8,R-HSA-141444,Amplification  of signal from unattached  kinetochores via a MAD2  inhibitory signal,https://reactome.org/PathwayBrowser/#/R-HSA-141444
+ENSG00000134690,Q53HL2,CDCA8,R-HSA-2467813,Separation of Sister Chromatids,https://reactome.org/PathwayBrowser/#/R-HSA-2467813
+ENSG00000134690,Q53HL2,CDCA8,R-HSA-2500257,Resolution of Sister Chromatid Cohesion,https://reactome.org/PathwayBrowser/#/R-HSA-2500257
+ENSG00000134690,Q53HL2,CDCA8,R-HSA-4615885,SUMOylation of DNA replication proteins,https://reactome.org/PathwayBrowser/#/R-HSA-4615885
+ENSG00000134690,Q53HL2,CDCA8,R-HSA-5663220,RHO GTPases Activate Formins,https://reactome.org/PathwayBrowser/#/R-HSA-5663220
+ENSG00000134690,Q53HL2,CDCA8,R-HSA-68877,Mitotic Prometaphase,https://reactome.org/PathwayBrowser/#/R-HSA-68877
+ENSG00000134690,Q53HL2,CDCA8,R-HSA-9648025,EML4 and NUDC in mitotic spindle formation,https://reactome.org/PathwayBrowser/#/R-HSA-9648025
+ENSG00000165125,Q9H1D0,TRPV6,R-HSA-3295583,TRP channels,https://reactome.org/PathwayBrowser/#/R-HSA-3295583
+ENSG00000068489,,PRR11,,,
+ENSG00000128050,P22234,PAICS,R-HSA-73817,Purine ribonucleoside monophosphate biosynthesis,https://reactome.org/PathwayBrowser/#/R-HSA-73817
+ENSG00000161992,,PRR35,,,
+ENSG00000065534,Q15746,MYLK,R-HSA-445355,Smooth Muscle Contraction,https://reactome.org/PathwayBrowser/#/R-HSA-445355
+ENSG00000065534,Q15746,MYLK,R-HSA-5627123,RHO GTPases activate PAKs,https://reactome.org/PathwayBrowser/#/R-HSA-5627123
+ENSG00000151090,P10828,THRB,R-HSA-383280,Nuclear Receptor transcription pathway,https://reactome.org/PathwayBrowser/#/R-HSA-383280
+ENSG00000151090,P10828,THRB,R-HSA-4090294,SUMOylation of intracellular receptors,https://reactome.org/PathwayBrowser/#/R-HSA-4090294
+ENSG00000186994,,KANK3,,,
+ENSG00000197776,,KLHDC1,,,
+ENSG00000140534,,TICRR,,,
+ENSG00000167580,P41181,AQP2,R-HSA-432040,Vasopressin regulates renal water homeostasis via Aquaporins,https://reactome.org/PathwayBrowser/#/R-HSA-432040
+ENSG00000167580,P41181,AQP2,R-HSA-432047,Passive transport by Aquaporins,https://reactome.org/PathwayBrowser/#/R-HSA-432047
+ENSG00000275612,,,,,
+ENSG00000170509,Q7Z5P4,HSD17B13,R-HSA-8964572,Lipid particle organization,https://reactome.org/PathwayBrowser/#/R-HSA-8964572
+ENSG00000114654,,EFCC1,,,
+ENSG00000179796,,LRRC3B,,,
+ENSG00000131471,Q16853,AOC3,R-HSA-211945,Phase I - Functionalization of compounds,https://reactome.org/PathwayBrowser/#/R-HSA-211945
+ENSG00000140505,P05177,CYP1A2,R-HSA-156581,Methylation,https://reactome.org/PathwayBrowser/#/R-HSA-156581
+ENSG00000140505,P05177,CYP1A2,R-HSA-211957,Aromatic amines can be N-hydroxylated or N-dealkylated by CYP1A2,https://reactome.org/PathwayBrowser/#/R-HSA-211957
+ENSG00000140505,P05177,CYP1A2,R-HSA-2142670,Synthesis of epoxy (EET) and dihydroxyeicosatrienoic acids (DHET),https://reactome.org/PathwayBrowser/#/R-HSA-2142670
+ENSG00000140505,P05177,CYP1A2,R-HSA-2142816,Synthesis of (16-20)-hydroxyeicosatetraenoic acids (HETE),https://reactome.org/PathwayBrowser/#/R-HSA-2142816
+ENSG00000140505,P05177,CYP1A2,R-HSA-5423646,Aflatoxin activation and detoxification,https://reactome.org/PathwayBrowser/#/R-HSA-5423646
+ENSG00000140505,P05177,CYP1A2,R-HSA-9018681,Biosynthesis of protectins,https://reactome.org/PathwayBrowser/#/R-HSA-9018681
+ENSG00000140505,P05177,CYP1A2,R-HSA-9027307,Biosynthesis of maresin-like SPMs,https://reactome.org/PathwayBrowser/#/R-HSA-9027307
+ENSG00000198844,O94989,ARHGEF15,R-HSA-193648,NRAGE signals death through JNK,https://reactome.org/PathwayBrowser/#/R-HSA-193648
+ENSG00000198844,O94989,ARHGEF15,R-HSA-416482,G alpha (12/13) signalling events,https://reactome.org/PathwayBrowser/#/R-HSA-416482
+ENSG00000198844,O94989,ARHGEF15,R-HSA-8980692,RHOA GTPase cycle,https://reactome.org/PathwayBrowser/#/R-HSA-8980692
+ENSG00000198844,O94989,ARHGEF15,R-HSA-9013148,CDC42 GTPase cycle,https://reactome.org/PathwayBrowser/#/R-HSA-9013148
+ENSG00000198844,O94989,ARHGEF15,R-HSA-9013149,RAC1 GTPase cycle,https://reactome.org/PathwayBrowser/#/R-HSA-9013149
+ENSG00000238125,,SLC9A3P2,,,
+ENSG00000227307,,,,,
+ENSG00000076382,,SPAG5,,,
+ENSG00000166405,,RIC3,,,
+ENSG00000123500,Q03692,COL10A1,R-HSA-1442490,Collagen degradation,https://reactome.org/PathwayBrowser/#/R-HSA-1442490
+ENSG00000123500,Q03692,COL10A1,R-HSA-1650814,Collagen biosynthesis and modifying enzymes,https://reactome.org/PathwayBrowser/#/R-HSA-1650814
+ENSG00000123500,Q03692,COL10A1,R-HSA-2022090,Assembly of collagen fibrils and other multimeric structures,https://reactome.org/PathwayBrowser/#/R-HSA-2022090
+ENSG00000123500,Q03692,COL10A1,R-HSA-216083,Integrin cell surface interactions,https://reactome.org/PathwayBrowser/#/R-HSA-216083
+ENSG00000123500,Q03692,COL10A1,R-HSA-3000171,Non-integrin membrane-ECM interactions,https://reactome.org/PathwayBrowser/#/R-HSA-3000171
+ENSG00000123500,Q03692,COL10A1,R-HSA-8948216,Collagen chain trimerization,https://reactome.org/PathwayBrowser/#/R-HSA-8948216
+ENSG00000134548,,SPX,,,
+ENSG00000102547,Q9H9S4,CAB39L,R-HSA-380972,Energy dependent regulation of mTOR by LKB1-AMPK,https://reactome.org/PathwayBrowser/#/R-HSA-380972
+ENSG00000189292,Q6UX46,ALKAL2,R-HSA-201556,Signaling by ALK,https://reactome.org/PathwayBrowser/#/R-HSA-201556
+ENSG00000189292,Q6UX46,ALKAL2,R-HSA-9842663,Signaling by LTK,https://reactome.org/PathwayBrowser/#/R-HSA-9842663
+ENSG00000163815,P05452,CLEC3B,R-HSA-114608,Platelet degranulation ,https://reactome.org/PathwayBrowser/#/R-HSA-114608
+ENSG00000145681,P10915,HAPLN1,R-HSA-3000178,ECM proteoglycans,https://reactome.org/PathwayBrowser/#/R-HSA-3000178
+ENSG00000285711,,LINC02835,,,
+ENSG00000231246,,LINC02884,,,
+ENSG00000168484,,SFTPC,R-HSA-5683826,Surfactant metabolism,https://reactome.org/PathwayBrowser/#/R-HSA-5683826
+ENSG00000168484,,SFTPC,R-HSA-5688354,Defective pro-SFTPC causes SMDP2 and RDS,https://reactome.org/PathwayBrowser/#/R-HSA-5688354
+ENSG00000168484,,SFTPC,R-HSA-5688849,Defective CSF2RB causes SMDP5,https://reactome.org/PathwayBrowser/#/R-HSA-5688849
+ENSG00000168484,,SFTPC,R-HSA-5688890,Defective CSF2RA causes SMDP4,https://reactome.org/PathwayBrowser/#/R-HSA-5688890
+ENSG00000100307,,CBX7,,,
+ENSG00000158246,,TENT5B,,,
+ENSG00000187889,,FYB2,,,
+ENSG00000145979,Q9P0N9,TBC1D7,R-HSA-8854214,TBC/RABGAPs,https://reactome.org/PathwayBrowser/#/R-HSA-8854214
+ENSG00000164188,,RANBP3L,,,
+ENSG00000163501,Q14623,IHH,R-HSA-373080,Class B/2 (Secretin family receptors),https://reactome.org/PathwayBrowser/#/R-HSA-373080
+ENSG00000163501,Q14623,IHH,R-HSA-5358346,Hedgehog ligand biogenesis,https://reactome.org/PathwayBrowser/#/R-HSA-5358346
+ENSG00000163501,Q14623,IHH,R-HSA-5362798,Release of Hh-Np from the secreting cell,https://reactome.org/PathwayBrowser/#/R-HSA-5362798
+ENSG00000163501,Q14623,IHH,R-HSA-5632681,Ligand-receptor interactions,https://reactome.org/PathwayBrowser/#/R-HSA-5632681
+ENSG00000163501,Q14623,IHH,R-HSA-5632684,Hedgehog 'on' state,https://reactome.org/PathwayBrowser/#/R-HSA-5632684
+ENSG00000163501,Q14623,IHH,R-HSA-5635838,Activation of SMO,https://reactome.org/PathwayBrowser/#/R-HSA-5635838
+ENSG00000163501,Q14623,IHH,R-HSA-5658034,HHAT G278V doesn't palmitoylate Hh-Np,https://reactome.org/PathwayBrowser/#/R-HSA-5658034
+ENSG00000163501,Q14623,IHH,R-HSA-8941284,RUNX2 regulates chondrocyte maturation,https://reactome.org/PathwayBrowser/#/R-HSA-8941284
+ENSG00000163501,Q14623,IHH,R-HSA-9758920,Formation of lateral plate mesoderm,https://reactome.org/PathwayBrowser/#/R-HSA-9758920
+ENSG00000258947,Q13509,TUBB3,R-HSA-1445148,Translocation of SLC2A4 (GLUT4) to the plasma membrane,https://reactome.org/PathwayBrowser/#/R-HSA-1445148
+ENSG00000258947,Q13509,TUBB3,R-HSA-190840,Microtubule-dependent trafficking of connexons from Golgi to the plasma membrane,https://reactome.org/PathwayBrowser/#/R-HSA-190840
+ENSG00000258947,Q13509,TUBB3,R-HSA-190861,Gap junction assembly,https://reactome.org/PathwayBrowser/#/R-HSA-190861
+ENSG00000258947,Q13509,TUBB3,R-HSA-2132295,MHC class II antigen presentation,https://reactome.org/PathwayBrowser/#/R-HSA-2132295
+ENSG00000258947,Q13509,TUBB3,R-HSA-2467813,Separation of Sister Chromatids,https://reactome.org/PathwayBrowser/#/R-HSA-2467813
+ENSG00000258947,Q13509,TUBB3,R-HSA-2500257,Resolution of Sister Chromatid Cohesion,https://reactome.org/PathwayBrowser/#/R-HSA-2500257
+ENSG00000258947,Q13509,TUBB3,R-HSA-3371497,HSP90 chaperone cycle for steroid hormone receptors (SHR) in the presence of ligand,https://reactome.org/PathwayBrowser/#/R-HSA-3371497
+ENSG00000258947,Q13509,TUBB3,R-HSA-380320,Recruitment of NuMA to mitotic centrosomes,https://reactome.org/PathwayBrowser/#/R-HSA-380320
+ENSG00000258947,Q13509,TUBB3,R-HSA-389957,Prefoldin mediated transfer of substrate  to CCT/TriC,https://reactome.org/PathwayBrowser/#/R-HSA-389957
+ENSG00000258947,Q13509,TUBB3,R-HSA-389960,Formation of tubulin folding intermediates by CCT/TriC,https://reactome.org/PathwayBrowser/#/R-HSA-389960
+ENSG00000258947,Q13509,TUBB3,R-HSA-389977,Post-chaperonin tubulin folding pathway,https://reactome.org/PathwayBrowser/#/R-HSA-389977
+ENSG00000258947,Q13509,TUBB3,R-HSA-437239,Recycling pathway of L1,https://reactome.org/PathwayBrowser/#/R-HSA-437239
+ENSG00000258947,Q13509,TUBB3,R-HSA-5610787,Hedgehog 'off' state,https://reactome.org/PathwayBrowser/#/R-HSA-5610787
+ENSG00000258947,Q13509,TUBB3,R-HSA-5617833,Cilium Assembly,https://reactome.org/PathwayBrowser/#/R-HSA-5617833
+ENSG00000258947,Q13509,TUBB3,R-HSA-5620924,Intraflagellar transport,https://reactome.org/PathwayBrowser/#/R-HSA-5620924
+ENSG00000258947,Q13509,TUBB3,R-HSA-5626467,RHO GTPases activate IQGAPs,https://reactome.org/PathwayBrowser/#/R-HSA-5626467
+ENSG00000258947,Q13509,TUBB3,R-HSA-5663220,RHO GTPases Activate Formins,https://reactome.org/PathwayBrowser/#/R-HSA-5663220
+ENSG00000258947,Q13509,TUBB3,R-HSA-6807878,COPI-mediated anterograde transport,https://reactome.org/PathwayBrowser/#/R-HSA-6807878
+ENSG00000258947,Q13509,TUBB3,R-HSA-6811434,COPI-dependent Golgi-to-ER retrograde traffic,https://reactome.org/PathwayBrowser/#/R-HSA-6811434
+ENSG00000258947,Q13509,TUBB3,R-HSA-6811436,COPI-independent Golgi-to-ER retrograde traffic,https://reactome.org/PathwayBrowser/#/R-HSA-6811436
+ENSG00000258947,Q13509,TUBB3,R-HSA-68877,Mitotic Prometaphase,https://reactome.org/PathwayBrowser/#/R-HSA-68877
+ENSG00000258947,Q13509,TUBB3,R-HSA-8852276,The role of GTSE1 in G2/M progression after G2 checkpoint,https://reactome.org/PathwayBrowser/#/R-HSA-8852276
+ENSG00000258947,Q13509,TUBB3,R-HSA-8955332,Carboxyterminal post-translational modifications of tubulin,https://reactome.org/PathwayBrowser/#/R-HSA-8955332
+ENSG00000258947,Q13509,TUBB3,R-HSA-9609690,HCMV Early Events,https://reactome.org/PathwayBrowser/#/R-HSA-9609690
+ENSG00000258947,Q13509,TUBB3,R-HSA-9609736,Assembly and cell surface presentation of NMDA receptors,https://reactome.org/PathwayBrowser/#/R-HSA-9609736
+ENSG00000258947,Q13509,TUBB3,R-HSA-9619483,Activation of AMPK downstream of NMDARs,https://reactome.org/PathwayBrowser/#/R-HSA-9619483
+ENSG00000258947,Q13509,TUBB3,R-HSA-9646399,Aggrephagy,https://reactome.org/PathwayBrowser/#/R-HSA-9646399
+ENSG00000258947,Q13509,TUBB3,R-HSA-9648025,EML4 and NUDC in mitotic spindle formation,https://reactome.org/PathwayBrowser/#/R-HSA-9648025
+ENSG00000258947,Q13509,TUBB3,R-HSA-9668328,Sealing of the nuclear envelope (NE) by ESCRT-III,https://reactome.org/PathwayBrowser/#/R-HSA-9668328
+ENSG00000258947,Q13509,TUBB3,R-HSA-983189,Kinesins,https://reactome.org/PathwayBrowser/#/R-HSA-983189
+ENSG00000258947,Q13509,TUBB3,R-HSA-9833482,PKR-mediated signaling,https://reactome.org/PathwayBrowser/#/R-HSA-9833482
+ENSG00000029993,,HMGB3,,,
+ENSG00000173253,,DMRT2,,,
+ENSG00000111206,Q08050,FOXM1,R-HSA-156711,Polo-like kinase mediated events,https://reactome.org/PathwayBrowser/#/R-HSA-156711
+ENSG00000111206,Q08050,FOXM1,R-HSA-69273,Cyclin A/B1/B2 associated events during G2/M transition,https://reactome.org/PathwayBrowser/#/R-HSA-69273
+ENSG00000111206,Q08050,FOXM1,R-HSA-9725371,Nuclear events stimulated by ALK signaling in cancer,https://reactome.org/PathwayBrowser/#/R-HSA-9725371
+ENSG00000085840,Q13415,ORC1,R-HSA-113507,E2F-enabled inhibition of pre-replication complex formation,https://reactome.org/PathwayBrowser/#/R-HSA-113507
+ENSG00000085840,Q13415,ORC1,R-HSA-176187,Activation of ATR in response to replication stress,https://reactome.org/PathwayBrowser/#/R-HSA-176187
+ENSG00000085840,Q13415,ORC1,R-HSA-68616,Assembly of the ORC complex at the origin of replication,https://reactome.org/PathwayBrowser/#/R-HSA-68616
+ENSG00000085840,Q13415,ORC1,R-HSA-68689,CDC6 association with the ORC:origin complex,https://reactome.org/PathwayBrowser/#/R-HSA-68689
+ENSG00000085840,Q13415,ORC1,R-HSA-68867,Assembly of the pre-replicative complex,https://reactome.org/PathwayBrowser/#/R-HSA-68867
+ENSG00000085840,Q13415,ORC1,R-HSA-68949,Orc1 removal from chromatin,https://reactome.org/PathwayBrowser/#/R-HSA-68949
+ENSG00000085840,Q13415,ORC1,R-HSA-68962,Activation of the pre-replicative complex,https://reactome.org/PathwayBrowser/#/R-HSA-68962
+ENSG00000085840,Q13415,ORC1,R-HSA-69205,G1/S-Specific Transcription,https://reactome.org/PathwayBrowser/#/R-HSA-69205
+ENSG00000114812,P32241,VIPR1,R-HSA-418555,G alpha (s) signalling events,https://reactome.org/PathwayBrowser/#/R-HSA-418555
+ENSG00000114812,P32241,VIPR1,R-HSA-420092,Glucagon-type ligand receptors,https://reactome.org/PathwayBrowser/#/R-HSA-420092
+ENSG00000134574,Q92466,DDB2,R-HSA-5689880,Ub-specific processing proteases,https://reactome.org/PathwayBrowser/#/R-HSA-5689880
+ENSG00000134574,Q92466,DDB2,R-HSA-5696394,DNA Damage Recognition in GG-NER,https://reactome.org/PathwayBrowser/#/R-HSA-5696394
+ENSG00000134574,Q92466,DDB2,R-HSA-5696395,Formation of Incision Complex in GG-NER,https://reactome.org/PathwayBrowser/#/R-HSA-5696395
+ENSG00000134574,Q92466,DDB2,R-HSA-5696400,Dual Incision in GG-NER,https://reactome.org/PathwayBrowser/#/R-HSA-5696400
+ENSG00000134574,Q92466,DDB2,R-HSA-6796648,TP53 Regulates Transcription of DNA Repair Genes,https://reactome.org/PathwayBrowser/#/R-HSA-6796648
+ENSG00000134574,Q92466,DDB2,R-HSA-8951664,Neddylation,https://reactome.org/PathwayBrowser/#/R-HSA-8951664
+ENSG00000204305,Q15109,AGER,R-HSA-445989,TAK1-dependent IKK and NF-kappa-B activation  ,https://reactome.org/PathwayBrowser/#/R-HSA-445989
+ENSG00000204305,Q15109,AGER,R-HSA-879415,Advanced glycosylation endproduct receptor signaling,https://reactome.org/PathwayBrowser/#/R-HSA-879415
+ENSG00000204305,Q15109,AGER,R-HSA-933542,TRAF6 mediated NF-kB activation,https://reactome.org/PathwayBrowser/#/R-HSA-933542
+ENSG00000197256,,KANK2,,,
+ENSG00000161888,,SPC24,R-HSA-141444,Amplification  of signal from unattached  kinetochores via a MAD2  inhibitory signal,https://reactome.org/PathwayBrowser/#/R-HSA-141444
+ENSG00000161888,,SPC24,R-HSA-2467813,Separation of Sister Chromatids,https://reactome.org/PathwayBrowser/#/R-HSA-2467813
+ENSG00000161888,,SPC24,R-HSA-2500257,Resolution of Sister Chromatid Cohesion,https://reactome.org/PathwayBrowser/#/R-HSA-2500257
+ENSG00000161888,,SPC24,R-HSA-5663220,RHO GTPases Activate Formins,https://reactome.org/PathwayBrowser/#/R-HSA-5663220
+ENSG00000161888,,SPC24,R-HSA-68877,Mitotic Prometaphase,https://reactome.org/PathwayBrowser/#/R-HSA-68877
+ENSG00000161888,,SPC24,R-HSA-9648025,EML4 and NUDC in mitotic spindle formation,https://reactome.org/PathwayBrowser/#/R-HSA-9648025
+ENSG00000232284,,GNG12-AS1,,,
+ENSG00000022267,,FHL1,,,
+ENSG00000124157,,SEMG2,,,
+ENSG00000196616,,ADH1B,R-HSA-71384,Ethanol oxidation,https://reactome.org/PathwayBrowser/#/R-HSA-71384
+ENSG00000251199,,,,,
+ENSG00000180914,P30559,OXTR,R-HSA-388479,Vasopressin-like receptors,https://reactome.org/PathwayBrowser/#/R-HSA-388479
+ENSG00000180914,P30559,OXTR,R-HSA-416476,G alpha (q) signalling events,https://reactome.org/PathwayBrowser/#/R-HSA-416476
+ENSG00000119457,,SLC46A2,,,
+ENSG00000258402,,,,,
+ENSG00000170561,Q9BZI1,IRX2,R-HSA-9831926,Nephron development,https://reactome.org/PathwayBrowser/#/R-HSA-9831926
+ENSG00000168907,Q68DD2,PLA2G4F,R-HSA-1482788,Acyl chain remodelling of PC,https://reactome.org/PathwayBrowser/#/R-HSA-1482788
+ENSG00000168907,Q68DD2,PLA2G4F,R-HSA-1482801,Acyl chain remodelling of PS,https://reactome.org/PathwayBrowser/#/R-HSA-1482801
+ENSG00000168907,Q68DD2,PLA2G4F,R-HSA-1482839,Acyl chain remodelling of PE,https://reactome.org/PathwayBrowser/#/R-HSA-1482839
+ENSG00000168907,Q68DD2,PLA2G4F,R-HSA-1482922,Acyl chain remodelling of PI,https://reactome.org/PathwayBrowser/#/R-HSA-1482922
+ENSG00000168907,Q68DD2,PLA2G4F,R-HSA-1482925,Acyl chain remodelling of PG,https://reactome.org/PathwayBrowser/#/R-HSA-1482925
+ENSG00000168907,Q68DD2,PLA2G4F,R-HSA-1483115,Hydrolysis of LPC,https://reactome.org/PathwayBrowser/#/R-HSA-1483115
+ENSG00000151725,Q71F23,CENPU,R-HSA-141444,Amplification  of signal from unattached  kinetochores via a MAD2  inhibitory signal,https://reactome.org/PathwayBrowser/#/R-HSA-141444
+ENSG00000151725,Q71F23,CENPU,R-HSA-2467813,Separation of Sister Chromatids,https://reactome.org/PathwayBrowser/#/R-HSA-2467813
+ENSG00000151725,Q71F23,CENPU,R-HSA-2500257,Resolution of Sister Chromatid Cohesion,https://reactome.org/PathwayBrowser/#/R-HSA-2500257
+ENSG00000151725,Q71F23,CENPU,R-HSA-5663220,RHO GTPases Activate Formins,https://reactome.org/PathwayBrowser/#/R-HSA-5663220
+ENSG00000151725,Q71F23,CENPU,R-HSA-606279,Deposition of new CENPA-containing nucleosomes at the centromere,https://reactome.org/PathwayBrowser/#/R-HSA-606279
+ENSG00000151725,Q71F23,CENPU,R-HSA-68877,Mitotic Prometaphase,https://reactome.org/PathwayBrowser/#/R-HSA-68877
+ENSG00000151725,Q71F23,CENPU,R-HSA-9648025,EML4 and NUDC in mitotic spindle formation,https://reactome.org/PathwayBrowser/#/R-HSA-9648025
+ENSG00000166965,A6NED2,RCCD1,R-HSA-9629569,Protein hydroxylation,https://reactome.org/PathwayBrowser/#/R-HSA-9629569
+ENSG00000128165,Q7Z4H4,ADM2,R-HSA-418555,G alpha (s) signalling events,https://reactome.org/PathwayBrowser/#/R-HSA-418555
+ENSG00000128165,Q7Z4H4,ADM2,R-HSA-419812,Calcitonin-like ligand receptors,https://reactome.org/PathwayBrowser/#/R-HSA-419812
+ENSG00000130309,Q8NBJ5,COLGALT1,R-HSA-1650814,Collagen biosynthesis and modifying enzymes,https://reactome.org/PathwayBrowser/#/R-HSA-1650814
+ENSG00000287115,,,,,
+ENSG00000008196,Q92481,TFAP2B,R-HSA-3232118,SUMOylation of transcription factors,https://reactome.org/PathwayBrowser/#/R-HSA-3232118
+ENSG00000008196,Q92481,TFAP2B,R-HSA-8866904,Negative regulation of activity of TFAP2 (AP-2) family transcription factors,https://reactome.org/PathwayBrowser/#/R-HSA-8866904
+ENSG00000008196,Q92481,TFAP2B,R-HSA-8866907,Activation of the TFAP2 (AP-2) family of transcription factors,https://reactome.org/PathwayBrowser/#/R-HSA-8866907
+ENSG00000008196,Q92481,TFAP2B,R-HSA-8866910,TFAP2 (AP-2) family regulates transcription of growth factors and their receptors,https://reactome.org/PathwayBrowser/#/R-HSA-8866910
+ENSG00000008196,Q92481,TFAP2B,R-HSA-9834899,Specification of the neural plate border,https://reactome.org/PathwayBrowser/#/R-HSA-9834899
+ENSG00000168619,,ADAM18,,,
+ENSG00000104938,Q9H2X3,CLEC4M,R-HSA-9833110,RSV-host interactions,https://reactome.org/PathwayBrowser/#/R-HSA-9833110
+ENSG00000114854,P63316,TNNC1,R-HSA-390522,Striated Muscle Contraction,https://reactome.org/PathwayBrowser/#/R-HSA-390522
+ENSG00000149557,,FEZ1,,,
+ENSG00000183010,P32322,PYCR1,R-HSA-8964539,Glutamate and glutamine metabolism,https://reactome.org/PathwayBrowser/#/R-HSA-8964539
+ENSG00000135063,,FAM189A2,,,
+ENSG00000077522,P35609,ACTN2,R-HSA-114608,Platelet degranulation ,https://reactome.org/PathwayBrowser/#/R-HSA-114608
+ENSG00000077522,P35609,ACTN2,R-HSA-373753,Nephrin family interactions,https://reactome.org/PathwayBrowser/#/R-HSA-373753
+ENSG00000077522,P35609,ACTN2,R-HSA-390522,Striated Muscle Contraction,https://reactome.org/PathwayBrowser/#/R-HSA-390522
+ENSG00000077522,P35609,ACTN2,R-HSA-438066,"Unblocking of NMDA receptors, glutamate binding and activation",https://reactome.org/PathwayBrowser/#/R-HSA-438066
+ENSG00000077522,P35609,ACTN2,R-HSA-442982,Ras activation upon Ca2+ influx through NMDA receptor,https://reactome.org/PathwayBrowser/#/R-HSA-442982
+ENSG00000077522,P35609,ACTN2,R-HSA-5673001,RAF/MAP kinase cascade,https://reactome.org/PathwayBrowser/#/R-HSA-5673001
+ENSG00000077522,P35609,ACTN2,R-HSA-9609736,Assembly and cell surface presentation of NMDA receptors,https://reactome.org/PathwayBrowser/#/R-HSA-9609736
+ENSG00000077522,P35609,ACTN2,R-HSA-9617324,Negative regulation of NMDA receptor-mediated neuronal transmission,https://reactome.org/PathwayBrowser/#/R-HSA-9617324
+ENSG00000077522,P35609,ACTN2,R-HSA-9620244,Long-term potentiation,https://reactome.org/PathwayBrowser/#/R-HSA-9620244
+ENSG00000154188,Q15389,ANGPT1,R-HSA-210993,Tie2 Signaling,https://reactome.org/PathwayBrowser/#/R-HSA-210993
+ENSG00000154188,Q15389,ANGPT1,R-HSA-5673001,RAF/MAP kinase cascade,https://reactome.org/PathwayBrowser/#/R-HSA-5673001
+ENSG00000024526,,DEPDC1,,,
+ENSG00000165072,,MAMDC2,,,
+ENSG00000127423,,AUNIP,,,
+ENSG00000166851,P53350,PLK1,R-HSA-141444,Amplification  of signal from unattached  kinetochores via a MAD2  inhibitory signal,https://reactome.org/PathwayBrowser/#/R-HSA-141444
+ENSG00000166851,P53350,PLK1,R-HSA-156711,Polo-like kinase mediated events,https://reactome.org/PathwayBrowser/#/R-HSA-156711
+ENSG00000166851,P53350,PLK1,R-HSA-162658,Golgi Cisternae Pericentriolar Stack Reorganization,https://reactome.org/PathwayBrowser/#/R-HSA-162658
+ENSG00000166851,P53350,PLK1,R-HSA-174178,APC/C:Cdh1 mediated degradation of Cdc20 and other APC/C:Cdh1 targeted proteins in late mitosis/early G1,https://reactome.org/PathwayBrowser/#/R-HSA-174178
+ENSG00000166851,P53350,PLK1,R-HSA-176412,Phosphorylation of the APC/C,https://reactome.org/PathwayBrowser/#/R-HSA-176412
+ENSG00000166851,P53350,PLK1,R-HSA-176417,Phosphorylation of Emi1,https://reactome.org/PathwayBrowser/#/R-HSA-176417
+ENSG00000166851,P53350,PLK1,R-HSA-2299718,Condensation of Prophase Chromosomes,https://reactome.org/PathwayBrowser/#/R-HSA-2299718
+ENSG00000166851,P53350,PLK1,R-HSA-2467813,Separation of Sister Chromatids,https://reactome.org/PathwayBrowser/#/R-HSA-2467813
+ENSG00000166851,P53350,PLK1,R-HSA-2500257,Resolution of Sister Chromatid Cohesion,https://reactome.org/PathwayBrowser/#/R-HSA-2500257
+ENSG00000166851,P53350,PLK1,R-HSA-2565942,Regulation of PLK1 Activity at G2/M Transition,https://reactome.org/PathwayBrowser/#/R-HSA-2565942
+ENSG00000166851,P53350,PLK1,R-HSA-2980767,"Activation of NIMA Kinases NEK9, NEK6, NEK7",https://reactome.org/PathwayBrowser/#/R-HSA-2980767
+ENSG00000166851,P53350,PLK1,R-HSA-380259,Loss of Nlp from mitotic centrosomes,https://reactome.org/PathwayBrowser/#/R-HSA-380259
+ENSG00000166851,P53350,PLK1,R-HSA-380270,Recruitment of mitotic centrosome proteins and complexes,https://reactome.org/PathwayBrowser/#/R-HSA-380270
+ENSG00000166851,P53350,PLK1,R-HSA-380284,Loss of proteins required for interphase microtubule organization from the centrosome,https://reactome.org/PathwayBrowser/#/R-HSA-380284
+ENSG00000166851,P53350,PLK1,R-HSA-380320,Recruitment of NuMA to mitotic centrosomes,https://reactome.org/PathwayBrowser/#/R-HSA-380320
+ENSG00000166851,P53350,PLK1,R-HSA-5620912,Anchoring of the basal body to the plasma membrane,https://reactome.org/PathwayBrowser/#/R-HSA-5620912
+ENSG00000166851,P53350,PLK1,R-HSA-5663220,RHO GTPases Activate Formins,https://reactome.org/PathwayBrowser/#/R-HSA-5663220
+ENSG00000166851,P53350,PLK1,R-HSA-68877,Mitotic Prometaphase,https://reactome.org/PathwayBrowser/#/R-HSA-68877
+ENSG00000166851,P53350,PLK1,R-HSA-68881,Mitotic Metaphase/Anaphase Transition,https://reactome.org/PathwayBrowser/#/R-HSA-68881
+ENSG00000166851,P53350,PLK1,R-HSA-68884,Mitotic Telophase/Cytokinesis,https://reactome.org/PathwayBrowser/#/R-HSA-68884
+ENSG00000166851,P53350,PLK1,R-HSA-69273,Cyclin A/B1/B2 associated events during G2/M transition,https://reactome.org/PathwayBrowser/#/R-HSA-69273
+ENSG00000166851,P53350,PLK1,R-HSA-8852276,The role of GTSE1 in G2/M progression after G2 checkpoint,https://reactome.org/PathwayBrowser/#/R-HSA-8852276
+ENSG00000166851,P53350,PLK1,R-HSA-8854518,AURKA Activation by TPX2,https://reactome.org/PathwayBrowser/#/R-HSA-8854518
+ENSG00000166851,P53350,PLK1,R-HSA-9648025,EML4 and NUDC in mitotic spindle formation,https://reactome.org/PathwayBrowser/#/R-HSA-9648025
+ENSG00000166851,P53350,PLK1,R-HSA-9825892,Regulation of MITF-M-dependent genes involved in cell cycle and proliferation,https://reactome.org/PathwayBrowser/#/R-HSA-9825892
+ENSG00000011376,Q15031,LARS2,R-HSA-379726,Mitochondrial tRNA aminoacylation,https://reactome.org/PathwayBrowser/#/R-HSA-379726
+ENSG00000147689,Q86UY5,FAM83A,R-HSA-177929,Signaling by EGFR,https://reactome.org/PathwayBrowser/#/R-HSA-177929
+ENSG00000094804,Q99741,CDC6,R-HSA-1362277,Transcription of E2F targets under negative control by DREAM complex,https://reactome.org/PathwayBrowser/#/R-HSA-1362277
+ENSG00000094804,Q99741,CDC6,R-HSA-176187,Activation of ATR in response to replication stress,https://reactome.org/PathwayBrowser/#/R-HSA-176187
+ENSG00000094804,Q99741,CDC6,R-HSA-68689,CDC6 association with the ORC:origin complex,https://reactome.org/PathwayBrowser/#/R-HSA-68689
+ENSG00000094804,Q99741,CDC6,R-HSA-68867,Assembly of the pre-replicative complex,https://reactome.org/PathwayBrowser/#/R-HSA-68867
+ENSG00000094804,Q99741,CDC6,R-HSA-68949,Orc1 removal from chromatin,https://reactome.org/PathwayBrowser/#/R-HSA-68949
+ENSG00000094804,Q99741,CDC6,R-HSA-68962,Activation of the pre-replicative complex,https://reactome.org/PathwayBrowser/#/R-HSA-68962
+ENSG00000094804,Q99741,CDC6,R-HSA-69017,CDK-mediated phosphorylation and removal of Cdc6,https://reactome.org/PathwayBrowser/#/R-HSA-69017
+ENSG00000094804,Q99741,CDC6,R-HSA-69205,G1/S-Specific Transcription,https://reactome.org/PathwayBrowser/#/R-HSA-69205
+ENSG00000197471,P16150,SPN,R-HSA-202733,Cell surface interactions at the vascular wall,https://reactome.org/PathwayBrowser/#/R-HSA-202733
+ENSG00000197471,P16150,SPN,R-HSA-210991,Basigin interactions,https://reactome.org/PathwayBrowser/#/R-HSA-210991
+ENSG00000131055,Q96KJ9,COX4I2,R-HSA-5628897,TP53 Regulates Metabolic Genes,https://reactome.org/PathwayBrowser/#/R-HSA-5628897
+ENSG00000131055,Q96KJ9,COX4I2,R-HSA-611105,Respiratory electron transport,https://reactome.org/PathwayBrowser/#/R-HSA-611105
+ENSG00000131055,Q96KJ9,COX4I2,R-HSA-9707564,Cytoprotection by HMOX1,https://reactome.org/PathwayBrowser/#/R-HSA-9707564
+ENSG00000131055,Q96KJ9,COX4I2,R-HSA-9864848,Complex IV assembly,https://reactome.org/PathwayBrowser/#/R-HSA-9864848
+ENSG00000261671,,,,,
+ENSG00000130300,,PLVAP,,,
+ENSG00000177807,P78508,KCNJ10,R-HSA-1296041,Activation of G protein gated Potassium channels,https://reactome.org/PathwayBrowser/#/R-HSA-1296041
+ENSG00000177807,P78508,KCNJ10,R-HSA-1296067,Potassium transport channels,https://reactome.org/PathwayBrowser/#/R-HSA-1296067
+ENSG00000177807,P78508,KCNJ10,R-HSA-997272,Inhibition  of voltage gated Ca2+ channels via Gbeta/gamma subunits,https://reactome.org/PathwayBrowser/#/R-HSA-997272
+ENSG00000187730,,GABRD,,,
+ENSG00000117245,Q9P2E2,KIF17,R-HSA-5620924,Intraflagellar transport,https://reactome.org/PathwayBrowser/#/R-HSA-5620924
+ENSG00000117245,Q9P2E2,KIF17,R-HSA-9609736,Assembly and cell surface presentation of NMDA receptors,https://reactome.org/PathwayBrowser/#/R-HSA-9609736
+ENSG00000162063,P41002,CCNF,R-HSA-8951664,Neddylation,https://reactome.org/PathwayBrowser/#/R-HSA-8951664
+ENSG00000162063,P41002,CCNF,R-HSA-983168,Antigen processing: Ubiquitination & Proteasome degradation,https://reactome.org/PathwayBrowser/#/R-HSA-983168
+ENSG00000281327,,LINC01338,,,
+ENSG00000104967,,NOVA2,,,
+ENSG00000070778,,PTPN21,,,
+ENSG00000165480,,SKA3,,,
+ENSG00000281386,,,,,
+ENSG00000186198,Q86UW2,SLC51B,R-HSA-159418,Recycling of bile acids and salts,https://reactome.org/PathwayBrowser/#/R-HSA-159418
+ENSG00000196767,,POU3F4,,,
+ENSG00000102271,,KLHL4,,,
+ENSG00000179399,P78333,GPC5,R-HSA-1971475,A tetrasaccharide linker sequence is required for GAG synthesis,https://reactome.org/PathwayBrowser/#/R-HSA-1971475
+ENSG00000179399,P78333,GPC5,R-HSA-2022928,HS-GAG biosynthesis,https://reactome.org/PathwayBrowser/#/R-HSA-2022928
+ENSG00000179399,P78333,GPC5,R-HSA-2024096,HS-GAG degradation,https://reactome.org/PathwayBrowser/#/R-HSA-2024096
+ENSG00000179399,P78333,GPC5,R-HSA-3560783,"Defective B4GALT7 causes EDS, progeroid type",https://reactome.org/PathwayBrowser/#/R-HSA-3560783
+ENSG00000179399,P78333,GPC5,R-HSA-3560801,Defective B3GAT3 causes JDSSDHD,https://reactome.org/PathwayBrowser/#/R-HSA-3560801
+ENSG00000179399,P78333,GPC5,R-HSA-3656237,Defective EXT2 causes exostoses 2,https://reactome.org/PathwayBrowser/#/R-HSA-3656237
+ENSG00000179399,P78333,GPC5,R-HSA-3656253,"Defective EXT1 causes exostoses 1, TRPS2 and CHDS",https://reactome.org/PathwayBrowser/#/R-HSA-3656253
+ENSG00000179399,P78333,GPC5,R-HSA-4420332,Defective B3GALT6 causes EDSP2 and SEMDJL1,https://reactome.org/PathwayBrowser/#/R-HSA-4420332
+ENSG00000179399,P78333,GPC5,R-HSA-5362798,Release of Hh-Np from the secreting cell,https://reactome.org/PathwayBrowser/#/R-HSA-5362798
+ENSG00000179399,P78333,GPC5,R-HSA-9694614,Attachment and Entry,https://reactome.org/PathwayBrowser/#/R-HSA-9694614
+ENSG00000179399,P78333,GPC5,R-HSA-975634,Retinoid metabolism and transport,https://reactome.org/PathwayBrowser/#/R-HSA-975634
+ENSG00000179399,P78333,GPC5,R-HSA-9820960,Respiratory syncytial virus (RSV) attachment and entry,https://reactome.org/PathwayBrowser/#/R-HSA-9820960
+ENSG00000179399,P78333,GPC5,R-HSA-9833110,RSV-host interactions,https://reactome.org/PathwayBrowser/#/R-HSA-9833110
+ENSG00000138670,,RASGEF1B,,,
+ENSG00000118526,,TCF21,,,
+ENSG00000273348,,,,,
+ENSG00000257191,,,,,
+ENSG00000122694,,GLIPR2,,,
+ENSG00000162062,,TEDC2,,,
+ENSG00000132622,Q96MM6,HSPA12B,R-HSA-3371453,Regulation of HSF1-mediated heat shock response,https://reactome.org/PathwayBrowser/#/R-HSA-3371453
+ENSG00000147606,Q8TE54,SLC26A7,R-HSA-427601,Multifunctional anion exchangers,https://reactome.org/PathwayBrowser/#/R-HSA-427601
+ENSG00000198780,Q9Y6X4,FAM169A,R-HSA-9035034,RHOF GTPase cycle,https://reactome.org/PathwayBrowser/#/R-HSA-9035034
+ENSG00000204071,,TCEAL6,,,
+ENSG00000100321,O43759,SYNGR1,R-HSA-6798695,Neutrophil degranulation,https://reactome.org/PathwayBrowser/#/R-HSA-6798695
+ENSG00000138772,,ANXA3,,,
+ENSG00000243620,,,,,
+ENSG00000277639,,,,,
+ENSG00000168497,,CAVIN2,,,
+ENSG00000167434,P22748,CA4,R-HSA-1237044,Erythrocytes take up carbon dioxide and release oxygen,https://reactome.org/PathwayBrowser/#/R-HSA-1237044
+ENSG00000167434,P22748,CA4,R-HSA-1247673,Erythrocytes take up oxygen and release carbon dioxide,https://reactome.org/PathwayBrowser/#/R-HSA-1247673
+ENSG00000167434,P22748,CA4,R-HSA-1475029,Reversible hydration of carbon dioxide,https://reactome.org/PathwayBrowser/#/R-HSA-1475029
+ENSG00000150672,Q15700,DLG2,R-HSA-438066,"Unblocking of NMDA receptors, glutamate binding and activation",https://reactome.org/PathwayBrowser/#/R-HSA-438066
+ENSG00000150672,Q15700,DLG2,R-HSA-442982,Ras activation upon Ca2+ influx through NMDA receptor,https://reactome.org/PathwayBrowser/#/R-HSA-442982
+ENSG00000150672,Q15700,DLG2,R-HSA-5673001,RAF/MAP kinase cascade,https://reactome.org/PathwayBrowser/#/R-HSA-5673001
+ENSG00000150672,Q15700,DLG2,R-HSA-6794361,Neurexins and neuroligins,https://reactome.org/PathwayBrowser/#/R-HSA-6794361
+ENSG00000150672,Q15700,DLG2,R-HSA-9609736,Assembly and cell surface presentation of NMDA receptors,https://reactome.org/PathwayBrowser/#/R-HSA-9609736
+ENSG00000150672,Q15700,DLG2,R-HSA-9617324,Negative regulation of NMDA receptor-mediated neuronal transmission,https://reactome.org/PathwayBrowser/#/R-HSA-9617324
+ENSG00000150672,Q15700,DLG2,R-HSA-9620244,Long-term potentiation,https://reactome.org/PathwayBrowser/#/R-HSA-9620244
+ENSG00000277631,,PGM5P3-AS1,,,
+ENSG00000088926,P03951,F11,R-HSA-140837,Intrinsic Pathway of Fibrin Clot Formation,https://reactome.org/PathwayBrowser/#/R-HSA-140837
+ENSG00000088926,P03951,F11,R-HSA-9673221,Defective F9 activation,https://reactome.org/PathwayBrowser/#/R-HSA-9673221
+ENSG00000254447,,OR7E11P,,,
+ENSG00000164616,,FBXL21P,,,
+ENSG00000082684,Q9P283,SEMA5B,R-HSA-5083635,Defective B3GALTL causes PpS,https://reactome.org/PathwayBrowser/#/R-HSA-5083635
+ENSG00000082684,Q9P283,SEMA5B,R-HSA-5173214,O-glycosylation of TSR domain-containing proteins,https://reactome.org/PathwayBrowser/#/R-HSA-5173214
+ENSG00000134115,Q9UQ52,CNTN6,R-HSA-447041,CHL1 interactions,https://reactome.org/PathwayBrowser/#/R-HSA-447041
+ENSG00000159708,,LRRC36,,,
+ENSG00000051341,O75417,POLQ,R-HSA-5685939,HDR through MMEJ (alt-NHEJ),https://reactome.org/PathwayBrowser/#/R-HSA-5685939
+ENSG00000051180,Q06609,RAD51,R-HSA-5685938,HDR through Single Strand Annealing (SSA),https://reactome.org/PathwayBrowser/#/R-HSA-5685938
+ENSG00000051180,Q06609,RAD51,R-HSA-5685942,HDR through Homologous Recombination (HRR),https://reactome.org/PathwayBrowser/#/R-HSA-5685942
+ENSG00000051180,Q06609,RAD51,R-HSA-5693554,Resolution of D-loop Structures through Synthesis-Dependent Strand Annealing (SDSA),https://reactome.org/PathwayBrowser/#/R-HSA-5693554
+ENSG00000051180,Q06609,RAD51,R-HSA-5693568,Resolution of D-loop Structures through Holliday Junction Intermediates,https://reactome.org/PathwayBrowser/#/R-HSA-5693568
+ENSG00000051180,Q06609,RAD51,R-HSA-5693579,Homologous DNA Pairing and Strand Exchange,https://reactome.org/PathwayBrowser/#/R-HSA-5693579
+ENSG00000051180,Q06609,RAD51,R-HSA-5693616,Presynaptic phase of homologous DNA pairing and strand exchange,https://reactome.org/PathwayBrowser/#/R-HSA-5693616
+ENSG00000051180,Q06609,RAD51,R-HSA-8953750,Transcriptional Regulation by E2F6,https://reactome.org/PathwayBrowser/#/R-HSA-8953750
+ENSG00000051180,Q06609,RAD51,R-HSA-912446,Meiotic recombination,https://reactome.org/PathwayBrowser/#/R-HSA-912446
+ENSG00000051180,Q06609,RAD51,R-HSA-9701192,Defective homologous recombination repair (HRR) due to BRCA1 loss of function,https://reactome.org/PathwayBrowser/#/R-HSA-9701192
+ENSG00000051180,Q06609,RAD51,R-HSA-9704331,Defective HDR through Homologous Recombination Repair (HRR) due to PALB2 loss of BRCA1 binding function,https://reactome.org/PathwayBrowser/#/R-HSA-9704331
+ENSG00000051180,Q06609,RAD51,R-HSA-9704646,Defective HDR through Homologous Recombination Repair (HRR) due to PALB2 loss of BRCA2/RAD51/RAD51C binding function,https://reactome.org/PathwayBrowser/#/R-HSA-9704646
+ENSG00000051180,Q06609,RAD51,R-HSA-9709570,Impaired BRCA2 binding to RAD51,https://reactome.org/PathwayBrowser/#/R-HSA-9709570
+ENSG00000051180,Q06609,RAD51,R-HSA-9709603,Impaired BRCA2 binding to PALB2,https://reactome.org/PathwayBrowser/#/R-HSA-9709603
+ENSG00000272620,,AFAP1-AS1,,,
+ENSG00000095713,,CRTAC1,,,
+ENSG00000111339,,ART4,R-HSA-163125,Post-translational modification: synthesis of GPI-anchored proteins,https://reactome.org/PathwayBrowser/#/R-HSA-163125
+ENSG00000229619,,MBNL1-AS1,,,
+ENSG00000116016,Q99814,EPAS1,R-HSA-1234158,Regulation of gene expression by Hypoxia-inducible Factor,https://reactome.org/PathwayBrowser/#/R-HSA-1234158
+ENSG00000116016,Q99814,EPAS1,R-HSA-1234174,Cellular response to hypoxia,https://reactome.org/PathwayBrowser/#/R-HSA-1234174
+ENSG00000116016,Q99814,EPAS1,R-HSA-1234176,Oxygen-dependent proline hydroxylation of Hypoxia-inducible Factor Alpha,https://reactome.org/PathwayBrowser/#/R-HSA-1234176
+ENSG00000116016,Q99814,EPAS1,R-HSA-452723,Transcriptional regulation of pluripotent stem cells,https://reactome.org/PathwayBrowser/#/R-HSA-452723
+ENSG00000116016,Q99814,EPAS1,R-HSA-8849473,PTK6 Expression,https://reactome.org/PathwayBrowser/#/R-HSA-8849473
+ENSG00000116016,Q99814,EPAS1,R-HSA-8951664,Neddylation,https://reactome.org/PathwayBrowser/#/R-HSA-8951664
+ENSG00000116016,Q99814,EPAS1,R-HSA-9664873,Pexophagy,https://reactome.org/PathwayBrowser/#/R-HSA-9664873
+ENSG00000157502,,PWWP3B,,,
+ENSG00000164619,,BMPER,,,
+ENSG00000277883,,NLRP3P1,,,
+ENSG00000130812,,ANGPTL6,,,
+ENSG00000235280,,MCF2L-AS1,,,
+ENSG00000184661,,CDCA2,,,
+ENSG00000261250,,,,,
+ENSG00000016402,Q9UHF4,IL20RA,R-HSA-8854691,Interleukin-20 family signaling,https://reactome.org/PathwayBrowser/#/R-HSA-8854691
+ENSG00000170271,,FAXDC2,,,
+ENSG00000282840,,,,,
+ENSG00000197415,,VEPH1,,,
+ENSG00000245025,,,,,
+ENSG00000271447,,MMP28,,,
+ENSG00000123485,Q8NCD3,HJURP,R-HSA-606279,Deposition of new CENPA-containing nucleosomes at the centromere,https://reactome.org/PathwayBrowser/#/R-HSA-606279
+ENSG00000142657,P52209,PGD,R-HSA-71336,Pentose phosphate pathway,https://reactome.org/PathwayBrowser/#/R-HSA-71336
+ENSG00000142657,P52209,PGD,R-HSA-9818028,NFE2L2 regulates pentose phosphate pathway genes,https://reactome.org/PathwayBrowser/#/R-HSA-9818028
+ENSG00000095370,,SH2D3C,,,
+ENSG00000166451,Q96H22,CENPN,R-HSA-141444,Amplification  of signal from unattached  kinetochores via a MAD2  inhibitory signal,https://reactome.org/PathwayBrowser/#/R-HSA-141444
+ENSG00000166451,Q96H22,CENPN,R-HSA-2467813,Separation of Sister Chromatids,https://reactome.org/PathwayBrowser/#/R-HSA-2467813
+ENSG00000166451,Q96H22,CENPN,R-HSA-2500257,Resolution of Sister Chromatid Cohesion,https://reactome.org/PathwayBrowser/#/R-HSA-2500257
+ENSG00000166451,Q96H22,CENPN,R-HSA-5663220,RHO GTPases Activate Formins,https://reactome.org/PathwayBrowser/#/R-HSA-5663220
+ENSG00000166451,Q96H22,CENPN,R-HSA-606279,Deposition of new CENPA-containing nucleosomes at the centromere,https://reactome.org/PathwayBrowser/#/R-HSA-606279
+ENSG00000166451,Q96H22,CENPN,R-HSA-68877,Mitotic Prometaphase,https://reactome.org/PathwayBrowser/#/R-HSA-68877
+ENSG00000166451,Q96H22,CENPN,R-HSA-9648025,EML4 and NUDC in mitotic spindle formation,https://reactome.org/PathwayBrowser/#/R-HSA-9648025
+ENSG00000119771,,KLHL29,,,
+ENSG00000141161,,UNC45B,,,
+ENSG00000142973,P13584,CYP4B1,R-HSA-211935,Fatty acids,https://reactome.org/PathwayBrowser/#/R-HSA-211935
+ENSG00000142973,P13584,CYP4B1,R-HSA-211958,Miscellaneous substrates,https://reactome.org/PathwayBrowser/#/R-HSA-211958
+ENSG00000142973,P13584,CYP4B1,R-HSA-211979,Eicosanoids,https://reactome.org/PathwayBrowser/#/R-HSA-211979
+ENSG00000142973,P13584,CYP4B1,R-HSA-2142691,Synthesis of Leukotrienes (LT) and Eoxins (EX),https://reactome.org/PathwayBrowser/#/R-HSA-2142691
+ENSG00000283383,,,,,
+ENSG00000230838,,LINC01614,,,
+ENSG00000114790,Q96DR7,ARHGEF26,R-HSA-193648,NRAGE signals death through JNK,https://reactome.org/PathwayBrowser/#/R-HSA-193648
+ENSG00000114790,Q96DR7,ARHGEF26,R-HSA-416482,G alpha (12/13) signalling events,https://reactome.org/PathwayBrowser/#/R-HSA-416482
+ENSG00000114790,Q96DR7,ARHGEF26,R-HSA-9013148,CDC42 GTPase cycle,https://reactome.org/PathwayBrowser/#/R-HSA-9013148
+ENSG00000114790,Q96DR7,ARHGEF26,R-HSA-9013408,RHOG GTPase cycle,https://reactome.org/PathwayBrowser/#/R-HSA-9013408
+ENSG00000014257,P15309,ACP3,R-HSA-6798695,Neutrophil degranulation,https://reactome.org/PathwayBrowser/#/R-HSA-6798695
+ENSG00000086159,Q13520,AQP6,R-HSA-432047,Passive transport by Aquaporins,https://reactome.org/PathwayBrowser/#/R-HSA-432047
+ENSG00000143761,P84077,ARF1,R-HSA-1660499,Synthesis of PIPs at the plasma membrane,https://reactome.org/PathwayBrowser/#/R-HSA-1660499
+ENSG00000143761,P84077,ARF1,R-HSA-1660514,Synthesis of PIPs at the Golgi membrane,https://reactome.org/PathwayBrowser/#/R-HSA-1660514
+ENSG00000143761,P84077,ARF1,R-HSA-167590,Nef Mediated CD4 Down-regulation,https://reactome.org/PathwayBrowser/#/R-HSA-167590
+ENSG00000143761,P84077,ARF1,R-HSA-199992,trans-Golgi Network Vesicle Budding,https://reactome.org/PathwayBrowser/#/R-HSA-199992
+ENSG00000143761,P84077,ARF1,R-HSA-2132295,MHC class II antigen presentation,https://reactome.org/PathwayBrowser/#/R-HSA-2132295
+ENSG00000143761,P84077,ARF1,R-HSA-432720,Lysosome Vesicle Biogenesis,https://reactome.org/PathwayBrowser/#/R-HSA-432720
+ENSG00000143761,P84077,ARF1,R-HSA-432722,Golgi Associated Vesicle Biogenesis,https://reactome.org/PathwayBrowser/#/R-HSA-432722
+ENSG00000143761,P84077,ARF1,R-HSA-6807878,COPI-mediated anterograde transport,https://reactome.org/PathwayBrowser/#/R-HSA-6807878
+ENSG00000143761,P84077,ARF1,R-HSA-6811434,COPI-dependent Golgi-to-ER retrograde traffic,https://reactome.org/PathwayBrowser/#/R-HSA-6811434
+ENSG00000143761,P84077,ARF1,R-HSA-6811438,Intra-Golgi traffic,https://reactome.org/PathwayBrowser/#/R-HSA-6811438
+ENSG00000143761,P84077,ARF1,R-HSA-8950505,Gene and protein expression by JAK-STAT signaling after Interleukin-12 stimulation,https://reactome.org/PathwayBrowser/#/R-HSA-8950505
+ENSG00000143761,P84077,ARF1,R-HSA-9845576,Glycosphingolipid transport,https://reactome.org/PathwayBrowser/#/R-HSA-9845576
+ENSG00000237649,Q9BW19,KIFC1,R-HSA-6811434,COPI-dependent Golgi-to-ER retrograde traffic,https://reactome.org/PathwayBrowser/#/R-HSA-6811434
+ENSG00000237649,Q9BW19,KIFC1,R-HSA-983189,Kinesins,https://reactome.org/PathwayBrowser/#/R-HSA-983189
+ENSG00000108381,P45381,ASPA,R-HSA-8963693,Aspartate and asparagine metabolism,https://reactome.org/PathwayBrowser/#/R-HSA-8963693
+ENSG00000163217,O95393,BMP10,R-HSA-201451,Signaling by BMP,https://reactome.org/PathwayBrowser/#/R-HSA-201451
+ENSG00000163217,O95393,BMP10,R-HSA-2129379,Molecules associated with elastic fibres,https://reactome.org/PathwayBrowser/#/R-HSA-2129379
+ENSG00000288047,,,,,
+ENSG00000135604,,STX11,,,
+ENSG00000226887,,ERVMER34-1,,,
+ENSG00000129521,Q9H6Z9,EGLN3,R-HSA-1234176,Oxygen-dependent proline hydroxylation of Hypoxia-inducible Factor Alpha,https://reactome.org/PathwayBrowser/#/R-HSA-1234176
+ENSG00000182481,P52292,KPNA2,R-HSA-111932,CaMK IV-mediated phosphorylation of CREB,https://reactome.org/PathwayBrowser/#/R-HSA-111932
+ENSG00000182481,P52292,KPNA2,R-HSA-1169408,ISG15 antiviral mechanism,https://reactome.org/PathwayBrowser/#/R-HSA-1169408
+ENSG00000182481,P52292,KPNA2,R-HSA-168276,NS1 Mediated Effects on Host Pathways,https://reactome.org/PathwayBrowser/#/R-HSA-168276
+ENSG00000182481,P52292,KPNA2,R-HSA-442729,CREB1 phosphorylation through the activation of CaMKII/CaMKK/CaMKIV cascasde,https://reactome.org/PathwayBrowser/#/R-HSA-442729
+ENSG00000182481,P52292,KPNA2,R-HSA-5693548,Sensing of DNA Double Strand Breaks,https://reactome.org/PathwayBrowser/#/R-HSA-5693548
+ENSG00000182481,P52292,KPNA2,R-HSA-9018519,Estrogen-dependent gene expression,https://reactome.org/PathwayBrowser/#/R-HSA-9018519
+ENSG00000182481,P52292,KPNA2,R-HSA-9692916,SARS-CoV-1 activates/modulates innate immune responses,https://reactome.org/PathwayBrowser/#/R-HSA-9692916
+ENSG00000182481,P52292,KPNA2,R-HSA-9705671,SARS-CoV-2 activates/modulates innate and adaptive immune responses,https://reactome.org/PathwayBrowser/#/R-HSA-9705671
+ENSG00000136546,Q01118,SCN7A,R-HSA-445095,Interaction between L1 and Ankyrins,https://reactome.org/PathwayBrowser/#/R-HSA-445095
+ENSG00000136546,Q01118,SCN7A,R-HSA-5576892,Phase 0 - rapid depolarisation,https://reactome.org/PathwayBrowser/#/R-HSA-5576892
+ENSG00000065328,Q7L590,MCM10,R-HSA-176187,Activation of ATR in response to replication stress,https://reactome.org/PathwayBrowser/#/R-HSA-176187
+ENSG00000065328,Q7L590,MCM10,R-HSA-68962,Activation of the pre-replicative complex,https://reactome.org/PathwayBrowser/#/R-HSA-68962
+ENSG00000249669,,CARMN,,,
+ENSG00000171241,,SHCBP1,,,
+ENSG00000149554,O14757,CHEK1,R-HSA-1433557,Signaling by SCF-KIT,https://reactome.org/PathwayBrowser/#/R-HSA-1433557
+ENSG00000149554,O14757,CHEK1,R-HSA-176187,Activation of ATR in response to replication stress,https://reactome.org/PathwayBrowser/#/R-HSA-176187
+ENSG00000149554,O14757,CHEK1,R-HSA-5693607,Processing of DNA double-strand break ends,https://reactome.org/PathwayBrowser/#/R-HSA-5693607
+ENSG00000149554,O14757,CHEK1,R-HSA-5693616,Presynaptic phase of homologous DNA pairing and strand exchange,https://reactome.org/PathwayBrowser/#/R-HSA-5693616
+ENSG00000149554,O14757,CHEK1,R-HSA-6796648,TP53 Regulates Transcription of DNA Repair Genes,https://reactome.org/PathwayBrowser/#/R-HSA-6796648
+ENSG00000149554,O14757,CHEK1,R-HSA-6804756,Regulation of TP53 Activity through Phosphorylation,https://reactome.org/PathwayBrowser/#/R-HSA-6804756
+ENSG00000149554,O14757,CHEK1,R-HSA-69473,G2/M DNA damage checkpoint,https://reactome.org/PathwayBrowser/#/R-HSA-69473
+ENSG00000149554,O14757,CHEK1,R-HSA-69601,Ubiquitin Mediated Degradation of Phosphorylated Cdc25A,https://reactome.org/PathwayBrowser/#/R-HSA-69601
+ENSG00000149554,O14757,CHEK1,R-HSA-75035,Chk1/Chk2(Cds1) mediated inactivation of Cyclin B:Cdk1 complex,https://reactome.org/PathwayBrowser/#/R-HSA-75035
+ENSG00000149554,O14757,CHEK1,R-HSA-8953750,Transcriptional Regulation by E2F6,https://reactome.org/PathwayBrowser/#/R-HSA-8953750
+ENSG00000074803,Q13621,SLC12A1,R-HSA-426117,Cation-coupled Chloride cotransporters,https://reactome.org/PathwayBrowser/#/R-HSA-426117
+ENSG00000074803,Q13621,SLC12A1,R-HSA-5619104,Defective SLC12A1 causes Bartter syndrome 1 (BS1),https://reactome.org/PathwayBrowser/#/R-HSA-5619104
+ENSG00000214128,,TMEM213,,,
+ENSG00000101003,Q14691,GINS1,R-HSA-176974,Unwinding of DNA,https://reactome.org/PathwayBrowser/#/R-HSA-176974
+ENSG00000116667,,C1orf21,,,
+ENSG00000248309,,MEF2C-AS1,,,
+ENSG00000223783,,LINC01983,,,
+ENSG00000176092,,CRYBG2,,,
+ENSG00000128713,P31277,HOXD11,R-HSA-9830674,Formation of the ureteric bud,https://reactome.org/PathwayBrowser/#/R-HSA-9830674
+ENSG00000112214,,FHL5,,,
+ENSG00000277268,,LHX1-DT,,,
+ENSG00000115361,P28330,ACADL,R-HSA-77285,Beta oxidation of myristoyl-CoA to lauroyl-CoA,https://reactome.org/PathwayBrowser/#/R-HSA-77285
+ENSG00000115361,P28330,ACADL,R-HSA-77288,mitochondrial fatty acid beta-oxidation of unsaturated fatty acids,https://reactome.org/PathwayBrowser/#/R-HSA-77288
+ENSG00000115361,P28330,ACADL,R-HSA-77310,Beta oxidation of lauroyl-CoA to decanoyl-CoA-CoA,https://reactome.org/PathwayBrowser/#/R-HSA-77310
+ENSG00000163121,,NEURL3,,,
+ENSG00000171848,P31350,RRM2,R-HSA-499943,Interconversion of nucleotide di- and triphosphates,https://reactome.org/PathwayBrowser/#/R-HSA-499943
+ENSG00000171848,P31350,RRM2,R-HSA-69205,G1/S-Specific Transcription,https://reactome.org/PathwayBrowser/#/R-HSA-69205
+ENSG00000171848,P31350,RRM2,R-HSA-8953750,Transcriptional Regulation by E2F6,https://reactome.org/PathwayBrowser/#/R-HSA-8953750
+ENSG00000149403,Q16099,GRIK4,R-HSA-451308,Activation of Ca-permeable Kainate Receptor,https://reactome.org/PathwayBrowser/#/R-HSA-451308
+ENSG00000268416,,,,,
+ENSG00000286684,,,,,
+ENSG00000183844,,FAM3B,,,
+ENSG00000105974,Q03135,CAV1,R-HSA-163560,Triglyceride catabolism,https://reactome.org/PathwayBrowser/#/R-HSA-163560
+ENSG00000105974,Q03135,CAV1,R-HSA-203615,eNOS activation,https://reactome.org/PathwayBrowser/#/R-HSA-203615
+ENSG00000105974,Q03135,CAV1,R-HSA-203641,NOSTRIN mediated eNOS trafficking,https://reactome.org/PathwayBrowser/#/R-HSA-203641
+ENSG00000105974,Q03135,CAV1,R-HSA-210991,Basigin interactions,https://reactome.org/PathwayBrowser/#/R-HSA-210991
+ENSG00000105974,Q03135,CAV1,R-HSA-4641262,Disassembly of the destruction complex and recruitment of AXIN to the membrane,https://reactome.org/PathwayBrowser/#/R-HSA-4641262
+ENSG00000105974,Q03135,CAV1,R-HSA-5218920,VEGFR2 mediated vascular permeability,https://reactome.org/PathwayBrowser/#/R-HSA-5218920
+ENSG00000105974,Q03135,CAV1,R-HSA-8980692,RHOA GTPase cycle,https://reactome.org/PathwayBrowser/#/R-HSA-8980692
+ENSG00000105974,Q03135,CAV1,R-HSA-9009391,Extra-nuclear estrogen signaling,https://reactome.org/PathwayBrowser/#/R-HSA-9009391
+ENSG00000105974,Q03135,CAV1,R-HSA-9013026,RHOB GTPase cycle,https://reactome.org/PathwayBrowser/#/R-HSA-9013026
+ENSG00000105974,Q03135,CAV1,R-HSA-9013106,RHOC GTPase cycle,https://reactome.org/PathwayBrowser/#/R-HSA-9013106
+ENSG00000105974,Q03135,CAV1,R-HSA-9013148,CDC42 GTPase cycle,https://reactome.org/PathwayBrowser/#/R-HSA-9013148
+ENSG00000105974,Q03135,CAV1,R-HSA-9013149,RAC1 GTPase cycle,https://reactome.org/PathwayBrowser/#/R-HSA-9013149
+ENSG00000105974,Q03135,CAV1,R-HSA-9013404,RAC2 GTPase cycle,https://reactome.org/PathwayBrowser/#/R-HSA-9013404
+ENSG00000105974,Q03135,CAV1,R-HSA-9013405,RHOD GTPase cycle,https://reactome.org/PathwayBrowser/#/R-HSA-9013405
+ENSG00000105974,Q03135,CAV1,R-HSA-9013406,RHOQ GTPase cycle,https://reactome.org/PathwayBrowser/#/R-HSA-9013406
+ENSG00000105974,Q03135,CAV1,R-HSA-9013407,RHOH GTPase cycle,https://reactome.org/PathwayBrowser/#/R-HSA-9013407
+ENSG00000105974,Q03135,CAV1,R-HSA-9013408,RHOG GTPase cycle,https://reactome.org/PathwayBrowser/#/R-HSA-9013408
+ENSG00000105974,Q03135,CAV1,R-HSA-9013409,RHOJ GTPase cycle,https://reactome.org/PathwayBrowser/#/R-HSA-9013409
+ENSG00000105974,Q03135,CAV1,R-HSA-9013423,RAC3 GTPase cycle,https://reactome.org/PathwayBrowser/#/R-HSA-9013423
+ENSG00000105974,Q03135,CAV1,R-HSA-9035034,RHOF GTPase cycle,https://reactome.org/PathwayBrowser/#/R-HSA-9035034
+ENSG00000105974,Q03135,CAV1,R-HSA-9617828,FOXO-mediated transcription of cell cycle genes,https://reactome.org/PathwayBrowser/#/R-HSA-9617828
+ENSG00000105974,Q03135,CAV1,R-HSA-9696264,RND3 GTPase cycle,https://reactome.org/PathwayBrowser/#/R-HSA-9696264
+ENSG00000105974,Q03135,CAV1,R-HSA-9696270,RND2 GTPase cycle,https://reactome.org/PathwayBrowser/#/R-HSA-9696270
+ENSG00000105974,Q03135,CAV1,R-HSA-9696273,RND1 GTPase cycle,https://reactome.org/PathwayBrowser/#/R-HSA-9696273
+ENSG00000105974,Q03135,CAV1,R-HSA-9735871,SARS-CoV-1 targets host intracellular signalling and regulatory pathways,https://reactome.org/PathwayBrowser/#/R-HSA-9735871
+ENSG00000105974,Q03135,CAV1,R-HSA-9755779,SARS-CoV-2 targets host intracellular signalling and regulatory pathways,https://reactome.org/PathwayBrowser/#/R-HSA-9755779
+ENSG00000105011,,ASF1B,,,
+ENSG00000165304,,MELK,,,
+ENSG00000278259,Q96H55,MYO19,R-HSA-9013419,RHOT2 GTPase cycle,https://reactome.org/PathwayBrowser/#/R-HSA-9013419
+ENSG00000278259,Q96H55,MYO19,R-HSA-9013425,RHOT1 GTPase cycle,https://reactome.org/PathwayBrowser/#/R-HSA-9013425
+ENSG00000169744,,LDB2,,,
+ENSG00000154342,P56704,WNT3A,R-HSA-201681,TCF dependent signaling in response to WNT,https://reactome.org/PathwayBrowser/#/R-HSA-201681
+ENSG00000154342,P56704,WNT3A,R-HSA-3238698,WNT ligand biogenesis and trafficking,https://reactome.org/PathwayBrowser/#/R-HSA-3238698
+ENSG00000154342,P56704,WNT3A,R-HSA-373080,Class B/2 (Secretin family receptors),https://reactome.org/PathwayBrowser/#/R-HSA-373080
+ENSG00000154342,P56704,WNT3A,R-HSA-3772470,Negative regulation of TCF-dependent signaling by WNT ligand antagonists,https://reactome.org/PathwayBrowser/#/R-HSA-3772470
+ENSG00000154342,P56704,WNT3A,R-HSA-4641262,Disassembly of the destruction complex and recruitment of AXIN to the membrane,https://reactome.org/PathwayBrowser/#/R-HSA-4641262
+ENSG00000154342,P56704,WNT3A,R-HSA-4641263,Regulation of FZD by ubiquitination,https://reactome.org/PathwayBrowser/#/R-HSA-4641263
+ENSG00000154342,P56704,WNT3A,R-HSA-5340588,Signaling by RNF43 mutants,https://reactome.org/PathwayBrowser/#/R-HSA-5340588
+ENSG00000154342,P56704,WNT3A,R-HSA-9793380,Formation of paraxial mesoderm,https://reactome.org/PathwayBrowser/#/R-HSA-9793380
+ENSG00000154342,P56704,WNT3A,R-HSA-9832991,Formation of the posterior neural plate,https://reactome.org/PathwayBrowser/#/R-HSA-9832991
+ENSG00000154342,P56704,WNT3A,R-HSA-9834899,Specification of the neural plate border,https://reactome.org/PathwayBrowser/#/R-HSA-9834899
+ENSG00000154342,P56704,WNT3A,R-HSA-9856649,Transcriptional and post-translational regulation of MITF-M expression and activity,https://reactome.org/PathwayBrowser/#/R-HSA-9856649
+ENSG00000135476,Q14674,ESPL1,R-HSA-2467813,Separation of Sister Chromatids,https://reactome.org/PathwayBrowser/#/R-HSA-2467813
+ENSG00000187824,,TMEM220,,,
+ENSG00000158402,P30307,CDC25C,R-HSA-156711,Polo-like kinase mediated events,https://reactome.org/PathwayBrowser/#/R-HSA-156711
+ENSG00000158402,P30307,CDC25C,R-HSA-176187,Activation of ATR in response to replication stress,https://reactome.org/PathwayBrowser/#/R-HSA-176187
+ENSG00000158402,P30307,CDC25C,R-HSA-5625740,RHO GTPases activate PKNs,https://reactome.org/PathwayBrowser/#/R-HSA-5625740
+ENSG00000158402,P30307,CDC25C,R-HSA-6804114,TP53 Regulates Transcription of Genes Involved in G2 Cell Cycle Arrest,https://reactome.org/PathwayBrowser/#/R-HSA-6804114
+ENSG00000158402,P30307,CDC25C,R-HSA-6804115,TP53 regulates transcription of additional cell cycle genes whose exact role in the p53 pathway remain uncertain,https://reactome.org/PathwayBrowser/#/R-HSA-6804115
+ENSG00000158402,P30307,CDC25C,R-HSA-69273,Cyclin A/B1/B2 associated events during G2/M transition,https://reactome.org/PathwayBrowser/#/R-HSA-69273
+ENSG00000158402,P30307,CDC25C,R-HSA-75035,Chk1/Chk2(Cds1) mediated inactivation of Cyclin B:Cdk1 complex,https://reactome.org/PathwayBrowser/#/R-HSA-75035
+ENSG00000158402,P30307,CDC25C,R-HSA-8862803,Deregulated CDK5 triggers multiple neurodegenerative pathways in Alzheimer's disease models,https://reactome.org/PathwayBrowser/#/R-HSA-8862803

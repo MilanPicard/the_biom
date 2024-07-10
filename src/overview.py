@@ -80,7 +80,7 @@ def get_elements(dm,**dm_kwargs):
         html.Br(),
         html.A("gProfiler",href=i["gProfiler"],target="_blank")
 
-    ]},"group":"nodes","classes":" ".join([i["Cancer"]])} for i in signatures_ids]+[{"data":{"source":k[0],"target":k[1],"elems":v,"symbols":[get_toolip(symbols[g]) for g in v],"type":"signature"},"group":"edges","classes":"","style":{"width":5+len(v)}} for k,v in intersections.items()]+fake_nodes+fake_edges+[{
+    ],"gProfiler":i["gProfiler"]},"group":"nodes","classes":" ".join([i["Cancer"]])} for i in signatures_ids]+[{"data":{"source":k[0],"target":k[1],"elems":v,"symbols":[get_toolip(symbols[g]) for g in v],"type":"signature"},"group":"edges","classes":"","style":{"width":5+len(v)}} for k,v in intersections.items()]+fake_nodes+fake_edges+[{
         "data":{
             "source":i.Index.split("__")[0],
             "target":i.Index.split("__")[1],
