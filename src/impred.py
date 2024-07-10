@@ -94,8 +94,9 @@ class Impred:
             second_movable = second_movable[one_movable]
             diff = self.pos[pairs[:,0]]-self.pos[pairs[:,1]]
             dist = np.linalg.norm(diff,axis=1)
-            mag = ((self.delta)/dist)**2/dist
-
+            mag = ((self.delta)/np.clip(dist,self.gamma/20,None))**2/dist
+            # mag = ((self.delta)/dist)**2/dist
+            # print("mindist",dist.min())
             repulsions = np.expand_dims(mag,-1) *diff
             forces[:,0]+=np.bincount(pairs[first_movable,0],repulsions[first_movable,0],minlength=self.pos.shape[0])
             forces[:,1]+=np.bincount(pairs[first_movable,0],repulsions[first_movable,1],minlength=self.pos.shape[0])
@@ -136,7 +137,7 @@ class Impred:
             pos_tgt = self.pos[tgt_index]
             pos_point = self.pos[point_index]
             proj = self.get_projections(pos_src,pos_tgt,pos_point)
-            proj_dist = np.linalg.norm(proj,axis=1)
+            proj_dist = np.linalg.norm(proj-pos_point,axis=1)
             close_enough = proj_dist<self.gamma*3
             pos_src3 = pos_src[close_enough]
             pos_tgt3 = pos_tgt[close_enough]
@@ -381,11 +382,9 @@ class Impred:
                 on_edge_pos = pos[on_edge]
                 angle = np.arctan2(on_edge_projs[:,1]-on_edge_pos[:,1],on_edge_projs[:,0]-on_edge_pos[:,0])%(2*np.pi)
                 on_edge_dist = dist_p[on_edge]
-                self.set_max_move(f,max_move,points[on_edge],angle,np.clip(on_edge_dist/2.1-self.gamma/5,0,None),debug=False)
-                self.set_max_move(f,max_move,srcs[on_edge],angle+np.pi,np.clip(on_edge_dist/2.1-self.gamma/5,0,None),debug=False)
-                self.set_max_move(f,max_move,tgts[on_edge],angle+np.pi,np.clip(on_edge_dist/2.1-self.gamma/5,0,None),debug=False)
-                # if i==21 and len(self.pos)>21:
-                    # print("debug HSNC NvsIII a",self.pos[21],f[21],max_move[21],global_max)
+                self.set_max_move(f,max_move,points[on_edge],angle,np.clip(on_edge_dist/2.1-0*self.gamma/5,0,None),debug=False)
+                self.set_max_move(f,max_move,srcs[on_edge],angle+np.pi,np.clip(on_edge_dist/2.1-0*self.gamma/5,0,None),debug=False)
+                self.set_max_move(f,max_move,tgts[on_edge],angle+np.pi,np.clip(on_edge_dist/2.1-0*self.gamma/5,0,None),debug=False)
 
                 # times2[6]+=ty3-ty2
                 # times2[3]+=tx5-tx4
@@ -403,64 +402,11 @@ class Impred:
                 close_dist=np.linalg.norm(close_pos-pos,axis=-1)
                 middle = (close_pos+pos)/2
                 other = middle+np.stack([np.cos(angle+np.pi/2),np.sin(angle+np.pi/2)],-1)
-                projs2 = self.get_projections(middle,other,far_pos)                
-                # for j in range(len(pos)):
-                # #     cp = self.gateway.jvm.ocotillo.geometry.Coordinates(close_pos[j,0],close_pos[j,1])
-                # #     fp = self.gateway.jvm.ocotillo.geometry.Coordinates(far_pos[j,0],far_pos[j,1])
-                # #     pp = self.gateway.jvm.ocotillo.geometry.Coordinates(pos[j,0],pos[j,1])
-                # #     nodeAngle = self.gateway.jvm.ocotillo.geometry.Geom2D.angle(cp.minus(pp))
-                # #     assert np.abs(nodeAngle-angle[j])<1e-3
-                # #     edgeAngle = self.gateway.jvm.ocotillo.geometry.Geom2D.posNormalizeRadiansAngle(nodeAngle + self.gateway.jvm.Math.PI)
-                # #     axisAngle = nodeAngle + 1.5707963267948966
-                # #     assert np.abs(nodeAngle-angle[j])<1e-3
-                # #     assert np.abs(edgeAngle-(angle[j]+np.pi)%(np.pi*2))<1e-3,(edgeAngle,(angle[j]+np.pi))
-                # #     axisPointA = pp.plus(cp.minus(pp).divide(2.0))
-                # #     axisPointB = self.gateway.jvm.ocotillo.geometry.Geom2D.unitVector(axisAngle).plusIP(axisPointA)
-                # #     farExtrCollDist = self.gateway.jvm.ocotillo.geometry.Geom2D.pointToLineDistance(fp, axisPointA, axisPointB)
-                # #     farExtrCollDist2 = np.linalg.norm(projs2-far_pos,axis=1)[j]
-                # #     assert np.abs(farExtrCollDist-farExtrCollDist2)<1e-3
+                projs2 = self.get_projections(middle,other,far_pos)   
 
-                #     middle2 = (pos[j]+close_pos[j])/2
-                #     middle_l = middle2 + np.stack((np.cos(angle[j]+np.pi/2),np.sin(angle[j]+np.pi/2)))
-                #     # t1 = test(pos_srcs[on_edge][j],pos_tgts[on_edge][j],[j])
-                #     tp = test(middle2,middle_l,pos[j])
-                #     ts = test(middle2,middle_l,close_pos[j])
-                #     tt = test(middle2,middle_l,far_pos[j])
-                #     self.set_max_move(f,max_move,np.full((1,),i),angle[j:j+1],close_dist[j:j+1]/2.1)
-                #     self.set_max_move(f,max_move,close[j:j+1],angle[j:j+1]+np.pi,close_dist[j:j+1]/2.1)
-                #     self.set_max_move(f,max_move,far[j:j+1],angle[j:j+1]+np.pi,np.linalg.norm(projs2[j:j+1]-far_pos[j:j+1],axis=1)/1.05)
-                #     mag = np.linalg.norm(f[i],keepdims=True)
-                #     if mag[0]>max_move[i]:
-                #         f1 = f[i]*max_move[i]/mag
-                #     else:
-                #         f1 = f[i]
-                #     c = self.pos[i]+f1
-                #     mag = np.linalg.norm(f[close[j]],keepdims=True)
-                #     if mag[0]>max_move[close[j]]:
-                #         f2 = f[close[j]]*max_move[close[j]]/mag
-                #     else:
-                #         f2 = f[close[j]]
-                #     a = close_pos[j]+f2
-                    
-                #     mag = np.linalg.norm(f[far[j]],keepdims=True)
-                #     if mag[0]>max_move[far[j]]:
-                #         f3 = f[far[j]]*max_move[far[j]]/mag
-                #     else:
-                #         f3 = f[far[j]]
-                #     b = far_pos[j]+f3
-                #     tp2 = test(middle2,middle_l,c)
-                #     ts2 = test(middle2,middle_l,a)
-                #     tt2 = test(middle2,middle_l,b)
-                #     if(tp!=tp2):
-                #         test(middle2,middle_l,pos[j],debug=True)
-                #         test(middle2,middle_l,c,debug=True)
-
-                #     assert (tp==tp2) and (tt==tt2) and (ts2==ts),f"\n{tp}\t{tp2}\t{ts}\t{ts2}\t{tt}\t{tt2}\n{pos[j]}\t{close_pos[j]}\t{far_pos[j]}\n{c}\t{a}\t{b}\n{middle2}\n{middle_l}\n{f1}\t{f2}\t{f3}"
-                self.set_max_move(f,max_move,points[not_on_edge],angle,np.clip(close_dist/2.1-self.gamma/5,0,None),False)
-                self.set_max_move(f,max_move,close,(angle+np.pi)%(np.pi*2),np.clip(close_dist/2.1-self.gamma/5,0,None),False)
-                self.set_max_move(f,max_move,far,(angle+np.pi)%(np.pi*2),np.clip(np.linalg.norm(projs2-far_pos,axis=1)/1.05-self.gamma/5,0,None),False)
-                # if i==21 and len(self.pos)>21:
-                    # print("debug HSNC NvsIII b",self.pos[21],f[21],max_move[21],global_max,far,close)
+                self.set_max_move(f,max_move,points[not_on_edge],angle,np.clip(close_dist/2.1-0*self.gamma/5,0,None),False)
+                self.set_max_move(f,max_move,close,(angle+np.pi)%(np.pi*2),np.clip(close_dist/2.1-0*self.gamma/5,0,None),False)
+                self.set_max_move(f,max_move,far,(angle+np.pi)%(np.pi*2),np.clip(np.linalg.norm(projs2-far_pos,axis=1)/1.05-0*self.gamma/5,0,None),False)
 
                     
         return max_move

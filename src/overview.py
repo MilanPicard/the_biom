@@ -75,7 +75,11 @@ def get_elements(dm,**dm_kwargs):
         for i in range(len(l)):
             fake_edges.append({"data":{"source":l[i],"target":c,"fake":True,"type":"fake"},"group":"edges","style":{"width":0}})
     return [{'data':{"id":i["id"],"label":"\n".join(i["id"].split("_")),"Cancer":i["Cancer"],"Comparison":i["Comparison"],"Filter":i["Filter"],"Signature":i["Signature"],"tooltip_content":[
-        html.Button("Copy genes to cliboard",id={"type":"signature_clipboard","sign":i["id"]} ,value=";".join(i["Signature"]))
+        html.H6(i["id"]),
+        html.Button("Copy genes to clipboard",id={"type":"signature_clipboard","sign":i["id"]} ,value=";".join(i["Signature"])),
+        html.Br(),
+        html.A("gProfiler",href=i["gProfiler"],target="_blank")
+
     ]},"group":"nodes","classes":" ".join([i["Cancer"]])} for i in signatures_ids]+[{"data":{"source":k[0],"target":k[1],"elems":v,"symbols":[get_toolip(symbols[g]) for g in v],"type":"signature"},"group":"edges","classes":"","style":{"width":5+len(v)}} for k,v in intersections.items()]+fake_nodes+fake_edges+[{
         "data":{
             "source":i.Index.split("__")[0],
@@ -99,8 +103,20 @@ def get_default_stylesheet(dm,color_by_diseases=True):
         {"selector":"edge","style":{"line-opacity":0.5,"line-color":"red"}},
         {"selector":"edge.highlight","style":{"line-opacity":1}},
         {"selector":"edge.half_highlight","style":{"line-opacity":0.75}},
-        {"selector":"edge.pathway","style":{"line-style":"solid","line-dash-pattern":[3,6],"line-opacity":0.25,"line-color":"blue","curve-style":"unbundled-bezier",  "control-point-distances": 120,  "control-point-weights": 0.1}},
-
+        {"selector":"edge.pathway","style":{"line-style":"solid","line-dash-pattern":[3,6],"line-opacity":0.25,"line-color":"blue","curve-style":"bezier",  "control-point-distances": 120,  "control-point-weights": 0.1,"control-point-step-size":10,}},
+    {
+        "selector":"node.testFlash",
+        "style":{
+            "borderColor":"yellow",
+            "borderWidth":"2px",
+            }
+    },
+    {
+        "selector":"edge.testFlash",
+        "style":{
+            "lineStyle":"dotted",
+            }
+    }
             ]
     for d in cm:
         color_str = f"rgba({','.join([str(i*255) for i in cm[d][:3]])},{cm[d][3]})"

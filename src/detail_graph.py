@@ -36,14 +36,14 @@ class Edge:
 # Ouput('buttonid','id'),
 # Input('buttonid','n_clicks')
 # )
-def detail_graph():
+def detail_graph(elemId):
     return cyto.Cytoscape(
-        id="detail_graph",
+        id=elemId,
         style={
             "width":"97%",
             "height":"100%"},
         autoungrabify=True,
-                wheelSensitivity=0.5,
+                wheelSensitivity=0.25,
                 # maxZoom=4,
                 # minZoom=0.1,
         layout={"name":"preset"},
@@ -93,25 +93,29 @@ def update_cur_elements(existing_elements,updated,stylesheet_detail,sizes,update
         del existing_elements[i]
         del updated_elements[i]    
 
-def add_path_ways(existing_elements,stylesheet_detail,updated_elements):
+def add_path_ways(existing_elements,stylesheet_detail,updated_elements,all_pathway,dm,legend):
     pathways_nodes = dict()
     protein_nodes = dict()
     pathways_stylesheets = dict()
     pathways_edges = []
     gene_sign = dict([(elem['data']['id'],set(elem['data']["Signatures"])) for elem in existing_elements if "source" not in elem["data"]])
-    pathways = Controller._instance.dm.get_pathways(gene_sign.keys())
+    pathways = dm.get_pathways(gene_sign.keys())
+    pathway_shape = "triangle"
+    multi_pathway_color = "red"
+    mono_pathway_color = "gray"
+
     for p in pathways.itertuples():
             children = []
             children.append(html.H6(p.PathwayDisplayName))
             children.append(html.A("PathwayReactomeLink",href=p.PathwayReactomeLink,target="_blank"))
-            pathways_nodes[p.Index]={"data":{"id":p.Index,"label":"","weight":len(p.EnsemblID),"tooltip_content":children,"is_pathways":True},"selectable":False}
+            pathways_nodes[p.Index]={"data":{"id":p.Index,"label":"","weight":len(p.EnsemblID),"tooltip_content":children,"is_pathways":True},"selectable":True}
             pathways_stylesheets[p.Index] = {
                         "selector":f"node#{p.Index}",
                         "style":{
-                            "shape":"triangle",
+                            "shape":pathway_shape,
                             # "background-opacity":0.25,
                             # "font-size":5,
-                            "backgroundColor":"gray",
+                            "backgroundColor":mono_pathway_color,
 
                             "z-index":-1,
                             # "text-halign":"left",
@@ -150,10 +154,24 @@ def add_path_ways(existing_elements,stylesheet_detail,updated_elements):
                             "selector":f"edge#{edge_id}",
                             "style":{
                                 "lineColor":"blue",
-                                "lineWidth":2
+                                "width":4
                                 }
                             })
-
+                pathways_stylesheets[p.Index]["style"]["background-color"]=multi_pathway_color
+                pathways_stylesheets[p.Index]["style"]["border-color"]="black"
+                pathways_stylesheets[p.Index]["style"]["border-width"]=2
+    legend["pathway"]={}
+    if not all_pathway:
+        kept_pathways = set()
+        for e in pathways_edges:
+            if e["data"]["highlight"]==1:
+                kept_pathways.add(e["data"]["target"])
+        pathways_edges = [e for e in pathways_edges if e["data"]["target"] in kept_pathways]
+        pathways_nodes = {k:v for k,v in pathways_nodes.items() if k in kept_pathways}
+    
+        legend["pathway"]["pathways linking multiple signatures"]={"shape":pathway_shape,"color":multi_pathway_color}
+    else:
+        legend["pathway"]["pathways"]={"shape":pathway_shape,"color":mono_pathway_color}
 
     return existing_elements + list(pathways_nodes.values())  + list(protein_nodes.values())+ pathways_edges,stylesheet_detail + list(pathways_stylesheets.values())#+[{"selector":f"edge[highlight=1]","style":{"lineColor":"red"}}]
 
@@ -212,7 +230,7 @@ def choose_signature_label_pos(shape_polygon_points):
         case -1:
             y = "top"
     return x,y
-def add_signature_metanodes(gene_hull_points,existing_elements,stylesheet_detail,updated_elements,genes_anchor_points,test,style_only=False,convex=True):
+def add_signature_metanodes(gene_hull_points,existing_elements,stylesheet_detail,updated_elements,genes_anchor_points,sign_info,style_only=False,convex=True):
     
     index = dict([(elem["selector"],i) for i,elem in enumerate(stylesheet_detail)])
 
@@ -257,7 +275,9 @@ def add_signature_metanodes(gene_hull_points,existing_elements,stylesheet_detail
             split = i.split("_")
             existing_elements.append({
                 "data":{"id":i,"label":i,"is_metanode":True,"tooltip_content":html.Div([
-                    i,
+                    html.H6(i),
+                    html.A("gProfiler",href=sign_info[i],target="_blank"),
+
                     # html.Button("Copy genes to cliboard",id={"type":"signature_clipboard","sign":i} ,value=";".join(test[i].tolist()))
                     ])},
                 "position":{"x":0.5*(bb[0][0]+bb[1][0]),
@@ -279,20 +299,23 @@ def add_signature_metanodes(gene_hull_points,existing_elements,stylesheet_detail
             updated_elements[i]["position"]={"x":0.5*(bb[0][0]+bb[1][0]),"y":0.5*(bb[0][1]+bb[1][1])}
         
 
-def color_metanodes(cm,stylesheet_detail):
+def color_metanodes(cm,stylesheet_detail,unique_diseases,unique_comparisons):
+    signature_legend = {"diseases":{},"comparisons":{}}
     for d in cm:
         color_str = f"rgba({','.join([str(i*255) for i in cm[d][:3]])},0.25)"
+        if d in unique_diseases:
         
-        stylesheet_detail.append({
-            "selector":f"node.{d}",
-            "style":{
-                "background-color":color_str,
-                # "background-image":f'data:image/svg+xml;utf8,',
-                # "background-image":f'data:image/svg+xml;utf8,{quote(svg)}',
-                # "background-image":dash.get_asset_url("stripe.svg"),
-                # "background-repeat":"repeat"
-            }
-        })
+            stylesheet_detail.append({
+                "selector":f"node.{d}",
+                "style":{
+                    "background-color":color_str,
+                    # "background-image":f'data:image/svg+xml;utf8,',
+                    # "background-image":f'data:image/svg+xml;utf8,{quote(svg)}',
+                    # "background-image":dash.get_asset_url("stripe.svg"),
+                    # "background-repeat":"repeat"
+                }
+            })
+            signature_legend["diseases"][d]=color_str
     for i in range(1,5):
         angle = (i-1)*45
         match i:
@@ -320,14 +343,21 @@ def color_metanodes(cm,stylesheet_detail):
                 y1 = "0%"
                 y2 = "100%"
                 roman = "IV"
-        svg = f'<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE svg><svg version="1.1" baseProfile="full" xmlns="http://www.w3.org/2000/svg" width="40" height="40"> <defs> <linearGradient id="grad"  x1="{x1}" x2="{x2}" y1="{y1}" y2="{y2}"> <stop stop-color="white" stop-opacity="0" offset="0%" /> <stop stop-color="white" stop-opacity="0" offset="43%" /> <stop stop-color="black" stop-opacity="0.25" offset="44%" /> <stop stop-color="black" stop-opacity="0.25" offset="50%" /> <stop stop-color="black" stop-opacity="0.25" offset="56%" /> <stop stop-color="white" stop-opacity="0" offset="57%" /> <stop stop-color="white" stop-opacity="0" offset="100%" /> </linearGradient > </defs> <rect width="100%" height="100%" fill="url(#grad)"/></svg>'
-        stylesheet_detail.append({
-            "selector":f"node.Stage{roman}",
-            "style":{
-                "background-image":f'data:image/svg+xml;utf8,{quote(svg)}',
-                "background-repeat":"repeat"
-            }
-        })
+        if f"Stage{roman}" in unique_comparisons:
+
+            svg = f'<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE svg><svg version="1.1" baseProfile="full" xmlns="http://www.w3.org/2000/svg" width="40" height="40"> <defs> <linearGradient id="grad"  x1="{x1}" x2="{x2}" y1="{y1}" y2="{y2}"> <stop stop-color="white" stop-opacity="0" offset="0%" /> <stop stop-color="white" stop-opacity="0" offset="43%" /> <stop stop-color="black" stop-opacity="0.25" offset="44%" /> <stop stop-color="black" stop-opacity="0.25" offset="50%" /> <stop stop-color="black" stop-opacity="0.25" offset="56%" /> <stop stop-color="white" stop-opacity="0" offset="57%" /> <stop stop-color="white" stop-opacity="0" offset="100%" /> </linearGradient > </defs> <rect width="100%" height="100%" fill="url(#grad)"/></svg>'
+            stylesheet_detail.append({
+                "selector":f"node.Stage{roman}",
+                "style":{
+                    "background-image":f'data:image/svg+xml;utf8,{quote(svg)}',
+                    "background-repeat":"repeat"
+                }
+            })
+            signature_legend["comparisons"][f"Normal vs Stage{roman}"]={
+                    "background-image":f'data:image/svg+xml;utf8,{quote(svg)}',
+                    "background-repeat":"repeat"
+                }
+    return signature_legend
 def get_color_scheme(selected_genes):
     if len(selected_genes)<len(px.colors.qualitative.D3):
         return px.colors.qualitative.D3
@@ -347,8 +377,9 @@ def color_selected_node(stylesheet_detail,selected_genes):
         })
     return stylesheet_detail
 
-def display_detail_graph(selectedDiseases,selected_signatures,selected_genes,existing_elements,detail_pos_store,AR,selected_filter,comparison_filter):
+def display_detail_graph(selectedDiseases,selected_signatures,selected_genes,existing_elements,detail_pos_store,AR,selected_filter,comparison_filter,all_pathway=False):
     updated_elements = Patch()
+    legend_data = {}
     edges = []
     nodes = []
     stylesheet_detail = [{
@@ -360,6 +391,19 @@ def display_detail_graph(selectedDiseases,selected_signatures,selected_genes,exi
             "backgroundColor":"black",
             "zIndex":2
             }
+    },
+    {
+        "selector":"node.testFlash",
+        "style":{
+            "borderColor":"yellow",
+            "borderWidth":"4",
+            }
+    },
+    {
+        "selector":"edge.testFlash",
+        "style":{
+            "lineStyle":"dotted",
+            }
     }]
     stylesheet_detail = color_selected_node(stylesheet_detail,selected_genes)
     color_by_diseases = True # TODO
@@ -370,9 +414,13 @@ def display_detail_graph(selectedDiseases,selected_signatures,selected_genes,exi
     # updated_elements.clear()
     intersections,items = Controller._instance.dm.get_genes_intersections(id_filter=selected_signatures,disease_filter=selectedDiseases,gene_filter=selected_genes,selected_filter=selected_filter,comparisons_filter=comparison_filter)
     data = Controller._instance.dm.get_genes_intersection_data(id_filter=selected_signatures,disease_filter=selectedDiseases,gene_filter=selected_genes,selected_filter=selected_filter,comparisons_filter=comparison_filter)
+    sign_info = data.filter(["gProfiler","id"]).groupby("id").agg(lambda a: a.iloc[0])["gProfiler"].to_dict()
+    unique_signatures = data["id"].unique()
+    unique_diseases = np.unique([i.split("_")[0] for i in unique_signatures])
+    unique_comparisons = np.unique([i.split("_")[1].split("vs")[1] for i in unique_signatures])
 
-
-    color_metanodes(cm,stylesheet_detail)
+    signature_legend = color_metanodes(cm,stylesheet_detail,unique_diseases,unique_comparisons)
+    legend_data.update(signature_legend)
     if(items is None):
         print("redraw")
         return redraw([],{},AR,stylesheet_detail)
@@ -380,7 +428,7 @@ def display_detail_graph(selectedDiseases,selected_signatures,selected_genes,exi
     updated = set()
     # update_cur_elements(existing_elements,updated,stylesheet_detail,sizes,updated_elements)
     symbols = Controller._instance.dm.get_symbol([g.gene for g in items.itertuples() if g.gene not in updated])
-    all_nodes = [{'data':{'id':g.gene,"label":"","weight":size(g.size),"Signatures":g.id,"tooltip_content":symbols[g.gene]}} for g in items.itertuples()]
+    all_nodes = [{'data':{'id':g.gene,"label":"","weight":size(g.size),"Signatures":g.id,"tooltip_content":[html.H6(symbols[g.gene]),html.A("Ensembl",href=f"https://www.ensembl.org/Homo_sapiens/Gene/Summary?db=core;g={g.gene}",target="_blank")]}} for g in items.itertuples()]
     nodes = [{'data':{'id':g.gene,"label":"","weight":size(g.size),"Signatures":g.id,"tooltip_content":symbols[g.gene]}} for g in items.itertuples() if g.gene not in updated]
 
     # edges = [{"data":{"source":k[0],"target":k[1]}} for k,v in intersections.items() ]
@@ -392,12 +440,16 @@ def display_detail_graph(selectedDiseases,selected_signatures,selected_genes,exi
     # existing_elements= existing_elements +edges
     # for e in edges:
     #    updated_elements.append(e)
-    all_nodes_and_edges,stylesheet_detail = add_path_ways(all_nodes,stylesheet_detail,updated_elements)
-    test = data.filter(["EnsemblID","id"]).groupby("id").agg(lambda a: a)["EnsemblID"].to_dict()
+    all_nodes_and_edges,stylesheet_detail = add_path_ways(all_nodes,stylesheet_detail,updated_elements,all_pathway,Controller._instance.dm,legend_data)
     pos,hull = euler_layout.euler_layout(data,all_nodes_and_edges,data.filter(["EnsemblID","id"]).groupby("EnsemblID").agg(lambda a: len(a))["id"].max())
+    
+
+    # if(len(l)!=prev_len):
+    #     prev_len=len(l)
+    #     print(len(l))
 
 
-    # existing_elements,stylesheet_detail = add_path_ways(existing_elements,stylesheet_detail,updated_elements)
+    # existing_elements,stylesheet_detail = add_path_ways(existing_elements,stylesheet_detail,updated_elements,Controller._instance.dm)
     tmp_nodes = dict()
     tmp_edges = []
     for n in all_nodes_and_edges:
@@ -415,7 +467,7 @@ def display_detail_graph(selectedDiseases,selected_signatures,selected_genes,exi
     # genes_hull_points,genes_anchor_points = get_genes_hull_points(all_nodes_and_edges,pos,updated_elements)
     # print(genes_hull_points.keys())
     # add_signature_metanodes(genes_hull_points,all_nodes_and_edges,stylesheet_detail,updated_elements,genes_anchor_points)
-    add_signature_metanodes(hull,all_nodes_and_edges,stylesheet_detail,updated_elements,None,convex=False,test=test)
+    add_signature_metanodes(hull,all_nodes_and_edges,stylesheet_detail,updated_elements,None,convex=False,sign_info=sign_info)
           
     existing_nodes = {n["data"]["id"]:n for n in all_nodes_and_edges if "source" not in n["data"]}
     to_append = {n["data"]["id"]:n for n in all_nodes_and_edges if "source" not in n["data"]}
@@ -452,7 +504,24 @@ def display_detail_graph(selectedDiseases,selected_signatures,selected_genes,exi
         updated_elements.append(n)
     for n in existing_edges.values():
         updated_elements.append(n)
+    multi_sign_gene_color = "limegreen"
+    mono_sign_gene_color = "black"
+    for n in all_nodes:
+        if n["data"]["id"] not in selected_genes:
+            stylesheet_detail.append({
+                "selector":"node#"+n["data"]["id"],
+                "style":{
+                    "height":n["data"]["weight"],
+                    "width":n["data"]["weight"],
+                    "background-color":multi_sign_gene_color if n["data"]["weight"]>20 else mono_sign_gene_color,
+                    "border-color":"black",
+                    "border-width":2
 
+                }
+            })
+    legend_data["genes"]={"genes":mono_sign_gene_color}
+    if not all_pathway:
+        legend_data["genes"]["genes in multiple signatures"]=multi_sign_gene_color
     # print( existing_elements,stylesheet_detail,{"name":"preset",'positions': {
     #         node['data']['id']: node['position']
     #         for node in existing_elements if "source" not in node["data"]
@@ -461,7 +530,7 @@ def display_detail_graph(selectedDiseases,selected_signatures,selected_genes,exi
             node['data']['id']: node['position']
             for node in all_nodes_and_edges if "source" not in node["data"]
         },
-        "animate":False},existing_nodes#dict([(i["data"]["id"],i) for i in existing_elements if "source" not in i["data"] ])
+        "animate":False},existing_nodes,legend_data#dict([(i["data"]["id"],i) for i in existing_elements if "source" not in i["data"] ])
 def redraw(existing_elements,detail_pos_store,AR,stylesheet_detail):
     pos = dict([(node_id,[detail_pos_store[node_id]["position"]["x"],detail_pos_store[node_id]["position"]["y"]]) for node_id in detail_pos_store])
     bb = [np.inf,np.inf,-np.inf,-np.inf]
@@ -492,5 +561,5 @@ def redraw(existing_elements,detail_pos_store,AR,stylesheet_detail):
         if "shapePolygonPoints" in i["style"] : 
             i["style"]["width"]=float(i["style"]["width"])*AR/cur_ar
     return list(detail_pos_store.values())+[i for i in existing_elements if "source" in i["data"]],stylesheet_detail,{"name":"preset",'positions': pos,
-        "animate":False},detail_pos_store
+        "animate":False},detail_pos_store,dash.no_update
     

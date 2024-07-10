@@ -15,6 +15,7 @@ import scipy
 from scipy.spatial import ConvexHull
 import detail_graph
 import utils
+import stats
 class Controller(object):
     _instance = None
     def __new__(cls,dm):
@@ -49,7 +50,7 @@ def add_remove_gene(menu_select,button,fromGraph,selected_filter,menu_pathway,pa
         case "detail_graph":
             if fromGraph is not None and len(fromGraph)>0:
                 for gene in fromGraph:
-                    if gene["id"] not in current["selected"]:
+                    if (not "is_pathways" in gene or not gene["is_pathways"]) and  gene["id"] not in current["selected"]:
                         current["selected"].append(gene["id"])
             else:
                 raise dash.exceptions.PreventUpdate()
@@ -135,6 +136,7 @@ def update_button(store_data, cur_children,attr,get_symbol):
 
 @callback(
         Output('overview_graph','elements'),
+        Output('overview_graph_layout','data'),
           Input("disease_filter","value"),
           Input("comparisons_filter","value"),
           Input("overview_graph","selectedNodeData"),
@@ -150,8 +152,10 @@ def update_overview(diseases,
                     selected_genes_store,
                     selected_filter,
                     cur_elems):
+    overview_graph_layout = dash.no_update
     if any(["Filter" in c["data"] and c["data"]["Filter"]!=selected_filter for c in cur_elems]):
         cur_elems = ov.get_elements(Controller._instance.dm,selected_filter=selected_filter)
+        overview_graph_layout = {"rerun":True}
         print(cur_elems)
     else:
         genes = set(selected_genes_store["selected"])
@@ -161,12 +165,12 @@ def update_overview(diseases,
         classes = ["highlight","half_highlight"]
         
         signs = set([i["id"] for i in selectedSign]) if selectedSign is not None else set()
-        if selectedSign is not None:
-            for i in selectedSign:
-                if i["Cancer"] not in diseases:
-                    diseases.append(i["Cancer"])
-                if i["Comparison"] not in comparisons_filter:
-                    comparisons_filter.append(i["Comparison"])
+        # if selectedSign is not None:
+        #     for i in selectedSign:
+        #         if i["Cancer"] not in diseases:
+        #             diseases.append(i["Cancer"])
+        #         if i["Comparison"] not in comparisons_filter:
+        #             comparisons_filter.append(i["Comparison"])
         print(signs,diseases,comparisons_filter)
         for i in cur_elems:
             if "fake" in i["data"] and i["data"]["fake"]:
@@ -208,7 +212,7 @@ def update_overview(diseases,
                         classes = i["classes"].split(" ")
                         classes.remove("highlight")
                         i["classes"]="_".join(classes)
-    return cur_elems
+    return cur_elems,overview_graph_layout
 
 @callback(Output('data_overview_selected','value'),
           Input('overview_graph','selectedNodeData'), prevent_initial_call=True
@@ -227,13 +231,18 @@ def update_menu_selected_data(data):
     return ";".join(data)
 @callback(Output('disease_filter','value'),
           Input("selected_genes_store","data"),
+          State("disease_filter","value"),
             prevent_initial_call=True
           )
-def update_menu_disease_filter_data(genes):
+def update_menu_disease_filter_data(genes,current):
     genes_set = set(genes["selected"])
     for p in genes["from_pathways"]["genes"]:
         genes_set.update(p)
-    return Controller._instance.dm.get_diseases_from_genes(genes_set)
+    genes_diseases= Controller._instance.dm.get_diseases_from_genes(genes_set)
+    for d in genes_diseases:
+        if d not in current:
+            current.append(d)
+    return current
 @callback(
         Output('comparisons_filter','value'),
         Input("selected_genes_store","data"),
@@ -245,13 +254,16 @@ def update_menu_comparison_filter_data(genes,cur_state):
     for p in genes["from_pathways"]["genes"]:
         genes_set.update(p)
     if len(genes_set)>0:
-        return Controller._instance.dm.get_comparisons_from_genes(genes_set)
+        for c in  Controller._instance.dm.get_comparisons_from_genes(genes_set):
+            if c not in cur_state:
+                cur_state.append(c)
     return cur_state
 
 @callback(Output('detail_graph','elements'),
         Output('detail_graph','stylesheet'),
         Output('detail_graph','layout'),
         Output('detail_graph_pos','data'),
+        Output('multi_legend',"data"),
         #   Input('overview_graph','selectedNodeData'),
         Input('disease_filter','value'),
         Input('comparisons_filter','value'),
@@ -271,13 +283,15 @@ def display_detail_graph(diseases,comparisons,signatures,menu_genes,fake_graph_s
         else:
             return detail_graph.redraw(existing_elements,detail_pos_store,1 if fake_graph_size is None or "AR" not in fake_graph_size else fake_graph_size["AR"],current_stylesheets)
     if(all([len(diseases)==0 or len(comparisons)==0 ,signatures is None or signatures ==""])):
-        return [],[],{"name":"preset"},{}
+        return [],[],{"name":"preset"},{},dash.no_update
     if len(diseases)!=0 or len(signatures)!=0:
         if diseases is None:
             diseases =""
         if signatures is None:
             signatures = ""
         if len(signatures)>0:
+            diseases =[i for i in diseases]
+            comparisons =[i for i in comparisons]
             for s in signatures.split(";"):
                 cancer,comp,fil = s.split("_")
                 if cancer not in diseases:
@@ -285,12 +299,51 @@ def display_detail_graph(diseases,comparisons,signatures,menu_genes,fake_graph_s
                 if comp not in comparisons:
                     comparisons.append(comp)
                 
-        genes_set = set(menu_genes["selected"])
+        genes_set = set()
         for p in menu_genes["from_pathways"]["genes"]:
             genes_set.update(p)
-        return detail_graph.display_detail_graph(list(filter(lambda a: len(a)>0,diseases)),list(filter(lambda a: len(a)>0,signatures.split(";"))),genes_set,existing_elements,detail_pos_store if detail_pos_store is not None else dict(),1 if fake_graph_size is None or "AR" not in fake_graph_size else fake_graph_size["AR"],selected_filter,comparisons)
+        genes_set = menu_genes["selected"] + sorted(list(genes_set.difference(menu_genes["selected"])))
+
+        r = detail_graph.display_detail_graph(list(filter(lambda a: len(a)>0,diseases)),list(filter(lambda a: len(a)>0,signatures.split(";"))),genes_set,existing_elements,detail_pos_store if detail_pos_store is not None else dict(),1 if fake_graph_size is None or "AR" not in fake_graph_size else fake_graph_size["AR"],selected_filter,comparisons)
+        return r
     else:
-        return existing_elements,[],{"name":"preset"},{}
+        return existing_elements,[],{"name":"preset"},{},dash.no_update
+@callback(
+        Output('mono_graph','elements'),
+        Output('mono_graph','stylesheet'),
+        Output('mono_graph','layout'),
+        Output('mono_graph_pos','data'),
+        Output('mono_legend',"data"),
+        Output('mono_tab','label'),
+        Input("overview_graph","tapNodeData"), 
+        Input("fake_graph_size","data"),
+        Input("filters_dropdown","value"),
+                        Input('disease_filter','value'),
+        Input('comparisons_filter','value'),
+
+                State('mono_graph','elements'),
+        State("mono_graph_pos","data"),            
+        State('mono_graph','stylesheet'),
+
+            prevent_initial_call=True
+          )
+def display_mono_graph(tapNodeData,fake_graph_size,selected_filter,diseases,comparisons,existing_elements,detail_pos_store,current_stylesheets):
+    d = None
+    c = None
+    s = None
+    if(len(diseases)==1 and len(comparisons)==1):
+        d = diseases[0]
+        c = comparisons[0]
+        s = f"{d}_{c}_{selected_filter}"
+    if tapNodeData is not  None:
+        d = tapNodeData["Cancer"]
+        c = tapNodeData['Comparison']
+        s = tapNodeData["id"]
+    if d is None:
+        raise dash.exceptions.PreventUpdate()
+
+    r = detail_graph.display_detail_graph([d],[s],[],existing_elements,detail_pos_store if detail_pos_store is not None else dict(),1 if fake_graph_size is None or "AR" not in fake_graph_size else fake_graph_size["AR"],selected_filter,[c],all_pathway=True)
+    return *r,s
 
 # @callback(Output("data_gene_detail_selected","value"),
 #           Input("detail_graph","selectedNodeData"))
@@ -304,6 +357,7 @@ def display_detail_graph(diseases,comparisons,signatures,menu_genes,fake_graph_s
     Output("activation_boxplot","className"),
     Output("overview_graph","stylesheet"),
     Output("box_plots_to_style","data"),
+    Output("box_plots_stats","data"),
     Input("data_menu_selected","value"),
     Input("data_overview_selected","value"),
     # State("overview_graph","selectedNodeData" ),g
@@ -315,10 +369,10 @@ def display_detail_graph(diseases,comparisons,signatures,menu_genes,fake_graph_s
 def update_box_plot(menu_selected_diseases,overview_selected,menu_selected,overview_elements,overview_stylesheets):
     items = []
     if menu_selected is not None and (len(menu_selected["selected"])!=0 or len(menu_selected["from_pathways"]["ids"])>0):
-        genes_set = set(menu_selected["selected"])
+        genes_set = set()
         for p in menu_selected["from_pathways"]["genes"]:
             genes_set.update(p)
-        items += genes_set
+        items += menu_selected["selected"] + sorted(list(genes_set.difference(menu_selected["selected"])))
     stylesheets =overview_stylesheets if overview_stylesheets is not None else ov.get_default_stylesheet(Controller._instance.dm)
     stylesheets = [s for s in stylesheets if not(s["selector"].startswith("edge#"))]
     if(len(items)>0):
@@ -361,12 +415,21 @@ def update_box_plot(menu_selected_diseases,overview_selected,menu_selected,overv
         box = px.box(df,x="box_category",y="expression",color="gene",color_discrete_sequence=color_scheme,labels={"box_category":"","expression":"expression (log2(TPM+1))"})
         if(box.layout.margin.t is not None and box.layout.margin.t>20):
             box.layout.margin.t=20
-        return box ,"visible_plot",stylesheets,{"categories":box_categories,"genes":items}
+        return box ,"visible_plot",stylesheets,{"categories":box_categories,"genes":items},{"stats":stats.ttest(dfs,[0.1,0.05,0.01])}
         
     else:
         return go.Figure(data=[
-            ]),"hidden_plot",stylesheets,{"categories":[],"genes":[]}
-    
+            ]),"hidden_plot",stylesheets,{"categories":[],"genes":[]},{"stats":[]}
+# clientside_callback(
+#     ClientsideFunction(
+#         namespace='clientside',
+#         function_name='box_plots_stats'
+#     ),Input("activation_boxplot","restyleData"),
+#     Input("activation_boxplot","figure"),
+#     State("box_plots_stats","data"),
+#     State("do_box_plots_stats","data"),
+#         prevent_initial_call=False)
+
 # @callback(
 #     Output("activation_heatmap","figure"),
 #     Output("activation_heatmap","className"),
@@ -411,6 +474,7 @@ clientside_callback(
     Output("detail_graph_tooltip","show"),
     Output("detail_graph_tooltip","bbox"),
     Output("detail_graph_tooltip","direction"),
+    Output("detail_graph_tooltip","className"),
 #     # Output("detail_graph_tooltip","bbox"),
     Input("detail_graph","mouseoverNodeData"),
     Input("detail_graph","mouseoverEdgeData"),
@@ -425,7 +489,30 @@ clientside_callback(
     State("detail_graph_tooltip","direction"),
     prevent_initial_call=True
     )
-
+clientside_callback(
+    ClientsideFunction(
+        namespace='clientside',
+        function_name='activate_tooltip'
+    ),
+    Output("mono_graph_tooltip","children"),
+    Output("mono_graph_tooltip","show"),
+    Output("mono_graph_tooltip","bbox"),
+    Output("mono_graph_tooltip","direction"),
+    Output("mono_graph_tooltip","className"),
+#     # Output("mono_graph_tooltip","bbox"),
+    Input("mono_graph","mouseoverNodeData"),
+    Input("mono_graph","mouseoverEdgeData"),
+    Input("fake_graph_size","data"),
+    State("mono_graph","elements"),
+    State("mono_graph","extent"),
+    State("mono_graph","stylesheet"),
+    State("mono_graph_pos","data"),
+    State("mono_graph_tooltip","children"),
+    State("mono_graph_tooltip","show"),
+    State("mono_graph_tooltip","bbox"),
+    State("mono_graph_tooltip","direction"),
+    prevent_initial_call=True
+    )
 clientside_callback(
     ClientsideFunction(
         namespace='clientside',
@@ -436,6 +523,7 @@ clientside_callback(
     Output("overview_graph_tooltip","show"),
     Output("overview_graph_tooltip","bbox"),
     Output("overview_graph_tooltip","direction"),
+    Output("overview_graph_tooltip","className"),
 #     # Output("detail_graph_tooltip","bbox"),
     Input("overview_graph","mouseoverNodeData"),
     Input("overview_graph","mouseoverEdgeData"),
@@ -461,18 +549,20 @@ clientside_callback(
 clientside_callback(
         """
 function update_width_start(n1,n2,e_width,e_height,state,detail_graph_pos,dw,fake_graph_size){
+var graph_width = document.getElementById("detail_graph").clientWidth!=0?document.getElementById("detail_graph").clientWidth:document.getElementById("mono_graph").clientWidth;
+var graph_height = document.getElementById("detail_graph").clientWidth!=0?document.getElementById("detail_graph").clientHeight:document.getElementById("mono_graph").clientHeight;
+
     var e = dash_clientside.callback_context.triggered_id=="full_col"?e_height:e_width;
     if(dash_clientside.callback_context.triggered_id===undefined){
         var elem = document.getElementById('detail_graph');
         var span = document.getElementById('detail_resize_span');
-        console.log("update_width_start",dash_clientside.callback_context.triggered_id,Object.assign({},fake_graph_size,{'width':elem.clientWidth,'height':elem.clientHeight,'width_span':span.clientWidth,"AR":elem.clientWidth/elem.clientHeight}))
 
-        return  Object.assign({},fake_graph_size,{'width':elem.clientWidth,'height':elem.clientHeight,'width_span':span.clientWidth,"AR":elem.clientWidth/elem.clientHeight});
+        return  Object.assign({},fake_graph_size,{'width':graph_width,'height':graph_height,'width_span':span.clientWidth,"AR":graph_width/graph_height});
     }
     if(e["type"]=="click" && !e["isTrusted"]){
-        if(fake_graph_size["width"]===undefined || fake_graph_size["height"]===undefined || Math.abs(fake_graph_size["width"]-document.getElementById("detail_graph").clientWidth)/document.getElementById("detail_graph").clientWidth>0.05 ||Math.abs(fake_graph_size["height"]-document.getElementById("detail_graph").clientHeight)/document.getElementById("detail_graph").clientHeight>0.05){
-        fake_graph_size["width"]=document.getElementById("detail_graph").clientWidth;
-        fake_graph_size["height"]=document.getElementById("detail_graph").clientHeight;
+        if(fake_graph_size["width"]===undefined || fake_graph_size["height"]===undefined || Math.abs(fake_graph_size["width"]-graph_width)/graph_width>0.05 ||Math.abs(fake_graph_size["height"]-graph_height)/graph_height>0.05){
+        fake_graph_size["width"]=graph_width;
+        fake_graph_size["height"]=graph_height;
         fake_graph_size["AR"]=fake_graph_size["width"]/fake_graph_size["height"];
         fake_graph_size["just_redraw"]=true;
         //document.getElementById("overview_graph")['_cyreg']["cy"].layout({"name":"cose","nodeDimensionsIncludeLabels":true,"animate":false}).run();
@@ -481,7 +571,7 @@ function update_width_start(n1,n2,e_width,e_height,state,detail_graph_pos,dw,fak
         return fake_graph_size;
         }
         else
-                            return dash_clientside.no_update;
+            return dash_clientside.no_update;
 
     }
     if(e["type"]=="mousedown"){
@@ -489,7 +579,8 @@ function update_width_start(n1,n2,e_width,e_height,state,detail_graph_pos,dw,fak
         for(let t of document.querySelectorAll(".dcc-tooltip-bounding-box")){
             in_tooltip = in_tooltip || t.contains(e.target);
         }
-        if(e.target.tagName=="SPAN" && !in_tooltip){
+
+        if(e.target.classList.contains("resize_span") && !in_tooltip){
             if(dash_clientside.callback_context.triggered_id==="move_in_ov"){
                 if(!state["width"]["is_resizing"]){
                     state["width"]["is_resizing"]=true;
@@ -521,22 +612,22 @@ function update_width_start(n1,n2,e_width,e_height,state,detail_graph_pos,dw,fak
             dash_clientside.set_props("resize_state", {"data":{"width":state["width"],"height":state["height"]}});
             document.querySelectorAll("#overview_col canvas, #detail_col canvas").forEach(c => c.style.cursor="auto");
             //document.getElementById("overview_graph")['_cyreg']["cy"].layout({"name":"cose","nodeDimensionsIncludeLabels":true}).run();
-        layout_overview();
+            layout_overview();
 
-                    fake_graph_size["width"]=document.getElementById("detail_graph").clientWidth;
-        fake_graph_size["height"]=document.getElementById("detail_graph").clientHeight;
-        fake_graph_size["AR"]=fake_graph_size["width"]/fake_graph_size["height"];
+            fake_graph_size["width"]=graph_width;
+            fake_graph_size["height"]=graph_height;
+            fake_graph_size["AR"]=fake_graph_size["width"]/fake_graph_size["height"];
             return fake_graph_size;
         }
         if(state["height"]["is_resizing"]){
             state["height"]["is_resizing"]=false;
             dash_clientside.set_props("resize_state", {"data":{"width":state["width"],"height":state["height"]}});
             //document.getElementById("overview_graph")['_cyreg']["cy"].layout({"name":"cose","nodeDimensionsIncludeLabels":true}).run();
-        layout_overview();
+            layout_overview();
 
-                    fake_graph_size["width"]=document.getElementById("detail_graph").clientWidth;
-        fake_graph_size["height"]=document.getElementById("detail_graph").clientHeight;
-        fake_graph_size["AR"]=fake_graph_size["width"]/fake_graph_size["height"];
+            fake_graph_size["width"]=graph_width;
+            fake_graph_size["height"]=graph_height;
+            fake_graph_size["AR"]=fake_graph_size["width"]/fake_graph_size["height"];
             return fake_graph_size;
         }
         return dash_clientside.no_update;
@@ -550,8 +641,8 @@ function update_width_start(n1,n2,e_width,e_height,state,detail_graph_pos,dw,fak
 //        document.getElementById("overview_graph")['_cyreg']["cy"].layout({"name":"cose","nodeDimensionsIncludeLabels":true}).run();
         layout_overview();
 
-        fake_graph_size["width"]=document.getElementById("detail_graph").clientWidth;
-        fake_graph_size["height"]=document.getElementById("detail_graph").clientHeight;
+        fake_graph_size["width"]=graph_width;
+        fake_graph_size["height"]=graph_height;
         fake_graph_size["AR"]=fake_graph_size["width"]/fake_graph_size["height"];
         return fake_graph_size;
     }
@@ -584,6 +675,9 @@ function find_row(elem){
 }
 if(fake_graph_size ===null)
     fake_graph_size = {};
+var graph_width = document.getElementById("detail_graph").clientWidth!=0?document.getElementById("detail_graph").clientWidth:document.getElementById("mono_graph").clientWidth;
+var graph_height = document.getElementById("detail_graph").clientWidth!=0?document.getElementById("detail_graph").clientHeight:document.getElementById("mono_graph").clientHeight;
+
 if(resize_state["width"]["is_resizing"]){
     var overviewCol = document.getElementById("overview_col");
     var detailCol = document.getElementById("detail_col");
@@ -597,8 +691,8 @@ if(resize_state["width"]["is_resizing"]){
             if(w!=ow){
                 dash_clientside.set_props("overview_col", {width: w});
                 dash_clientside.set_props("detail_col", {width: 12-w});
-                fake_graph_size["width"]=document.getElementById("detail_graph").clientWidth;
-                fake_graph_size["height"]=document.getElementById("detail_graph").clientHeight;
+                fake_graph_size["width"]=graph_width;
+                fake_graph_size["height"]=graph_height;
                 fake_graph_size["AR"]=fake_graph_size["width"]/fake_graph_size["height"];
                 fake_graph_size["just_redraw"]=true;
                 dash_clientside.set_props("fake_graph_size", fake_graph_size);
@@ -613,9 +707,9 @@ if(resize_state["width"]["is_resizing"]){
                 if(dw!=w){
                     dash_clientside.set_props("overview_col", {width: 12-w});
                     dash_clientside.set_props("detail_col", {width: w});
-                    fake_graph_size["width"]=document.getElementById("detail_graph").clientWidth;
+                    fake_graph_size["width"]=graph_width;
                     fake_graph_size["width_span"]=document.getElementById("detail_resize_span").clientWidth;
-                    fake_graph_size["height"]=document.getElementById("detail_graph").clientHeight;
+                    fake_graph_size["height"]=graph_height;
                     fake_graph_size["AR"]=fake_graph_size["width"]/fake_graph_size["height"];
                     fake_graph_size["just_redraw"]=true;
                     dash_clientside.set_props("fake_graph_size", fake_graph_size);
@@ -627,8 +721,8 @@ if(resize_state["width"]["is_resizing"]){
 if(e_width==e && resize_state["height"]["is_resizing"]){
     if(e["type"]=="mousemove" ){
         if(ajust_flex(e.offsetY)){
-            fake_graph_size["width"]=document.getElementById("detail_graph").clientWidth;
-            fake_graph_size["height"]=document.getElementById("detail_graph").clientHeight;
+            fake_graph_size["width"]=graph_width;
+            fake_graph_size["height"]=graph_height;
             fake_graph_size["AR"]=fake_graph_size["width"]/fake_graph_size["height"];
             fake_graph_size["just_redraw"]=true;
             dash_clientside.set_props("fake_graph_size", fake_graph_size);
@@ -640,8 +734,8 @@ if(e_height==e && resize_state["height"]["is_resizing"]){
     if(e["type"]=="mousemove" ){
         var upHeight = document.getElementById("overview_col").parentNode.clientHeight;
         if(ajust_flex(e.offsetY+upHeight)){
-            fake_graph_size["width"]=document.getElementById("detail_graph").clientWidth;
-            fake_graph_size["height"]=document.getElementById("detail_graph").clientHeight;
+            fake_graph_size["width"]=graph_width;
+            fake_graph_size["height"]=graph_height;
             fake_graph_size["AR"]=fake_graph_size["width"]/fake_graph_size["height"];
             fake_graph_size["just_redraw"]=true;
             dash_clientside.set_props("fake_graph_size", fake_graph_size);
@@ -749,5 +843,59 @@ clientside_callback(    ClientsideFunction(
     ),
 
                             Output('overview_graph','layout'),
-                            Input('overview_graph','elements'),
+                            Input('overview_graph_layout','data'),
+)
+
+# clientside_callback(    ClientsideFunction(
+#         namespace='clientside',
+#         function_name='highlight_pathway_neighbourhood'
+#     ),
+
+#         Input("detail_graph","selectedNodeData"),
+
+# )
+
+clientside_callback( ClientsideFunction(
+        namespace='clientside',
+        function_name='on_box_plot_click'
+    ),
+            Input("activation_boxplot","clickData"),
+            Input("activation_boxplot","restyleData"),
+    Input("activation_boxplot","figure"),
+    State("box_plots_stats","data"),
+                prevent_initial_call=True
+
+)
+clientside_callback( ClientsideFunction(
+        namespace='clientside',
+        function_name='display_legend'
+    ),
+        Input('multi_legend',"data"),
+        Input('mono_legend',"data"),
+                prevent_initial_call=True
+
+)
+clientside_callback( """
+    function export_images(n_clicks,elem){
+        switch(elem){
+            case "overview":
+                download_canvas_image(document.querySelector("#overview_graph canvas:nth-of-type(3)"),"overview.png");
+                break;
+            case "mono":
+                download_canvas_image(document.querySelector("#mono_graph canvas:nth-of-type(3)"),"mono_signature.png",document.getElementById("mono_canvas"));
+                break;
+            case "multi":
+                download_canvas_image(document.querySelector("#detail_graph canvas:nth-of-type(3)"),"multi_signature.png",document.getElementById("multi_canvas"));
+                break;
+            case "box":
+                const plot = document.querySelector("#activation_boxplot div.js-plotly-plot");
+                download_plotly_image(plot,"boxplot.png");
+                break;
+        }                
+    }
+""",
+        Input('export_image_btn',"n_clicks"),
+        State('exportImage',"value"),
+                prevent_initial_call=True
+
 )

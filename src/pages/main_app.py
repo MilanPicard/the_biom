@@ -36,7 +36,8 @@ mouse_down_event = {"event":"mousedown","props":["target","buttons","offsetX","o
 mouse_out_event = {"event":"mouseout","props":["buttons","offsetX","offsetY","type"]}
 mouse_move_event = {"event":"mousemove","props":["buttons","offsetX","offsetY","target","type"]}
 def layout():
-    detail_graph=dg.detail_graph()
+    multi_graph=dg.detail_graph("detail_graph")
+    mono_graph=dg.detail_graph("mono_graph")
 
     overview_graph = ov.overview_graph(dm)
     return dbc.Container([ dbc.Row(
@@ -56,15 +57,34 @@ def layout():
                 dbc.Col([
                     html.Span(tooltip.create_tooltip(overview_graph),style={"position":"relative","zIndex":"4"}),
                     overview_graph,
+                    dcc.Store(id="overview_graph_layout",data={}),
                     html.Span(draggable="false",style={"width":"3%","height":"96%","cursor":"w-resize","userSelect":"none"}),
                          ],width=6,id="overview_col",style={"display":"flex","flexDirection":"row","borderWidth":"1px","borderStyle":"solid","borderColor":"black"}),
                 dbc.Col([
                     html.Div([
-                    html.Span(tooltip.create_tooltip(detail_graph),style={"position":"relative","zIndex":"4"}),
-                         html.Span(id="detail_resize_span",draggable="false",style={"width":"3%","height":"100%","cursor":"w-resize","userSelect":"none"}),
+                         html.Span(id="detail_resize_span",draggable="false",style={"width":"3%","height":"100%","cursor":"w-resize","userSelect":"none"},className="resize_span"),
                     dcc.Store(id="fake_graph_size",data={"AR":1}),
-                         detail_graph,
+                    html.Div([
+                    dbc.Tabs(id="detail_tabs",class_name="detail_tabs",children=[
+                        dbc.Tab(id="mono_tab",label="mono signature view",children=[
+                    html.Span(tooltip.create_tooltip(mono_graph),style={"position":"relative","zIndex":"4"}),
+                            
+                            mono_graph,
+                                                                                    html.Div(className="legend_canvas",children=[
+                                                                                        html.Canvas(id="mono_canvas")
+                                                                                        ])
+                                                                                    ]),
+                        dbc.Tab(label="multi signature view",children=[
+                    html.Span(tooltip.create_tooltip(multi_graph),style={"position":"relative","zIndex":"4"}),
+                            
+                            multi_graph,html.Div(className="legend_canvas",children=[html.Canvas(id="multi_canvas")])]),
+                        
+                        ])],style={"flexGrow":1,"display":"flex","flexDirection":"column"})
+                         ,
                          dcc.Store(id="detail_graph_pos",data={}),
+                         dcc.Store(id="mono_graph_pos",data={}),
+                         dcc.Store(id="mono_legend",data={}),
+                         dcc.Store(id="multi_legend",data={}),
                          ],style={"display":"flex","flexDirection":"row","width":"100%","height":"96%"})
                          ],width=6,id="detail_col",style={"borderWidth":"1px","borderStyle":"solid","borderColor":"black"}),
             ],

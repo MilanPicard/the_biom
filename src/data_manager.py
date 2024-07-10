@@ -68,7 +68,7 @@ class DataManager(object):
     def get_symbol(self,gene):
         if isinstance(gene,str):
             return self.symbols.loc[gene]["GeneSymbolID"]
-        return self.symbols.iloc[self.symbols.index.isin(gene)]["GeneSymbolID"]
+        return self.symbols.loc[list(gene)]["GeneSymbolID"]
     def get_signatures_intersections(self,disease_filter=[],comparisons_filter=[],selected_filter="Merge"):
         exploded = self.exploded[self.exploded["Filter"]==selected_filter]
         if(len(disease_filter)>0):

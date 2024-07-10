@@ -10,7 +10,7 @@ def detail_box_plot():
     fig = go.Figure(data=[])
     return [
         dcc.Graph(figure=fig,id='activation_boxplot',config={"scrollZoom":False,"displayModeBar":False},style={"height":"96%","cursor":"auto"}),
-        dcc.Store(data={'wider_boxplot_border':[]},id="box_plots_to_style")]
+        dcc.Store(data={'wider_boxplot_border':[]},id="box_plots_to_style"),dcc.Store(data={'stats':[]},id="box_plots_stats"),dcc.Store(data={'draw_stats':True},id="do_box_plots_stats")]
 
 
 def detail_heatmap():

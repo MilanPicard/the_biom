@@ -3,6 +3,7 @@ from tulip import tlp
 import pandas as pd
 import numpy as np
 import networkx as nx
+import shapely
 """
 Paolo Simonetto, David Auber, Daniel Archambault. Fully Automatic Visualisation of Overlapping
 Sets. Computer Graphics Forum, 2009, 28 (3), pp.967-974. ￿hal-00407269
@@ -15,7 +16,12 @@ def get_planar_intersection_graph(grouped_data):
     for z in zones:
         signatures.update(z.split(";"))
     signatures = list(signatures)
-    value_counts = grouped_data["id"].value_counts().to_dict()
+    value_counts = grouped_data["id"].value_counts().reset_index(drop=False)
+    value_counts["size"]=value_counts["id"].str.count(";")+1
+    value_counts["count"]=value_counts["size"]*value_counts["count"]
+    value_counts = value_counts.filter(["id","count"]).set_index("id")["count"].to_dict()
+    # print(grouped_data["id"].value_counts())
+    # grouped_data["id"].value_counts().reset_index(drop=False).to_parquet("/tmp/value_counts.pq")
     # ccs = np.array(list(range(len(zones))))
     ccs2 = np.arange(len(zones)).reshape(1,-1).repeat(len(signatures),0)
     # np.save("/tmp/zones.npy",np.array(zones))
@@ -33,6 +39,19 @@ def get_planar_intersection_graph(grouped_data):
     #     for j in range(i+1,len(ccs)):
     #         c[i,j]=len(cc_classes[i].intersection(cc_classes[j]))#-p1*u-p2*v
     c2 = np.logical_and(np.logical_and(ccs2[:,np.newaxis]>=0 ,ccs2[:,:,np.newaxis]>=0),ccs2[:,np.newaxis]!=ccs2[:,:,np.newaxis]).astype(int).sum(0)
+    I = np.zeros(c2.shape+(2,len(signatures)),dtype=bool)
+    for i,z in enumerate(zones):
+        for s in z.split(";"):
+            j = signatures.index(s)
+            I[i,:,0,j]=True
+            I[:,i,1,j]=True
+    
+    size = I.astype(int).sum(-1)
+    min_size = size.min(-1)
+    max_size = size.max(-1)
+    intersection = I.all(-2).astype(int).sum(-1)
+    U = min_size-intersection
+    V = max_size-intersection-1
     discarded_edges =np.zeros((len(c2),len(c2)),dtype=bool)
     g = tlp.newGraph()
     vla = g.getStringProperty("viewLabel")
@@ -40,12 +59,15 @@ def get_planar_intersection_graph(grouped_data):
     for i,n in enumerate(nodes):
         vla[n]=zones[i]
     # signatures_subgraphs = {s:}
-    i,j = np.unravel_index(np.argmax(c2),c2.shape)
+    i,j = np.unravel_index(np.argmax(c2-5e-3*U-1e-3*V),c2.shape)
     while(c2[i,j]>0):
         e = g.addEdge(nodes[i],nodes[j])
-        if not tlp.PlanarityTest.isPlanar(g):
+        is_planar = tlp.PlanarityTest.isPlanar(g)
+        if not is_planar:
+            t1 = time.perf_counter()
             g.delEdge(e)
             discarded_edges[i,j]=True
+            discarded_edges[j,i]=True
             # c[i,j]=0
             c2[i,j]=0
             c2[j,i]=0
@@ -76,8 +98,15 @@ def get_planar_intersection_graph(grouped_data):
                     ccs2[k,ccs2[k]==ccs2[k,j]]=ccs2[k,i]
             c2 = np.logical_and(np.logical_and(ccs2[:,np.newaxis]>=0 ,ccs2[:,:,np.newaxis]>=0),ccs2[:,np.newaxis]!=ccs2[:,:,np.newaxis]).astype(int).sum(0)*(1-discarded_edges.astype(int))
             
-        i,j = np.unravel_index(np.argmax(c2),c2.shape)
-        
+        # i,j = np.unravel_index(np.argmax(c2),c2.shape)
+        i,j = np.unravel_index(np.argmax(c2-5e-3*U-1e-3*V),c2.shape)
+    # for s in signatures:
+    #     sg = g.inducedSubGraph([n for i,n in enumerate(nodes) if s in zones[i].split(";") ])
+    #     assert tlp.ConnectedTest.isConnected(sg)
+    #     g.delAllSubGraphs(sg)
+    # print(times2,times2/times2.sum())
+    # print(times[1:]-times[:-1],(times[1:]-times[:-1])/(times[-1]-times[0]))
+
     return g,zones,value_counts
 def apply_bertault(g,surrounding_edges,n_iter=20,edge_length=0,fixed_nodes=set(),gamma=2.0,optimalDist=5.0,bends=False,flexible_edges=False,debug=False):
     # edge_length=0
@@ -107,8 +136,15 @@ def apply_bertault(g,surrounding_edges,n_iter=20,edge_length=0,fixed_nodes=set()
     # import impred_ocotillo
     # impred_ocotillo.impred_ocotillo(g,surrounding_edges,fixed_nodes,gamma=delta,nIter=n_iter,optimalDist=optimalDist,use_bends=bends,flexible_edges=flexible_edges)
     import impred
-    impred.Impred(g,optimalDist,gamma,n_iter,None,surrounding_edges if surrounding_edges is not None else {},fixed_nodes).layout(debug)
+    times = [time.perf_counter()]
     
+    i = impred.Impred(g,optimalDist,gamma,n_iter,None,surrounding_edges if surrounding_edges is not None else {},fixed_nodes)
+    times.append(time.perf_counter())
+    i.layout(debug)
+    # times.append(time.perf_counter())
+    # times = np.array(times)
+    # print("b", times[1:]-times[:-1],(times[1:]-times[:-1])/(times[-1]-times[0]))
+
 def tlp2nx(g):
     G = nx.DiGraph()
     G.add_nodes_from(g.nodes())
@@ -137,13 +173,14 @@ def apply_planar_layout(g,scale=1):
                 #     vl.scale(tlp.Vec3f(s,s,1.0),comp)
                 delta = vl.averageEdgeLength() if g.numberOfEdges()>0 else 5
                 vl.center(comp)
-                c,r = tlp.computeBoundingRadius(comp)
+                # c,r = tlp.computeBoundingRadius(comp)
                 # delta *=3
                 # delta=2
                 # vl.scale(tlp.Vec3f(np.sqrt(comp.numberOfNodes())*delta/r.dist(c),np.sqrt(comp.numberOfNodes())*delta/r.dist(c),1.0))
 
                 gamma = delta/2
-                apply_bertault(comp,{n : comp.edges() for n in comp.nodes()} ,n_iter=30,optimalDist=delta,gamma=gamma,bends=False)
+                edges = comp.edges()
+                apply_bertault(comp,{n : edges for n in comp.nodes()} ,n_iter=30,optimalDist=delta,gamma=gamma,bends=False)
             if(comp.numberOfEdges()>1):
                 sizes.append(len(cc[i]))
                 avg.append(vl.averageEdgeLength(comp))
@@ -280,7 +317,7 @@ def construct_regions(g,radius,grid_graph,zones,value_counts):
         assert sectors[-1]-sectors[0]<=2*np.pi , f"{sectors}"
         sectors.append(np.pi*2+sectors[0])
         angles = []
-        alpha2 = alpha/(np.floor(1+np.log2((1+value_counts[zones[i]])/(1+min_value_count))))
+        alpha2 = alpha/(np.floor(1+np.log2((1+value_counts[zones[i]])/(1+1))))
         for i in range(len(sectors)-1):
             start = sectors[i]
             end = sectors[i+1]
@@ -717,7 +754,7 @@ def euler_layout(data,all_nodes_and_edges,max_gene_size):
 
     g,zones,value_counts = get_planar_intersection_graph(grouped_data)
     apply_planar_layout(g)
-    tlp.saveGraph(g,"/tmp/not_grid_graph-1.tlpb.gz")
+    # tlp.saveGraph(g,"/tmp/not_grid_graph-1.tlpb.gz")
     vl = g.getLayoutProperty("viewLayout")
     # if g.numberOfNodes()>1:
     #     if g.numberOfEdges()>1:
@@ -803,17 +840,6 @@ def euler_layout(data,all_nodes_and_edges,max_gene_size):
     #     print(vlgrid[only_grid.nodes()[98]],vlgrid[only_grid.nodes()[100]])
     #     print(vla[only_grid.nodes()[98]],vla[only_grid.nodes()[100]])
     vlgrid.center(tlp.computeBoundingRadius(only_grid)[0],grid_graph)
-    # tlp.saveGraph(grid_graph,"/tmp/grid_graph6.tlpb.gz")
-    apply_bertault(only_grid,surrounding_edges,n_iter=25,gamma=avg_only_grid/8,optimalDist=avg_only_grid,bends=False,flexible_edges=False,fixed_nodes=pathway_nodes,debug=True)
-    # tlp.saveGraph(grid_graph,"/tmp/grid_graph7.tlpb.gz")
-    # apply_bertault(grid_graph,surrounding_edges,n_iter=5,gamma=avg_only_grid/8,optimalDist=avg_only_grid,bends=False,flexible_edges=False,fixed_nodes=set(grid_graph.nodes()).difference(mapping.values()))
-    tlp.saveGraph(grid_graph,"/tmp/grid_graph4.tlpb.gz")
-    for n in pathway_nodes:
-        surrounding_edges[n]=outer_face_edges
-        # edges = set()
-        # for n2 in grid_graph.getInOutNodes(n):
-        #     edges.update(surrounding_edges[n2])
-        # surrounding_edges[n]=edges
     outer_face = grid_graph.getBooleanProperty("outerface")
     outer_face.setAllNodeValue(False)
     outer_face.setAllEdgeValue(False)
@@ -821,10 +847,22 @@ def euler_layout(data,all_nodes_and_edges,max_gene_size):
         outer_face[e]=True
         outer_face[grid_graph.source(e)]=True
         outer_face[grid_graph.target(e)]=True
+    # tlp.saveGraph(grid_graph,"/tmp/grid_graph6.tlpb.gz")
+    apply_bertault(only_grid,surrounding_edges,n_iter=25,gamma=avg_only_grid/2,optimalDist=avg_only_grid,bends=False,flexible_edges=False,fixed_nodes=pathway_nodes,debug=True)
+    # tlp.saveGraph(grid_graph,"/tmp/grid_graph7.tlpb.gz")
+    # apply_bertault(grid_graph,surrounding_edges,n_iter=5,gamma=avg_only_grid/8,optimalDist=avg_only_grid,bends=False,flexible_edges=False,fixed_nodes=set(grid_graph.nodes()).difference(mapping.values()))
+    # tlp.saveGraph(grid_graph,"/tmp/grid_graph4.tlpb.gz")
+    for n in pathway_nodes:
+        surrounding_edges[n]=outer_face_edges
+        # edges = set()
+        # for n2 in grid_graph.getInOutNodes(n):
+        #     edges.update(surrounding_edges[n2])
+        # surrounding_edges[n]=edges
+
     # tlp.saveGraph(grid_graph,"/tmp/grid_graphtest.tlpb.gz")
     # print(avg_only_grid,vlgrid.averageEdgeLength(only_grid))
     vlgrid.center(grid_graph)
-    apply_bertault(grid_graph,surrounding_edges,n_iter=30,fixed_nodes = set([n for n in grid_graph.nodes() if n not in pathway_nodes]),gamma=avg_only_grid*2,optimalDist=avg_only_grid*2,bends=False,flexible_edges=False,debug=False)
+    apply_bertault(grid_graph,surrounding_edges,n_iter=20,fixed_nodes = set([n for n in grid_graph.nodes() if n not in pathway_nodes]),gamma=avg_only_grid*2,optimalDist=avg_only_grid*2,bends=False,flexible_edges=False,debug=False)
     # apply_bertault(grid_graph)
     # tlp.saveGraph(grid_graph,"/tmp/grid_graph6.tlpb.gz")
     avg = vlgrid.averageEdgeLength()
@@ -838,15 +876,17 @@ def euler_layout(data,all_nodes_and_edges,max_gene_size):
                     d = vl[u].dist(vl[v])
                     if d<minDist:
                         minDist = d
-                        # print(vla[u],vla[v])
+                        # print(vla[u],vla[v],u,v,minDist)
                     
     # print("minDist<max_gene_size*10:",minDist,max_gene_size,"*10",vl.averageEdgeLength())
 
-    if minDist<max_gene_size*10:
-        vl.scale(tlp.Vec3f(max_gene_size*10/minDist,max_gene_size*10/minDist,1.0))
-    elif minDist>max_gene_size*10*3:
-        vl.scale(tlp.Vec3f(max_gene_size*10*3/minDist,max_gene_size*10*3/minDist,1.0))
+    if minDist<np.sqrt(max_gene_size)*20:
+        vl.scale(tlp.Vec3f(np.sqrt(max_gene_size)*20/minDist,np.sqrt(max_gene_size)*20/minDist,1.0))
+    elif minDist>np.sqrt(max_gene_size)*20*3:
+        vl.scale(tlp.Vec3f(np.sqrt(max_gene_size)*20*3/minDist,np.sqrt(max_gene_size)*20*3/minDist,1.0))
     # vl.scale(tlp.Vec3f(100.0,100.0,0.0))
+    # r = tlp.computeBoundingRadius(grid_graph)
+    # print(r[1].dist(r[0]))
     pos = {}
     for n in all_nodes_and_edges:
         if "source" not in n["data"]:
@@ -861,11 +901,55 @@ def euler_layout(data,all_nodes_and_edges,max_gene_size):
             n["position"]={'x':p.x(),'y':p.y()}
 
     hull  = get_hull(zones,grid_graph)
-            
-
     return pos,hull
 
 
 
+if __name__ == "__main__":
+    import detail_graph
+    import data_manager
+    import sys
+    import tqdm
+    dm = data_manager.DataManager(sys.argv[1],sys.argv[2],sys.argv[3])
+
+    with open("/tmp/test_signs2/part-00000") as f:
+        for l in tqdm.tqdm(f.readlines()):
+            l = [ i for i in l[:-1].split(";") if len(i)>0]
+            # if len(l)<=12:
+            updated_elements = []
+            edges = []
+            nodes = []
+            stylesheet_detail = []
+
+            # print(updated_elements)
+            # print(existing_elements)
+            # updated_elements.clear()
+            intersections,items = dm.get_genes_intersections(id_filter=l,disease_filter=["KIRC","HNSC","LUAD","LIHC"],gene_filter=[],selected_filter="Merge",comparisons_filter=["NormalvsStageI","NormalvsStageII","NormalvsStageIII","NormalvsStageIV"])
+            data = dm.get_genes_intersection_data(id_filter=l,disease_filter=["KIRC","HNSC","LUAD","LIHC"],gene_filter=[],selected_filter="Merge",comparisons_filter=["NormalvsStageI","NormalvsStageII","NormalvsStageIII","NormalvsStageIV"])
+
+
+            sizes = items.set_index("gene")
+            updated = set()
+            # update_cur_elements(existing_elements,updated,stylesheet_detail,sizes,updated_elements)
+            symbols = dm.get_symbol([g.gene for g in items.itertuples() if g.gene not in updated])
+            all_nodes = [{'data':{'id':g.gene,"label":"","weight":(g.size),"Signatures":g.id,"tooltip_content":symbols[g.gene]}} for g in items.itertuples()]
+            nodes = [{'data':{'id':g.gene,"label":"","weight":(g.size),"Signatures":g.id,"tooltip_content":symbols[g.gene]}} for g in items.itertuples() if g.gene not in updated]
+
+            all_nodes_and_edges,stylesheet_detail = detail_graph.add_path_ways(all_nodes,stylesheet_detail,updated_elements,True,dm)
+
+            grouped_data = data.groupby("EnsemblID").agg(lambda x:";".join(sorted(list(set(x)))))
+
+            pos,hull = euler_layout(data,all_nodes_and_edges,data.filter(["EnsemblID","id"]).groupby("EnsemblID").agg(lambda a: len(a))["id"].max())
+            hull_polygons = {z:shapely.polygons(h) for z,h in hull.items()}
+            for p in hull_polygons.values():
+                shapely.prepare(p)
+            for i in grouped_data.filter(["id","EnsemblID"]).itertuples():
+                p = pos[i.Index]
+                for z in i.id.split(";"):
+                    assert shapely.contains_xy(hull_polygons[z],*p),(z,i,pos)
+            test_pos = np.array(list(pos.values()))
+            bb = (np.min(test_pos,axis=0),np.max(test_pos,axis=0))
+            diag = ((bb[1][0]-bb[0][0])**2+(bb[1][1]-bb[0][1])**2)**0.5
+            assert diag<10000,(diag,l)
 
 

@@ -32,7 +32,11 @@ def menu(diseases,comparisons,diseases_cmap,comparisons_cmap,genes,filters,pathw
                 dbc.AccordionItem([
                     dcc.Dropdown(options= [{"label":"None","value":"None"}]+[{"label":j['PathwayDisplayName'],"title" : f"{j['counts']} genes","value":i} for i,j in pathways.items()],value="None",id="pathways_menu_select",optionHeight=70),
                     html.Div(id="selected_pathways_div",style={"minHeight":"2em","borderStyle":"ridge"})
-                ],title="Pathways",item_id="pathway_accordion")
+                ],title="Pathways",item_id="pathway_accordion"),
+                dbc.AccordionItem([
+                    dcc.Dropdown(options= [{"label":"Overview","value":"overview"} ,{"label":"mono","value":"mono"} ,{"label":"multi","value":"multi"},{"label":"box","value":"box"}  ],value="None",id="exportImage",optionHeight=70),
+                    html.Button("Export Image",id="export_image_btn")
+                ],title="Exports",item_id="exports_accordion")
             ],
             start_collapsed=False,
             always_open=True,

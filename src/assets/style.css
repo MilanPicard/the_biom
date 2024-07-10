@@ -13,6 +13,7 @@
 }
 .detail_graph{
     width:100%;
+    pointer-events: auto;
 }
 .highlight_edge{
     line-color:"red";
@@ -45,21 +46,87 @@
     z-index:4;
     pointer-events: auto;
 }
+#detail_graph_tooltip ,#mono_graph_tooltip ,#overview_graph_tooltip{
+    opacity: 0;
+}
+#detail_graph_tooltip.pouet ,#mono_graph_tooltip.pouet ,#overview_graph_tooltip.pouet{
+    animation: appear 1s ease-in forwards;
+}
+@keyframes appear {
+    0%{
+        opacity: 0;
+        display: none;
+    }
+    100%{
+        opacity: 1;
+        display: inline-block;
+    }
+    
+}
 #detail_graph_tooltip img {
     max-height:40vh;
     max-width:40vh;
 }
-#detail_graph_tooltip p {
+#detail_graph_tooltip p,#mono_graph_tooltip p {
     text-wrap: pretty;
 }
-#detail_graph_tooltip, #overview_graph_tooltip{
+#detail_graph_tooltip,#mono_graph_tooltip, #overview_graph_tooltip{
     font-size:smaller;
-}
-#detail_graph_tooltip, #overview_graph_tooltip{
     max-width: 250px;
     max-height: 200px;
     overflow: scroll;
 }
 #activation_boxplot g.boxlayer path.box.nothighlight{
 stroke-dasharray: "5,5"
+}
+
+#activation_boxplot svg.main-svg g.statg path{
+    stroke-width: 3px;
+    stroke: black;
+    fill: none;
+}
+#detail_tabs-parent{
+    width: 100%;
+}
+.detail_tabs{
+    flex-grow: 1;
+    display: flex;
+    flex-direction: row;
+    height: fit-content;
+}
+.detail_tabs > div{
+    flex-grow: 1;
+    height: fit-content;
+}
+.detail_tabs + .tab-content{
+    height: 96%;
+    /* width: 100%; */
+    pointer-events: none;
+}
+.detail_tabs + .tab-content > div,.detail_tabs + .tab-content > div>div{
+    height: 100%;
+    width: 100%;
+}
+#detail_tabs-parent .tab-content{
+    flex-grow: 1;
+}
+div:has(> .legend_canvas){
+    position: relative;
+    pointer-events:none;
+}
+.legend_canvas {
+    pointer-events:none;
+
+    position: absolute;
+    top:0;
+    height:100%;
+    width:97%;
+}
+.legend_canvas canvas{
+    pointer-events:none;
+
+    height:100%;
+    width:100%;
+    position: absolute;
+    z-index: 0;
 }
