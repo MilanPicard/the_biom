@@ -34,8 +34,9 @@ def menu(diseases,comparisons,diseases_cmap,comparisons_cmap,genes,filters,pathw
                     html.Div(id="selected_pathways_div",style={"minHeight":"2em","borderStyle":"ridge"})
                 ],title="Pathways",item_id="pathway_accordion"),
                 dbc.AccordionItem([
-                    dcc.Dropdown(options= [{"label":"Overview","value":"overview"} ,{"label":"mono","value":"mono"} ,{"label":"multi","value":"multi"},{"label":"box","value":"box"}  ],value="None",id="exportImage",optionHeight=70),
-                    html.Button("Export Image",id="export_image_btn")
+                    dcc.Dropdown(options= [{"label":"Overview","value":"overview"} ,{"label":"mono","value":"mono_graph"} ,{"label":"multi","value":"detail_graph"},{"label":"box","value":"box"}  ],value="None",id="exportImage",optionHeight=70),
+                    html.Button("Export Image",id="export_image_btn"),
+                    html.Button("Export Json",id="export_json_btn")
                 ],title="Exports",item_id="exports_accordion")
             ],
             start_collapsed=False,

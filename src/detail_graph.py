@@ -48,6 +48,21 @@ def detail_graph(elemId):
                 # minZoom=0.1,
         layout={"name":"preset"},
         clearOnUnhover=True,
+        contextMenu=[
+            {
+                "availableOn":["canvas"],
+                "label":"export as Image",
+                "id":f"{elemId}_export_image",
+                "onClickCustom":"export_image_event_handler"
+            },
+            {
+                "availableOn":["canvas"],
+                "label":"export as json",
+                "id":f"{elemId}_export_text",
+                "onClickCustom":"export_text_event_handler"
+            }
+            
+        ],
         className="detail_graph",stylesheet=[{"selector":"node","style":{"label":"nothing"}}],
         elements=
             []
@@ -103,7 +118,6 @@ def add_path_ways(existing_elements,stylesheet_detail,updated_elements,all_pathw
     pathway_shape = "triangle"
     multi_pathway_color = "red"
     mono_pathway_color = "gray"
-
     for p in pathways.itertuples():
             children = []
             children.append(html.H6(p.PathwayDisplayName))
@@ -170,10 +184,11 @@ def add_path_ways(existing_elements,stylesheet_detail,updated_elements,all_pathw
         pathways_nodes = {k:v for k,v in pathways_nodes.items() if k in kept_pathways}
     
         legend["pathway"]["pathways linking multiple signatures"]={"shape":pathway_shape,"color":multi_pathway_color}
+        pathways = pathways.loc[pathways.index.isin(kept_pathways)]
     else:
         legend["pathway"]["pathways"]={"shape":pathway_shape,"color":mono_pathway_color}
 
-    return existing_elements + list(pathways_nodes.values())  + list(protein_nodes.values())+ pathways_edges,stylesheet_detail + list(pathways_stylesheets.values())#+[{"selector":f"edge[highlight=1]","style":{"lineColor":"red"}}]
+    return existing_elements + list(pathways_nodes.values())  + list(protein_nodes.values())+ pathways_edges,stylesheet_detail + list(pathways_stylesheets.values()), pathways#+[{"selector":f"edge[highlight=1]","style":{"lineColor":"red"}}]
 
 
 def get_genes_hull_points(existing_elements,pos,updated_elements):
@@ -440,9 +455,9 @@ def display_detail_graph(selectedDiseases,selected_signatures,selected_genes,exi
     # existing_elements= existing_elements +edges
     # for e in edges:
     #    updated_elements.append(e)
-    all_nodes_and_edges,stylesheet_detail = add_path_ways(all_nodes,stylesheet_detail,updated_elements,all_pathway,Controller._instance.dm,legend_data)
+    all_nodes_and_edges,stylesheet_detail,pathways = add_path_ways(all_nodes,stylesheet_detail,updated_elements,all_pathway,Controller._instance.dm,legend_data)
     pos,hull = euler_layout.euler_layout(data,all_nodes_and_edges,data.filter(["EnsemblID","id"]).groupby("EnsemblID").agg(lambda a: len(a))["id"].max())
-    
+    exportable_data = get_exportable_data(items, pathways)
 
     # if(len(l)!=prev_len):
     #     prev_len=len(l)
@@ -530,7 +545,27 @@ def display_detail_graph(selectedDiseases,selected_signatures,selected_genes,exi
             node['data']['id']: node['position']
             for node in all_nodes_and_edges if "source" not in node["data"]
         },
-        "animate":False},existing_nodes,legend_data#dict([(i["data"]["id"],i) for i in existing_elements if "source" not in i["data"] ])
+        "animate":False},existing_nodes,legend_data,exportable_data#dict([(i["data"]["id"],i) for i in existing_elements if "source" not in i["data"] ])
+
+def get_exportable_data(items, pathways):
+    exportable_data = {"gene_groups":{},"pathways":{}}
+    zones = {}
+    for g in items.itertuples():
+        signs = g.id
+        signs_id = ";".join(signs)
+        print(signs,len(signs))
+        if signs_id not in zones:
+            zones[signs_id]={"name":f"{signs[0]} only" if len(signs)==1 else f"intersection of {','.join(signs)}","genes":[g.gene]}
+        else:
+            zones[signs_id]["genes"].append(g.gene)
+    for z in zones.values():
+        exportable_data["gene_groups"][z["name"]]=z["genes"]
+    for p in pathways.itertuples():
+        if p.Index not in exportable_data["pathways"]:
+            exportable_data["pathways"][p.Index]={"name":p.PathwayDisplayName,"Reactome":p.PathwayReactomeLink,"connected_genes":{}}
+        for g in p.EnsemblID:
+            exportable_data["pathways"][p.Index]["connected_genes"][g]=items.loc[items["gene"]==g]["id"].iloc[0]
+    return exportable_data
 def redraw(existing_elements,detail_pos_store,AR,stylesheet_detail):
     pos = dict([(node_id,[detail_pos_store[node_id]["position"]["x"],detail_pos_store[node_id]["position"]["y"]]) for node_id in detail_pos_store])
     bb = [np.inf,np.inf,-np.inf,-np.inf]
@@ -561,5 +596,5 @@ def redraw(existing_elements,detail_pos_store,AR,stylesheet_detail):
         if "shapePolygonPoints" in i["style"] : 
             i["style"]["width"]=float(i["style"]["width"])*AR/cur_ar
     return list(detail_pos_store.values())+[i for i in existing_elements if "source" in i["data"]],stylesheet_detail,{"name":"preset",'positions': pos,
-        "animate":False},detail_pos_store,dash.no_update
+        "animate":False},detail_pos_store,dash.no_update,dash.no_update
     

@@ -46,6 +46,20 @@ def overview_graph(dm):
                 minZoom=0.25,
         # minZoom=1,
         style={"width":"97%","height":"96%"},
+        contextMenu=[
+            {
+                "availableOn":["canvas"],
+                "label":"export as Image",
+                "id":"overview_export_image",
+                "onClickCustom":"export_image_event_handler"
+            },
+            {
+                "availableOn":["canvas"],
+                "label":"export as json",
+                "id":f"overview_export_text",
+                "onClickCustom":"export_text_event_handler"
+            }
+        ],
         elements=
             # [{'data':{'id':s.id,"genes":s.Signature,"label":s.id,"Disease":s.Disease}} for s in signatures.itertuples()]+
             # [e.data for e in edges]

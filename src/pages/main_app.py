@@ -85,6 +85,8 @@ def layout():
                          dcc.Store(id="mono_graph_pos",data={}),
                          dcc.Store(id="mono_legend",data={}),
                          dcc.Store(id="multi_legend",data={}),
+                         dcc.Store(id="multi_export",data={}),
+                         dcc.Store(id="mono_export",data={}),
                          ],style={"display":"flex","flexDirection":"row","width":"100%","height":"96%"})
                          ],width=6,id="detail_col",style={"borderWidth":"1px","borderStyle":"solid","borderColor":"black"}),
             ],

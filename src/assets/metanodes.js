@@ -19,6 +19,90 @@ function draw_bounding_box(title,elems_pos){
     console.log(elems_pos,l,r,b,t,canvas);
     
 }
+function export_detail_data(elemid,cy){
+    if (cy==undefined){
+        cy = document.getElementById(elemid)['_cyreg']["cy"];
+    }
+    var node_jsons = cy.nodes().jsons();
+    var edge_jsons = cy.edges().jsons();
+    var output_json = {"gene_groups":[],"pathways":[]}
+    var genes = {}
+    var zones = {}
+    var pathways = {}
+    node_jsons.forEach(node => {
+        if(node["data"]["Signatures"]!=undefined){
+            let zone = node["data"]["Signatures"].join(";");
+            if(zones[zone]===undefined){
+                zones[zone]={"id":zone,"genes":[node["data"]["id"]]}
+            }else{
+                zones[zone].genes.push(node["data"]["id"]);
+            }
+            genes[node["data"]["id"]]=node["data"]["Signatures"];
+        }else{
+            if(node["data"]["is_pathway"]){
+                pathways[node["data"]["id"]]={"id":node["data"]["id"],"name":node["data"]["name"],"ReactomeLink":node["data"]["ReactomeLink"],connected_genes:[]}
+            }
+        }
+    });
+    edge_jsons.forEach(edge=> {
+        let src = genes[edge["data"]["source"]];
+        let tgt = pathways[edge["data"]["target"]];
+        console.log(src,tgt,edge["data"]["source"],edge["data"]["target"])
+        tgt.connected_genes.push({"id":edge["data"]["source"],"signatures":src});
+    });
+    for (const p in zones) {
+        const element = zones[p];
+        output_json["gene_groups"].push(element);            
+    }
+    for (const p in pathways) {
+        const element = pathways[p];
+        output_json["pathways"].push(element);            
+    }
+    let a = document.createElement("a");
+    a.download= elemid == "detail_graph"?"multi_signature_data.json":"mono_signature_data.json";
+    a.href="data:text/json;charset=utf-8,"+encodeURIComponent(JSON.stringify(output_json));
+    a.click();
+
+}
+function export_overview_data(){
+    const cy = document.getElementById("overview_graph")['_cyreg']["cy"];
+    var node_jsons = cy.nodes().jsons();
+    var edge_jsons = cy.edges().jsons();
+    var output_json = {"Signatures":[],"Intersections":[]}
+    node_jsons.forEach(node => {
+        if(node["data"]["Cancer"] !==undefined){
+            output_json["Signatures"].push({
+                "Cancer":node["data"]["Cancer"],
+                "Comparison":node["data"]["Comparison"],
+                "Filter":node["data"]["Filter"],
+                "id":node["data"]["id"],
+                "gProfiler":node["data"]["gProfiler"],
+                "genes":node["data"]["Signature"]
+            });
+        }
+    });
+    edge_jsons.forEach(edge=> {
+        if(edge["data"]["type"]=="signature"){
+            let commonGenes = {};
+            for (let i = 0; i < edge["data"]["elems"].length; i++) {
+                const element = edge["data"]["elems"][i];
+                const symbol = edge["data"]["symbols"][i].props.children;
+                commonGenes[element]=symbol;
+                
+            }
+            output_json["Intersections"].push({
+                "Signatures":[edge["data"]["source"],edge["data"]["target"]],
+                "commonGenes":commonGenes
+            })
+        }
+    });
+
+    let a = document.createElement("a");
+    a.download= "overview_data.json";
+    a.href="data:text/json;charset=utf-8,"+encodeURIComponent(JSON.stringify(output_json,space="  "));
+    a.click();
+
+}
 function display_one_legend(legend_data,canvas,height,width){
     canvas.height=height;
     canvas.width=width;
@@ -142,8 +226,7 @@ function tooltip(mouseoverNodeData,mouseoverEdgeData,fake_graph_size,elements,ex
                     content.push(
                         {'type': 'Ul', 'namespace': 'dash_html_components', 'props': {'children': signature_li}}
                     )
-                    console.log(cy.elements("#"+cy_elem[0].data('source')).data("tooltip_content")[0])
-                    content.push( {'type': 'H6', 'namespace': 'dash_html_components', 'props': {'children': "Gene symbols : "+cy.elements("#"+cy_elem[0].data('source')).data("tooltip_content")[0]}})
+                    content.push( {'type': 'H6', 'namespace': 'dash_html_components', 'props': {'children': "Gene symbols : "+cy.elements("#"+cy_elem[0].data('source')).data("tooltip_content")[0].props["children"]}})
 
                     content.push( {'type': 'H6', 'namespace': 'dash_html_components', 'props': {'children': "Pathway : "+cy.elements("#"+cy_elem[0].data('target')).data("tooltip_content")[0].props["children"]}})
                 }
@@ -372,8 +455,42 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
         display_legend:display_legend
     }
 });
-
-
+function export_image_event_handler(e){
+    let graph = e.originalEvent.target.parentNode.parentNode;
+    let canvas = graph.querySelector("canvas:nth-of-type(3)");
+    switch (graph.id){
+        case "overview_graph":
+            download_canvas_image(canvas,"overview.png");
+            break;
+        case "mono_graph":
+            let title = document.getElementById("mono_tab").querySelector("a").innerText;
+            download_canvas_image(canvas,title+".png",document.getElementById("mono_canvas"));
+            break;
+        case "detail_graph":
+            download_canvas_image(canvas,"multi_signature_view.png",document.getElementById("multi_canvas"));
+            break;
+    }
+}
+function export_text_event_handler(e){
+    let graph = e.originalEvent.target.parentNode.parentNode;
+    switch (graph.id){
+        case "overview_graph":
+            export_overview_data();
+            break;
+        case "mono_graph":
+        case "detail_graph":
+            dash_clientside.set_props("exportImage", {"value":graph.id});
+            document.getElementById("export_json_btn").click();
+            break;
+    }
+}
+window.dashCytoscapeFunctions = Object.assign(
+    {},
+    window.dashCytoscapeFunctions,
+    {
+        export_image_event_handler:export_image_event_handler,
+        export_text_event_handler:export_text_event_handler
+    })
 function ajust_flex(y){
     var upGrow = parseFloat(document.getElementById("overview_col").parentNode.style["flex-grow"]);
     var upBasis = parseFloat(document.getElementById("overview_col").parentNode.style["flex-basis"].split("%"))/100;

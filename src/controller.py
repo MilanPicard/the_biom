@@ -264,6 +264,7 @@ def update_menu_comparison_filter_data(genes,cur_state):
         Output('detail_graph','layout'),
         Output('detail_graph_pos','data'),
         Output('multi_legend',"data"),
+        Output('multi_export',"data"),
         #   Input('overview_graph','selectedNodeData'),
         Input('disease_filter','value'),
         Input('comparisons_filter','value'),
@@ -283,7 +284,7 @@ def display_detail_graph(diseases,comparisons,signatures,menu_genes,fake_graph_s
         else:
             return detail_graph.redraw(existing_elements,detail_pos_store,1 if fake_graph_size is None or "AR" not in fake_graph_size else fake_graph_size["AR"],current_stylesheets)
     if(all([len(diseases)==0 or len(comparisons)==0 ,signatures is None or signatures ==""])):
-        return [],[],{"name":"preset"},{},dash.no_update
+        return [],[],{"name":"preset"},{},dash.no_update,dash.no_update
     if len(diseases)!=0 or len(signatures)!=0:
         if diseases is None:
             diseases =""
@@ -307,13 +308,14 @@ def display_detail_graph(diseases,comparisons,signatures,menu_genes,fake_graph_s
         r = detail_graph.display_detail_graph(list(filter(lambda a: len(a)>0,diseases)),list(filter(lambda a: len(a)>0,signatures.split(";"))),genes_set,existing_elements,detail_pos_store if detail_pos_store is not None else dict(),1 if fake_graph_size is None or "AR" not in fake_graph_size else fake_graph_size["AR"],selected_filter,comparisons)
         return r
     else:
-        return existing_elements,[],{"name":"preset"},{},dash.no_update
+        return existing_elements,[],{"name":"preset"},{},dash.no_update,dash.no_update
 @callback(
         Output('mono_graph','elements'),
         Output('mono_graph','stylesheet'),
         Output('mono_graph','layout'),
         Output('mono_graph_pos','data'),
         Output('mono_legend',"data"),
+        Output('mono_export',"data"),
         Output('mono_tab','label'),
         Input("overview_graph","tapNodeData"), 
         Input("fake_graph_size","data"),
@@ -335,7 +337,7 @@ def display_mono_graph(tapNodeData,fake_graph_size,selected_filter,diseases,comp
         d = diseases[0]
         c = comparisons[0]
         s = f"{d}_{c}_{selected_filter}"
-    if tapNodeData is not  None:
+    if tapNodeData is not  None and time.time()-tapNodeData["timeStamp"]/1000<3:
         d = tapNodeData["Cancer"]
         c = tapNodeData['Comparison']
         s = tapNodeData["id"]
@@ -881,10 +883,10 @@ clientside_callback( """
             case "overview":
                 download_canvas_image(document.querySelector("#overview_graph canvas:nth-of-type(3)"),"overview.png");
                 break;
-            case "mono":
+            case "mono_graph":
                 download_canvas_image(document.querySelector("#mono_graph canvas:nth-of-type(3)"),"mono_signature.png",document.getElementById("mono_canvas"));
                 break;
-            case "multi":
+            case "detail_graph":
                 download_canvas_image(document.querySelector("#detail_graph canvas:nth-of-type(3)"),"multi_signature.png",document.getElementById("multi_canvas"));
                 break;
             case "box":
@@ -896,6 +898,34 @@ clientside_callback( """
 """,
         Input('export_image_btn',"n_clicks"),
         State('exportImage',"value"),
+                prevent_initial_call=True
+
+)
+clientside_callback( """
+    function export_json(n_clicks,elem,multi_export,mono_export){
+        switch(elem){
+            case "overview":
+                export_overview_data();
+                break;
+            case "mono_graph":
+            case "detail_graph":
+                let a = document.createElement("a");
+                let title = document.getElementById("mono_tab").querySelector("a").innerText;
+                    
+                a.download= elem == "detail_graph"?"multi_signature_data.json":title+".json";
+                a.href="data:text/json;charset=utf-8,"+encodeURIComponent(JSON.stringify(elem == "detail_graph"?multi_export:mono_export));
+                a.click();
+
+                break;
+            case "box":
+                break;
+        }                
+    }
+""",
+        Input('export_json_btn',"n_clicks"),
+        State('exportImage',"value"),
+        State('multi_export',"data"),
+        State('mono_export',"data"),
                 prevent_initial_call=True
 
 )
