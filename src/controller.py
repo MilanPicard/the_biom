@@ -430,15 +430,19 @@ class Controller(object):
             if(len(items)>0):
                 diseases,comparisons,signatures,genes_set =get_detail_subset(disease_filter, comparisons, overview_selected, menu_selected)
                 selected_patient_and_genes = DataManager.get_instance().get_activations(items,diseases if len(selected_boxcategories["diseases"])==0 else selected_boxcategories["diseases"],selected_boxcategories["comparisons"]).sort_values(["box_category"])
-                box_categories_tohighlight =set()
+                box_categories_tohighlight =dict({i:set() for i in items})
                 gene_inter = DataManager.get_instance().get_genes_intersections(diseases,comparisons,signatures,genes_set,selected_filter)[1]
+                
                 if gene_inter is not None:
-                    signature_to_highlight = gene_inter['id'].list.flatten().unique()
-                    for s in signature_to_highlight:
-                        s = s.split("_")
-                        d = s[0]
-                        for stage in s[1].split("vs"):
-                            box_categories_tohighlight.add(f"{d}_{stage}")
+                    gene_inter = gene_inter.set_index("gene")["id"].to_dict()
+                    for i in items:
+
+                        signature_to_highlight = gene_inter[i]
+                        for s in signature_to_highlight:
+                            s = s.split("_")
+                            d = s[0]
+                            for stage in s[1].split("vs"):
+                                box_categories_tohighlight[i].add(f"{d}_{stage}")
                 box_categories = sorted(pd.unique(selected_patient_and_genes["box_category"]).tolist())
                 symbols = list(map(lambda s : " ".join(s),DataManager.get_instance().get_symbol(items).to_list()))
                 selected_patient_and_genes =selected_patient_and_genes.rename(columns = dict(zip(items,symbols)))
@@ -476,7 +480,7 @@ class Controller(object):
                     df = selected_patient_and_genes.filter(("box_category",symbols[i],"Cancer"))
                     df = df.rename({symbols[i]:"expression"},axis=1)
                     df["gene"] = symbols[i]
-                    is_highlighted = df["box_category"].isin(box_categories_tohighlight)
+                    is_highlighted = df["box_category"].isin(box_categories_tohighlight[items[i]])
 
                     for c in diseases:
                         trace = go.Box(y=df[is_highlighted].loc[df[is_highlighted]["Cancer"]==c]["expression"],x=df[is_highlighted].loc[df[is_highlighted]["Cancer"]==c]["box_category"],name=c,showlegend =i==0,legendgroup=c,fillcolor=re.sub(r"rgb\(([0-9]+,[0-9]+,[0-9]+)\)",r"rgba(\1,64)",disease_cmp[c]))
