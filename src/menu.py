@@ -1,4 +1,5 @@
-from dash_extensions.enrich import Dash, dcc, html, Input, Output,callback
+# from dash_extensions.enrich import Dash, dcc, html, Input, Output,callback
+from dash import Dash, dcc, html, Input, Output,callback
 import dash_bootstrap_components as dbc
 
 

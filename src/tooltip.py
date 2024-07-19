@@ -1,6 +1,7 @@
 import dash_bootstrap_components as dbc
-from dash_extensions.enrich import Dash, dcc
-from dash_extensions.enrich import html
+from dash import Dash, dcc
+# from dash_extensions.enrich import Dash, dcc
+# from dash_extensions.enrich import html
 
 
 def create_tooltip(target):

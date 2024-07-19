@@ -189,6 +189,7 @@ function display_legend(multilegend_data,mono_legend_data){
     // let canvas = document.querySelector(".legend_canvas #"+dash_clientside.callback_context.triggered_id.split("_")[0]+"_canvas");
     display_one_legend(multilegend_data,multi_canvas,height,width);
     display_one_legend(mono_legend_data,mono_canvas,height,width);
+    return dash_clientside.no_update;
 }
 function tooltip(mouseoverNodeData,mouseoverEdgeData,fake_graph_size,elements,extent,stylesheets,pos_store_data,cur_children,cur_show,cur_bbox,cur_direction){
     if(mouseoverNodeData==null && mouseoverEdgeData==null){
@@ -212,7 +213,7 @@ function tooltip(mouseoverNodeData,mouseoverEdgeData,fake_graph_size,elements,ex
             let triggered_id =dash_clientside.callback_context.triggered_id;
             if(cy_elem[0].isEdge()){
                 if(dash_clientside.callback_context.triggered_id=="overview_graph"){
-                    content=cy_elem[0].data("symbols")
+                    content=[{'type': 'H6', 'namespace': 'dash_html_components', 'props': {'children': "Intersection of "+cy_elem[0].data("source")+" and "+cy_elem[0].data("target")}}].concat(cy_elem[0].data("symbols"))
                 }else{
                     content = "edge_tooltip";
                     signatures = cy.elements("#"+cy_elem[0].data('source')).data("Signatures");
@@ -406,6 +407,52 @@ function box_plots_stats(relayoutData,figure,stats_data,do_stats_data){
         },1);
 }
 
+function tapMultiSignPathway(pathway_id){
+    const cy = document.getElementById("detail_graph")['_cyreg']["cy"];
+    cy.edges(".tapped").removeClass("tapped")
+    if(pathway_id!=undefined){
+        cy.nodes("#"+pathway_id).connectedEdges().addClass("tapped")
+    }
+
+}
+async function draw_offscreen(graph_id,filename,legend_canvas){
+    const cy = document.getElementById(graph_id)['_cyreg']["cy"];
+
+    let scale=Math.max(Math.ceil(3000/cy.width()),Math.ceil(3000/cy.height()));
+    let blob_promise = cy.png({full:true,scale:scale,output:"blob-promise"});
+    let oc = new OffscreenCanvas(cy.width()*scale,cy.height()*scale);
+    
+    let outCtx = oc.getContext("2d");
+    
+    let {x1,x2,y1,y2,w,h} = cy.elements().renderedBoundingBox()
+
+    
+    let promise = blob_promise.then((blob)=> createImageBitmap(blob));
+    if( legend_canvas!==undefined){
+        promise = promise.then((main_blob) => {
+            let inLegendCtx = legend_canvas.getContext("2d");
+            return createImageBitmap(inLegendCtx.getImageData(0,0,legend_canvas.width,legend_canvas.height)).then((legend_bitmap) => {
+                // let scale = Math.floor(oc.height/(4*legend_bitmap.height))
+                outCtx.drawImage(legend_bitmap,0,0,legend_bitmap.width,legend_bitmap.height,0,0,legend_bitmap.width*scale,legend_bitmap.height*scale);
+                return main_blob;
+            });
+        })
+    }
+    await promise.then(imageBitMap => {
+        outCtx.drawImage(imageBitMap,0,0,imageBitMap.width,imageBitMap.height,oc.width/2-w*scale/2,oc.height/2-h*scale/2,w*scale,h*scale);
+
+        oc.convertToBlob({"type":"image/png"}).then((blob) => {
+            let img =URL.createObjectURL(blob);
+
+            let a = document.createElement("a");
+            a.download= filename;
+            a.href=img;
+            a.click();
+
+        });
+    })
+
+}
 function on_box_plot_click(clickData,relayoutData,figure,stats_data){
     console.log("on_box_plot_click",clickData);
     if(clickData!=undefined && Object.hasOwn(clickData,"points") && clickData.points.length>0){
@@ -425,6 +472,7 @@ function on_box_plot_click(clickData,relayoutData,figure,stats_data){
         box_plots_stats(relayoutData,figure,{"stats":[]});
 
     }
+    return dash_clientside.no_update;
 }
 window.dash_clientside = Object.assign({}, window.dash_clientside, {
     clientside: {
@@ -460,14 +508,17 @@ function export_image_event_handler(e){
     let canvas = graph.querySelector("canvas:nth-of-type(3)");
     switch (graph.id){
         case "overview_graph":
-            download_canvas_image(canvas,"overview.png");
+            draw_offscreen(graph.id,"overview.png")
+            // download_canvas_image(canvas,"overview.png");
             break;
         case "mono_graph":
             let title = document.getElementById("mono_tab").querySelector("a").innerText;
-            download_canvas_image(canvas,title+".png",document.getElementById("mono_canvas"));
+            draw_offscreen(graph.id,title+".png",document.getElementById("mono_canvas"))
+            // download_canvas_image(canvas,title+".png",document.getElementById("mono_canvas"));
             break;
         case "detail_graph":
-            download_canvas_image(canvas,"multi_signature_view.png",document.getElementById("multi_canvas"));
+            draw_offscreen(graph.id,"multi_signature_view.png",document.getElementById("multi_canvas"))
+            // download_canvas_image(canvas,"multi_signature_view.png",document.getElementById("multi_canvas"));
             break;
     }
 }
@@ -484,12 +535,27 @@ function export_text_event_handler(e){
             break;
     }
 }
+function node_event_handler(e){
+    let href = "";
+    if(e.target.data()["is_metanode"]){
+        href = e.target.data().tooltip_content.props.children[1].props.href;
+
+    }else{
+        href = e.target.data().tooltip_content[1].props.href;
+    }
+    
+    let a = document.createElement("a");
+    a.href=href;
+    a.target="_blank";
+    a.click();
+}
 window.dashCytoscapeFunctions = Object.assign(
     {},
     window.dashCytoscapeFunctions,
     {
         export_image_event_handler:export_image_event_handler,
-        export_text_event_handler:export_text_event_handler
+        export_text_event_handler:export_text_event_handler,
+        node_event_handler:node_event_handler
     })
 function ajust_flex(y){
     var upGrow = parseFloat(document.getElementById("overview_col").parentNode.style["flex-grow"]);
@@ -643,7 +709,6 @@ function create_shape(y_max, h, k, x0, x1, label, shapes) {
     let y = y_max * (1 + h * (k + 1));
     let line = { type: 'line', x0: x0, y0: y, x1: x1, y1: y, line: { color: 'rgb(0,0,0)', width: 1 }, label: { text: label, font: { color: "black", size: 10 }, textposition: "middle", yanchor: "middle" } };
     let path = { type: 'path', path: `M${x0},${y - h * y_max / 2}V${y}H${x1}V${y - h * y_max / 2}`, line: { color: 'rgb(0,0,0)', width: 1 }, label: { text: label, font: { color: "black" }, textposition: "top center", yanchor: "middle" } };
-    console.log(path,x0,y,y_max,h,k,x1);
     shapes.push(path);
     return y;
 }

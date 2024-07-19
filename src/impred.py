@@ -45,11 +45,28 @@ class Impred:
         self.edge_rep_point_index = point_index
         self.edge_rep_src_index=src_index
         self.edge_rep_tgt_index= tgt_index
+        all_surrounding_edges = set()
+        self.inversed_surrounding_edges = {}
+        for n,e in self.surrounding_edges.items():
+            if not n in fixed_nodes:
+                all_surrounding_edges.update(e)
+                for e2 in e:
+                    if e2 not in self.inversed_surrounding_edges:
+                        self.inversed_surrounding_edges[e2]=set()
+                    if(n != g.source(e2) and n!=g.target(e2)):
+                        self.inversed_surrounding_edges[e2].add(g.nodePos(n))
+        self.all_surrounding_edges = list(all_surrounding_edges)
+        self.all_surrounding_edges_index=np.zeros((len(all_surrounding_edges),2),dtype=int)
+        for i,e in enumerate(self.all_surrounding_edges):
+            self.all_surrounding_edges_index[i,0]=g.nodePos(g.source(e))
+            self.all_surrounding_edges_index[i,1]=g.nodePos(g.target(e))
+        self.nodes = g.nodes()
+            
 
 
     def layout(self,debug=False):
         self.compute_faces()
-        global_maxes = np.linspace(3*self.delta,0,num=self.nb_iter)
+        global_maxes = np.linspace(3*self.delta,0,num=self.nb_iter,endpoint=False)
         vl=self.g.getLayoutProperty("viewLayout")
         for j,global_max in enumerate(global_maxes):
             self.iter(global_max,debug)
@@ -58,11 +75,21 @@ class Impred:
         
         vl.scale(tlp.Vec3f(self.scale,self.scale,1.0))
         vl.center(self.center)
+        
+
         return self.pos + np.array([[self.center.getX(),self.center.getY()]])
     def iter(self,global_max,debug=False):
+        # times=[time.perf_counter()]
         f = self.compute_forces()
+        # times.append(time.perf_counter())
         max_move=self.compute_max_move(global_max,f)
+        # times.append(time.perf_counter())
         self.move(f,max_move)
+        # times.append(time.perf_counter())
+        # times = np.array(times)
+        # np.set_printoptions(linewidth=750)
+        # print("a",times[1:]-times[:-1])
+        # print("a",(times[1:]-times[:-1])/(times[-1]-times[0]))
     def compute_forces(self,):
         fg = self.gravity_force()
         fn = self.node_node_rep()
@@ -346,14 +373,97 @@ class Impred:
         tgts= []
         points = []
         points, srcs, tgts = self.edge_rep_point_index,self.edge_rep_src_index,self.edge_rep_tgt_index
+        extremities = []
+        points_test = []
+        projs_test  = []
+        if len(self.all_surrounding_edges)>0:
+            ps2 = self.pos[self.all_surrounding_edges_index[:,0]]
+            pt2 = self.pos[self.all_surrounding_edges_index[:,1]]
+            dist_test = np.linalg.norm(ps2-pt2,axis=1)
+            d=0.25
+            a=2*global_max*((d**2+2*d))**0.5
+            n = int(2+dist_test.max()//(2*a))
+            x1 = np.linspace(ps2,pt2,n,endpoint=True)
+            x = np.reshape(np.transpose(x1,(1,0,2)),(-1,2))
+            r = self.kdt.query_ball_point(x,2*global_max*(1+d))
+            
+            # print(len(r),n,len(x),len(self.all_surrounding_edges),self.g.numberOfNodes(),self.g.numberOfEdges(),self.pos,2*global_max*(1+d),a,global_max*2)
+            for i in range(len(r)//n):
+                points_test_i = set()
+                for j in range(n*i,n*(i+1)):
+                    # print(i,self.all_surrounding_edges_index[i],j,x[j],x1[:,i],r[j])#,self.pos,self.pos[r[j]])
+
+                    points_test_i.update(r[j])
+                points_test_i = points_test_i.intersection(self.inversed_surrounding_edges[self.all_surrounding_edges[i]]).intersection(self.movable_index)
+                # points_test_i = points_test_i.intersection(self.movable_index)
+
+                # points_test_i = set([j for j in points_test_i if j not in self.all_surrounding_edges_index[i] and self.all_surrounding_edges[i] in self.surrounding_edges.get(self.nodes[j],[]) ])
+                # assert len(points_test_i.symmetric_difference(points_test_i2))==0,(points_test_i,points_test_i2)
+                # points_test_i = points_test_i2
+                 #(points_test_i,points_test_i2)
+                if(len(points_test_i)==0):
+                    continue
+
+                if len(points_test_i)>0:
+                    extremities.append(np.repeat(self.all_surrounding_edges_index[i:i+1],len(points_test_i),axis=0))
+                    points_test.append(np.array(list(points_test_i)))
+        if len(extremities)>0:
+            extremities = np.concatenate(extremities,axis=0)
+            points_test = np.concatenate(points_test)
+            ps = self.pos[extremities[:,0]]
+            ptg = self.pos[extremities[:,1]]
+            pt = self.pos[np.array(points_test)]
+            pp = self.get_projections(ps,
+                                        ptg,pt)
+            dpp_pt = np.linalg.norm(pp-pt,axis=1)
+            ntf = dpp_pt<global_max*2
+            oe = np.logical_and(
+            np.logical_or(np.abs(ptg[:,0]-ps[:,0])<1e-4,np.logical_xor(pp[:,0]<ps[:,0],pp[:,0]<ptg[:,0])),
+            np.logical_or(np.abs(ptg[:,1]-ps[:,1])<1e-4,np.logical_xor(pp[:,1]<ps[:,1],pp[:,1]<ptg[:,1]))
+            )
+            tmp_a = np.logical_and(ntf,oe)
+            d_ps_pt = np.linalg.norm(ps-pt,axis=1)
+            d_ptg_pt = np.linalg.norm(pt-ptg,axis=1)
+            ntf = np.logical_or(tmp_a,np.logical_and(ntf,np.minimum(d_ps_pt,d_ptg_pt)<=global_max*2))
+            # points_test_i = [points_test_i[k] for k in range(len(points_test_i)) if ntf[k]]
+            extremities = extremities[ntf]
+            points_test = points_test[ntf]
+            projs = pp[ntf]
+            dist_p = dpp_pt[ntf]
+            pos = pt[ntf]
+            dist_s = d_ps_pt[ntf]
+            dist_t = d_ptg_pt[ntf]
+            on_edge = oe[ntf]
+            # print("ntf",ntf.astype(float).mean(),n)
+            # ttttttttt2 = np.stack([np.array(tuple(a),dtype=([("src",int),("tgt",int),("point",int)])) for a in np.concatenate([extremities,np.expand_dims(points_test,-1)],axis=-1)])
+            # ttttttttt2 = np.sort(ttttttttt2,order=["src","tgt","point"])
+        else:
+            extremities = np.empty((0,2),dtype=int)
+            points_test = np.empty((0,),dtype=int)
+                # ttttttttt2 = np.empty((0),dtype=[("src",int),("tgt",int),("point",int)])
+            # print("test",self.g.numberOfNodes(),self.g.numberOfEdges(),global_max,dist_test.mean(),np.median(dist_test),dist_test.min(),dist_test.max(),[(i,np.quantile(dist_test,i)) for i in np.linspace(0,1,10)])
+        points = points_test
+        srcs = extremities[:,0]
+        tgts = extremities[:,1]
         if len(srcs)!=0:
-            pos_srcs = self.pos[srcs]
-            pos_tgts = self.pos[tgts]
-            # pos = np.expand_dims(self.pos[i],0).repeat(len(pos_srcs),0)
-            pos = self.pos[points]
-            projs = self.get_projections(pos_srcs,pos_tgts,pos)
-            dist_p = np.linalg.norm(projs-pos,axis=1)
-            not_too_far = dist_p<=global_max*2
+
+
+            ## pos = np.expand_dims(self.pos[i],0).repeat(len(pos_srcs),0)
+            pos = self.pos[points_test]
+            # pos_srcs = self.pos[srcs]
+            # pos_tgts = self.pos[tgts]
+            ### pos = np.expand_dims(self.pos[i],0).repeat(len(pos_srcs),0)
+            # pos = self.pos[points]
+            # projs = self.get_projections(pos_srcs,pos_tgts,pos)
+            # dist_p = np.linalg.norm(projs-pos,axis=1)
+            # not_too_far = dist_p<=global_max*2
+            # dist_s = np.linalg.norm(pos_srcs-pos,axis=1)
+            # dist_t = np.linalg.norm(pos_tgts-pos,axis=1)
+            # on_edge = np.logical_and(
+            #     np.logical_or(np.abs(pos_tgts[:,0]-pos_srcs[:,0])<1e-4,np.logical_xor(projs[:,0]<pos_srcs[:,0],projs[:,0]<pos_tgts[:,0])),
+            #     np.logical_or(np.abs(pos_tgts[:,1]-pos_srcs[:,1])<1e-4,np.logical_xor(projs[:,1]<pos_srcs[:,1],projs[:,1]<pos_tgts[:,1]))
+            # )
+            # not_too_far = np.logical_or(np.logical_and(not_too_far,on_edge),np.logical_and(not_too_far,np.minimum(dist_s,dist_t)<=global_max*2))
             # if i==249 and not np.any(np.logical_and(
             #     np.logical_xor(projs[:,0][not_too_far]<pos_srcs[:,0][not_too_far],projs[:,0][not_too_far]<pos_tgts[not_too_far][:,0]),
             #     np.logical_xor(projs[:,1][not_too_far]<pos_srcs[:,1][not_too_far],projs[:,1][not_too_far]<pos_tgts[not_too_far][:,1]))):
@@ -361,52 +471,61 @@ class Impred:
             #     np.logical_xor(projs[:,0][not_too_far]<pos_srcs[:,0][not_too_far],projs[:,0][not_too_far]<pos_tgts[not_too_far][:,0]),
             #     np.logical_xor(projs[:,1][not_too_far]<pos_srcs[:,1][not_too_far],projs[:,1][not_too_far]<pos_tgts[not_too_far][:,1])))
 
-            srcs = srcs[not_too_far]
-            tgts = tgts[not_too_far]
-            points = points[not_too_far]
-            pos_srcs = pos_srcs[not_too_far]
-            pos_tgts = pos_tgts[not_too_far]
-            pos = pos[not_too_far]
-            projs = projs[not_too_far]
-            dist_p = dist_p[not_too_far]
-            dist_s = np.linalg.norm(pos_srcs-pos,axis=1)
-            dist_t = np.linalg.norm(pos_tgts-pos,axis=1)
-            on_edge = np.logical_and(
-                np.logical_or(np.abs(pos_tgts[:,0]-pos_srcs[:,0])<1e-4,np.logical_xor(projs[:,0]<pos_srcs[:,0],projs[:,0]<pos_tgts[:,0])),
-                np.logical_or(np.abs(pos_tgts[:,1]-pos_srcs[:,1])<1e-4,np.logical_xor(projs[:,1]<pos_srcs[:,1],projs[:,1]<pos_tgts[:,1]))
-            )
+            if True:# np.any(not_too_far):
 
-            if(np.any(on_edge)):
-                # point_coord =self.gateway.jvm.ocotillo.geometry.Coordinates(pos[0,0],pos[0,1],0.0)
-                on_edge_projs = projs[on_edge]
-                on_edge_pos = pos[on_edge]
-                angle = np.arctan2(on_edge_projs[:,1]-on_edge_pos[:,1],on_edge_projs[:,0]-on_edge_pos[:,0])%(2*np.pi)
-                on_edge_dist = dist_p[on_edge]
-                self.set_max_move(f,max_move,points[on_edge],angle,np.clip(on_edge_dist/2.1-0*self.gamma/5,0,None),debug=False)
-                self.set_max_move(f,max_move,srcs[on_edge],angle+np.pi,np.clip(on_edge_dist/2.1-0*self.gamma/5,0,None),debug=False)
-                self.set_max_move(f,max_move,tgts[on_edge],angle+np.pi,np.clip(on_edge_dist/2.1-0*self.gamma/5,0,None),debug=False)
+                # srcs = srcs[not_too_far]
+                # tgts = tgts[not_too_far]
+                # points = points[not_too_far]
+                # # ttttttttt = np.stack([np.array(tuple(a),dtype=([("src",int),("tgt",int),("point",int)])) for a in np.stack([srcs,tgts,points],axis=-1)])
+                # ## ttttttttt = np.sort(ttttttttt,order=["src","tgt","point"])
+                # # assert len(ttttttttt2)>=len(ttttttttt),(len(ttttttttt2),len(ttttttttt),ttttttttt.shape,np.setdiff1d(ttttttttt,ttttttttt2))
+                # # assert len(np.setdiff1d(ttttttttt,ttttttttt2))==0,(np.setdiff1d(ttttttttt,ttttttttt2))
+                # # assert len(np.setdiff1d(ttttttttt2,ttttttttt))==0,(np.setdiff1d(ttttttttt2,ttttttttt))
+                # pos_srcs = pos_srcs[not_too_far]
+                # pos_tgts = pos_tgts[not_too_far]
+                # pos = pos[not_too_far]
+                # projs = projs[not_too_far]
+                # dist_p = dist_p[not_too_far]
+                # dist_s = np.linalg.norm(pos_srcs-pos,axis=1)
+                # dist_t = np.linalg.norm(pos_tgts-pos,axis=1)
+                # on_edge = np.logical_and(
+                #     np.logical_or(np.abs(pos_tgts[:,0]-pos_srcs[:,0])<1e-4,np.logical_xor(projs[:,0]<pos_srcs[:,0],projs[:,0]<pos_tgts[:,0])),
+                #     np.logical_or(np.abs(pos_tgts[:,1]-pos_srcs[:,1])<1e-4,np.logical_xor(projs[:,1]<pos_srcs[:,1],projs[:,1]<pos_tgts[:,1]))
+                # )
 
-                # times2[6]+=ty3-ty2
-                # times2[3]+=tx5-tx4
-            if(not np.all(on_edge)):
-                
-                not_on_edge = np.logical_not(on_edge)
-                pos= pos[not_on_edge]
-                close = np.where(dist_s[not_on_edge]<dist_t[not_on_edge],srcs[not_on_edge],tgts[not_on_edge])
-                far = np.where(dist_s[not_on_edge]>=dist_t[not_on_edge],srcs[not_on_edge],tgts[not_on_edge])
-                # assert np.all(far!=close)
-                close_pos = self.pos[close]
-                far_pos = self.pos[far]
+                if(np.any(on_edge)):
+                    # point_coord =self.gateway.jvm.ocotillo.geometry.Coordinates(pos[0,0],pos[0,1],0.0)
+                    on_edge_projs = projs[on_edge]
+                    on_edge_pos = pos[on_edge]
+                    angle = np.arctan2(on_edge_projs[:,1]-on_edge_pos[:,1],on_edge_projs[:,0]-on_edge_pos[:,0])%(2*np.pi)
+                    on_edge_dist = dist_p[on_edge]
+                    d = np.clip(on_edge_dist/2.1-0*self.gamma/5,0,None)
+                    self.set_max_move(f,max_move,np.concatenate((points[on_edge],srcs[on_edge],tgts[on_edge])),np.concatenate((angle,angle+np.pi,angle+np.pi)),np.concatenate((d,d,d)),debug=False)
+                    # self.set_max_move(f,max_move,points[on_edge],angle,np.clip(on_edge_dist/2.1-0*self.gamma/5,0,None),debug=False)
+                    # self.set_max_move(f,max_move,srcs[on_edge],angle+np.pi,np.clip(on_edge_dist/2.1-0*self.gamma/5,0,None),debug=False)
+                    # self.set_max_move(f,max_move,tgts[on_edge],angle+np.pi,np.clip(on_edge_dist/2.1-0*self.gamma/5,0,None),debug=False)
 
-                angle = np.arctan2(close_pos[:,1]-pos[:,1],close_pos[:,0]-pos[:,0])%(2*np.pi)
-                close_dist=np.linalg.norm(close_pos-pos,axis=-1)
-                middle = (close_pos+pos)/2
-                other = middle+np.stack([np.cos(angle+np.pi/2),np.sin(angle+np.pi/2)],-1)
-                projs2 = self.get_projections(middle,other,far_pos)   
+                    # times2[6]+=ty3-ty2
+                    # times2[3]+=tx5-tx4
+                if(not np.all(on_edge)):
+                    
+                    not_on_edge = np.logical_not(on_edge)
+                    pos= pos[not_on_edge]
+                    close = np.where(dist_s[not_on_edge]<dist_t[not_on_edge],srcs[not_on_edge],tgts[not_on_edge])
+                    far = np.where(dist_s[not_on_edge]>=dist_t[not_on_edge],srcs[not_on_edge],tgts[not_on_edge])
+                    # assert np.all(far!=close)
+                    close_pos = self.pos[close]
+                    far_pos = self.pos[far]
 
-                self.set_max_move(f,max_move,points[not_on_edge],angle,np.clip(close_dist/2.1-0*self.gamma/5,0,None),False)
-                self.set_max_move(f,max_move,close,(angle+np.pi)%(np.pi*2),np.clip(close_dist/2.1-0*self.gamma/5,0,None),False)
-                self.set_max_move(f,max_move,far,(angle+np.pi)%(np.pi*2),np.clip(np.linalg.norm(projs2-far_pos,axis=1)/1.05-0*self.gamma/5,0,None),False)
+                    angle = np.arctan2(close_pos[:,1]-pos[:,1],close_pos[:,0]-pos[:,0])%(2*np.pi)
+                    close_dist=np.linalg.norm(close_pos-pos,axis=-1)
+                    middle = (close_pos+pos)/2
+                    other = middle+np.stack([np.cos(angle+np.pi/2),np.sin(angle+np.pi/2)],-1)
+                    projs2 = self.get_projections(middle,other,far_pos)   
+
+                    self.set_max_move(f,max_move,points[not_on_edge],angle,np.clip(close_dist/2.1-0*self.gamma/5,0,None),False)
+                    self.set_max_move(f,max_move,close,(angle+np.pi)%(np.pi*2),np.clip(close_dist/2.1-0*self.gamma/5,0,None),False)
+                    self.set_max_move(f,max_move,far,(angle+np.pi)%(np.pi*2),np.clip(np.linalg.norm(projs2-far_pos,axis=1)/1.05-0*self.gamma/5,0,None),False)
 
                     
         return max_move

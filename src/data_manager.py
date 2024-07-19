@@ -1,4 +1,5 @@
 import json
+import os
 import time
 import numpy as np
 import pandas as pd
@@ -40,6 +41,19 @@ class DataManager(object):
             # with open(pathway_file,"rt") as f:               
                 # cls._instance.pathways= json.load(f)
         return cls._instance
+    @staticmethod
+    def get_instance():
+        if DataManager._instance is None:
+            if ("THE_BIOM_SIGNATURES" in os.environ and "THE_BIOM_EXPRESSIONS" in os.environ and "THE_BIOM_PATHWAYS" in os.environ):
+                signatures = os.environ["THE_BIOM_SIGNATURES"]
+                expressions = os.environ["THE_BIOM_EXPRESSIONS"]
+                pathways = os.environ["THE_BIOM_PATHWAYS"]
+            else:
+                signatures =os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),"data","signatures","THe_Biom_DEV_dataset.csv")
+                expressions = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),"data","activations","fake_data.csv")
+                pathways = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),"data","pathways","fake_pathways")
+            return DataManager(signatures,expressions,pathways)
+        return DataManager._instance
     def get_filters(self):
         return self.signatures["Filter"].unique().tolist()
     def get_diseases(self):
@@ -199,24 +213,42 @@ class DataManager(object):
         # exploded["id"] = exploded["id"].transform(lambda a:[a])
         return exploded
     
-    def get_activations(self,genes,diseases):
+    def get_activations(self,genes,diseases,comparisons):
         genes  = [genes] if not isinstance(genes,list) else genes
         activations = self.activation_data
         if len(diseases)>0:
             activations = activations[self.activation_data["Cancer"].isin(diseases)]
+        if len(comparisons)>0:
+            activations = activations[self.activation_data["Stage"].isin([c.split("vs")[1]  for c in comparisons])]
         activations = activations[genes+["Cancer",'Stage',"box_category"]]
         return activations
     
     def get_pathways(self,genes,filter=None):
         if(len(genes)==0):
-            genes = set(self.exploded[self.exploded["Filter"]==filter]["EnsemblID"].unique().tolist())
-            p = self.pathways[self.pathways["EnsemblID"].isin(genes)].filter(["PathwayStId","PathwayDisplayName","EnsemblID"]).groupby("PathwayStId").agg(lambda a: a.unique())
-            p = p.astype({"EnsemblID":pd.ArrowDtype(pa.list_(pa.string())),"PathwayDisplayName":pd.ArrowDtype(pa.list_(pa.string()))})
-            p=p.assign(counts=lambda x: x.EnsemblID.apply(len))
-            p["PathwayDisplayName"].apply(lambda x:x[0])
-            p.sort_values("counts",inplace=True,ascending=False)
+            filtered = self.exploded[self.exploded["Filter"]==filter]
+            filtered2 = filtered.filter(["EnsemblID","id"]).groupby("EnsemblID").agg(lambda a: a.unique()).astype({"id":pd.ArrowDtype(pa.list_(pa.string()))})
+            # print(filtered2)
+            # print(self.pathways.join(filtered2,on="EnsemblID",how="right").dtypes)
+            # print(self.pathways.join(filtered2,on="EnsemblID").filter(["PathwayStId","PathwayDisplayName","EnsemblID","id"]).groupby("PathwayStId").agg({
+            filtered3 = self.pathways.join(filtered2,on="EnsemblID",how="right").filter(["PathwayStId","PathwayDisplayName","EnsemblID","id"]).groupby("PathwayStId").agg({
+                "PathwayDisplayName":(lambda a:a.iloc[0]),
+                "EnsemblID":(lambda a:a.unique()),
+                "id":(lambda a: a)
+            }).astype({"EnsemblID":pd.ArrowDtype(pa.list_(pa.string()))})#,"id":pd.ArrowDtype(pa.list_(pa.list_(pa.string())))})
+
+            def keep(l):
+                for i in range(len(l)):
+                    set_i = set(l[i])
+                    for j in range(i+1,len(l)):
+                        if set_i.isdisjoint(set(l[j])):
+                            return True
+                return False
+            filtered3 = filtered3.assign(to_keep=(lambda x: x.id.reset_index().assign(to_keep=lambda y:y.id.apply(keep)).set_index("PathwayStId")["to_keep"]))
+            filtered3 = filtered3.loc[filtered3["to_keep"]]
+            filtered3 = filtered3.assign(counts=(lambda x: x.id.reset_index().assign(counts=lambda y : y["id"].map(lambda v : len(set([j for i in v for j in i ])))).set_index("PathwayStId")["counts"]))
+            filtered3.sort_values("counts",inplace=True,ascending=False)
             
-            return p.filter(["PathwayDisplayName","PathwayStId","counts","EnsemblID"]).to_dict("index")
+            return filtered3.filter(["PathwayDisplayName","PathwayStId","counts","EnsemblID"]).to_dict("index")
         genes = set(genes)
         # filtered = [p for p in self.pathways if any([g in genes for g in p["genes"]])]
         # pathways = {g:[] for g in genes}

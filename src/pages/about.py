@@ -1,4 +1,5 @@
-from dash_extensions.enrich import html, register_page
+# from dash_extensions.enrich import html, register_page
+from dash import html, register_page
 register_page(__name__,"/about",title="About THe_BIOM")
 def layout(**kwargs):
     return [

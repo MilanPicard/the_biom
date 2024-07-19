@@ -1,17 +1,12 @@
-import re
-import time
 import dash_cytoscape as cyto
 from dash import Patch
 import dash
 import numpy as np
-import pandas as pd
-import nx_layout
-import tlp_layout
-from controller import Controller
+from data_manager import DataManager
 from scipy.spatial import ConvexHull
 import plotly.express as px
 from shapely import Polygon,Point
-from dash_extensions.enrich import html,ctx
+from dash import html,ctx
 from dash_svg import Svg, G, Path, Circle,Rect
 import euler_layout
 from urllib.parse import quote
@@ -42,7 +37,8 @@ def detail_graph(elemId):
         style={
             "width":"97%",
             "height":"100%"},
-        autoungrabify=True,
+        boxSelectionEnabled=True,
+        autoungrabify=False,
                 wheelSensitivity=0.25,
                 # maxZoom=4,
                 # minZoom=0.1,
@@ -60,6 +56,11 @@ def detail_graph(elemId):
                 "label":"export as json",
                 "id":f"{elemId}_export_text",
                 "onClickCustom":"export_text_event_handler"
+            },{
+                "availableOn":["node"],
+                "label":"visit gProfiler/Reactome/Ensembl",
+                "id":f"{elemId}_node_ctx",
+                "onClickCustom":"node_event_handler"
             }
             
         ],
@@ -122,16 +123,16 @@ def add_path_ways(existing_elements,stylesheet_detail,updated_elements,all_pathw
             children = []
             children.append(html.H6(p.PathwayDisplayName))
             children.append(html.A("PathwayReactomeLink",href=p.PathwayReactomeLink,target="_blank"))
-            pathways_nodes[p.Index]={"data":{"id":p.Index,"label":"","weight":len(p.EnsemblID),"tooltip_content":children,"is_pathways":True,"ReactomeLink":p.PathwayReactomeLink,"name":p.PathwayDisplayName},"selectable":True}
+            pathways_nodes[p.Index]={"data":{"id":p.Index,"label":"","weight":len(p.EnsemblID),"tooltip_content":children,"is_pathways":True,"ReactomeLink":p.PathwayReactomeLink,"name":p.PathwayDisplayName},"selectable":True,"classes":"pathway"}
             pathways_stylesheets[p.Index] = {
                         "selector":f"node#{p.Index}",
                         "style":{
                             "shape":pathway_shape,
                             # "background-opacity":0.25,
                             # "font-size":5,
-                            "backgroundColor":mono_pathway_color,
+                            # "backgroundColor":mono_pathway_color,
 
-                            "z-index":-1,
+                            "z-index":-0,
                             # "text-halign":"left",
                             # "text-valign":"center",
                             # "border-width":1,
@@ -162,18 +163,18 @@ def add_path_ways(existing_elements,stylesheet_detail,updated_elements,all_pathw
 
         for i in range(len(p.EnsemblID)):
             edge_id = "_".join([p.EnsemblID[i],p.Index])
-            pathways_edges.append({"data":{"id":edge_id,"source":p.EnsemblID[i],"target":p.Index,"is_pathway_edge":True,"highlight":1 if highlight[i] else 0},"classes":"multi_sign_path"})
-            if highlight[i]:
-                stylesheet_detail.append({
-                            "selector":f"edge#{edge_id}",
-                            "style":{
-                                "lineColor":"blue",
-                                "width":4
-                                }
-                            })
-                pathways_stylesheets[p.Index]["style"]["background-color"]=multi_pathway_color
-                pathways_stylesheets[p.Index]["style"]["border-color"]="black"
-                pathways_stylesheets[p.Index]["style"]["border-width"]=2
+            pathways_edges.append({"data":{"id":edge_id,"source":p.EnsemblID[i],"target":p.Index,"is_pathway_edge":True,"highlight":1 if highlight[i] else 0},"classes":"pathway"})
+            # if highlight[i]:
+            #     stylesheet_detail.append({
+            #                 "selector":f"edge#{edge_id}",
+            #                 "style":{
+            #                     "lineColor":"blue",
+            #                     "width":4
+            #                     }
+            #                 })
+            #     pathways_stylesheets[p.Index]["style"]["background-color"]=multi_pathway_color
+            #     pathways_stylesheets[p.Index]["style"]["border-color"]="black"
+            #     pathways_stylesheets[p.Index]["style"]["border-width"]=2
     legend["pathway"]={}
     if not all_pathway:
         kept_pathways = set()
@@ -277,19 +278,19 @@ def add_signature_metanodes(gene_hull_points,existing_elements,stylesheet_detail
                 "shape":"polygon",
                 "backgroundOpacity":0.25,
                 "fontSize":10,
-                "zIndex":1,
+                "zIndex":-1,
                 "textHalign":label_pos[0],
                 "textValign":label_pos[1],
                 "borderWidth":1,
                 "textWrap":"wrap",
                 "shapePolygonPoints":" ".join(list(map(str,shape_polygon_points))),
-                "label":"\n".join(i.split("_"))
+                # "label":"\n".join(i.split("_"))
                 }
                 }
         if not style_only:    
             split = i.split("_")
             existing_elements.append({
-                "data":{"id":i,"label":i,"is_metanode":True,"tooltip_content":html.Div([
+                "data":{"id":i,"label":"","is_metanode":True,"tooltip_content":html.Div([
                     html.H6(i),
                     html.A("gProfiler",href=sign_info[i],target="_blank"),
 
@@ -297,7 +298,7 @@ def add_signature_metanodes(gene_hull_points,existing_elements,stylesheet_detail
                     ])},
                 "position":{"x":0.5*(bb[0][0]+bb[1][0]),
                             "y":0.5*(bb[0][1]+bb[1][1])},
-                "selectable": False,
+                "selectable": False,"grabbable":False,
                 "classes":" ".join([split[0],split[1].split("vs")[1]])})
             # updated_elements.append({
             #     "data":{"id":i,"label":i,"is_metanode":True,"tooltip_content":i},
@@ -397,6 +398,9 @@ def display_detail_graph(selectedDiseases,selected_signatures,selected_genes,exi
     legend_data = {}
     edges = []
     nodes = []
+    mono_pathway_color = "gray"
+    multi_pathway_color = "red"
+    
     stylesheet_detail = [{
         "selector":"node",
         "style":{
@@ -412,6 +416,7 @@ def display_detail_graph(selectedDiseases,selected_signatures,selected_genes,exi
         "style":{
             "borderColor":"yellow",
             "borderWidth":"4",
+            "background-color":"black"
             }
     },
     {
@@ -419,16 +424,39 @@ def display_detail_graph(selectedDiseases,selected_signatures,selected_genes,exi
         "style":{
             "lineStyle":"dotted",
             }
-    }]
+
+    }
+    ,{
+        "selector":"node.pathway",
+        "style":{
+            "backgroundColor":mono_pathway_color if all_pathway else multi_pathway_color,
+            "borderColor":mono_pathway_color if all_pathway else "black",
+            "borderWidth":2,
+        }
+    }
+    ,{
+        "selector":"edge.pathway",
+        "style":{
+            "lineColor":mono_pathway_color if all_pathway else "blue",
+            "width":1 if all_pathway else 4,
+        }
+    }
+    ,{
+        "selector":"edge.pathway.tapped",
+        "style":{
+            "lineColor":"red", 
+        }
+    }
+    ]
     stylesheet_detail = color_selected_node(stylesheet_detail,selected_genes)
     color_by_diseases = True # TODO
-    cm = Controller._instance.dm.get_disease_cmap()# if color_by_diseases else Controller._instance.dm.get_stage_cmap()
+    cm = DataManager._instance.get_disease_cmap()# if color_by_diseases else DataManager.get_instance().get_stage_cmap()
 
     # print(updated_elements)
     # print(existing_elements)
     # updated_elements.clear()
-    intersections,items = Controller._instance.dm.get_genes_intersections(id_filter=selected_signatures,disease_filter=selectedDiseases,gene_filter=selected_genes,selected_filter=selected_filter,comparisons_filter=comparison_filter)
-    data = Controller._instance.dm.get_genes_intersection_data(id_filter=selected_signatures,disease_filter=selectedDiseases,gene_filter=selected_genes,selected_filter=selected_filter,comparisons_filter=comparison_filter)
+    intersections,items = DataManager._instance.get_genes_intersections(id_filter=selected_signatures,disease_filter=selectedDiseases,gene_filter=selected_genes if not all_pathway else [],selected_filter=selected_filter,comparisons_filter=comparison_filter)
+    data = DataManager._instance.get_genes_intersection_data(id_filter=selected_signatures,disease_filter=selectedDiseases,gene_filter=selected_genes if not all_pathway else [],selected_filter=selected_filter,comparisons_filter=comparison_filter)
     sign_info = data.filter(["gProfiler","id"]).groupby("id").agg(lambda a: a.iloc[0])["gProfiler"].to_dict()
     unique_signatures = data["id"].unique()
     unique_diseases = np.unique([i.split("_")[0] for i in unique_signatures])
@@ -439,12 +467,12 @@ def display_detail_graph(selectedDiseases,selected_signatures,selected_genes,exi
     if(items is None):
         print("redraw")
         return redraw([],{},AR,stylesheet_detail)
-    sizes = items.set_index("gene")
+    # sizes = items.set_index("gene")
     updated = set()
     # update_cur_elements(existing_elements,updated,stylesheet_detail,sizes,updated_elements)
-    symbols = Controller._instance.dm.get_symbol([g.gene for g in items.itertuples() if g.gene not in updated])
-    all_nodes = [{'data':{'id':g.gene,"label":"","weight":size(g.size),"Signatures":g.id,"tooltip_content":[html.H6(symbols[g.gene]),html.A("Ensembl",href=f"https://ensembl.org/Homo_sapiens/Search/Results?q={g.gene};site=ensembl_all;facet_species=Human;facet_feature_type=Gene",target="_blank")]}} for g in items.itertuples()]
-    nodes = [{'data':{'id':g.gene,"label":"","weight":size(g.size),"Signatures":g.id,"tooltip_content":symbols[g.gene]}} for g in items.itertuples() if g.gene not in updated]
+    symbols = DataManager._instance.get_symbol([g.gene for g in items.itertuples() if g.gene not in updated])
+    all_nodes = [{'data':{'id':g.gene,"label":"","weight":size(g.size),"Signatures":g.id,"tooltip_content":[html.H6(symbols[g.gene]),html.A("Ensembl",href=f"https://ensembl.org/Homo_sapiens/Search/Results?q={g.gene};site=ensembl_all;facet_species=Human;facet_feature_type=Gene",target="_blank")]},"grabbable":False} for g in items.itertuples()]
+    # nodes = [{'data':{'id':g.gene,"label":"","weight":size(g.size),"Signatures":g.id,"tooltip_content":symbols[g.gene]}} for g in items.itertuples() if g.gene not in updated]
 
     # edges = [{"data":{"source":k[0],"target":k[1]}} for k,v in intersections.items() ]
 
@@ -455,7 +483,7 @@ def display_detail_graph(selectedDiseases,selected_signatures,selected_genes,exi
     # existing_elements= existing_elements +edges
     # for e in edges:
     #    updated_elements.append(e)
-    all_nodes_and_edges,stylesheet_detail,pathways = add_path_ways(all_nodes,stylesheet_detail,updated_elements,all_pathway,Controller._instance.dm,legend_data)
+    all_nodes_and_edges,stylesheet_detail,pathways = add_path_ways(all_nodes,stylesheet_detail,updated_elements,all_pathway,DataManager._instance,legend_data)
     pos,hull = euler_layout.euler_layout(data,all_nodes_and_edges,data.filter(["EnsemblID","id"]).groupby("EnsemblID").agg(lambda a: len(a))["id"].max())
     exportable_data = get_exportable_data(items, pathways)
 
@@ -464,7 +492,7 @@ def display_detail_graph(selectedDiseases,selected_signatures,selected_genes,exi
     #     print(len(l))
 
 
-    # existing_elements,stylesheet_detail = add_path_ways(existing_elements,stylesheet_detail,updated_elements,Controller._instance.dm)
+    # existing_elements,stylesheet_detail = add_path_ways(existing_elements,stylesheet_detail,updated_elements,DataManager.get_instance())
     tmp_nodes = dict()
     tmp_edges = []
     for n in all_nodes_and_edges:
@@ -510,6 +538,7 @@ def display_detail_graph(selectedDiseases,selected_signatures,selected_genes,exi
                 for field in existing:
                     # updated_elements[i][field]=existing[field]
                     update_elem(updated_elements[i][field],existing[field])
+                updated_elements[i]["selected"]=False
                 del to_append[n["data"]["id"]]
             else:
                 to_del.append(i)
@@ -531,7 +560,16 @@ def display_detail_graph(selectedDiseases,selected_signatures,selected_genes,exi
                     "background-color":multi_sign_gene_color if n["data"]["weight"]>20 else mono_sign_gene_color,
                     "border-color":"black",
                     "border-width":2
-
+                }
+            })
+        else:
+            stylesheet_detail.append({
+                "selector":"node#"+n["data"]["id"],
+                "style":{
+                    "height":n["data"]["weight"],
+                    "width":n["data"]["weight"],
+                    "border-color":"black",
+                    "border-width":2
                 }
             })
     legend_data["genes"]={"genes":mono_sign_gene_color}
@@ -553,7 +591,6 @@ def get_exportable_data(items, pathways):
     for g in items.itertuples():
         signs = g.id
         signs_id = ";".join(signs)
-        print(signs,len(signs))
         if signs_id not in zones:
             zones[signs_id]={"name":f"{signs[0]} only" if len(signs)==1 else f"intersection of {','.join(signs)}","genes":[g.gene]}
         else:

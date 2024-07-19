@@ -1,16 +1,12 @@
-from dash_extensions.enrich import dcc
-import plotly.express as px
+from dash import dcc
 import plotly.graph_objs as go
-import numpy as np
-import pandas as pd
-from dash_extensions.enrich import Dash, html, Input, Output, State, callback
-from collections import defaultdict
 
 def detail_box_plot():
     fig = go.Figure(data=[])
     return [
-        dcc.Graph(figure=fig,id='activation_boxplot',config={"scrollZoom":False,"displayModeBar":False},style={"height":"96%","cursor":"auto"}),
-        dcc.Store(data={'wider_boxplot_border':[]},id="box_plots_to_style"),dcc.Store(data={'stats':[]},id="box_plots_stats"),dcc.Store(data={'draw_stats':True},id="do_box_plots_stats")]
+        dcc.Graph(figure=fig,id='activation_boxplot',config={"scrollZoom":False,"displayModeBar":False},clear_on_unhover=True,style={"height":"96%","cursor":"auto"}),
+        dcc.Store(data={'wider_boxplot_border':[]},id="box_plots_to_style"),dcc.Store(data={'stats':[]},id="box_plots_stats"),dcc.Store(data={'draw_stats':True},id="do_box_plots_stats"),dcc.Store(data={'comparisons':[],"diseases":[]},id="box_categories"),
+    ]
 
 
 def detail_heatmap():

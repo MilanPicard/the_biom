@@ -4,6 +4,8 @@ import pandas as pd
 import numpy as np
 import networkx as nx
 import shapely
+import cProfile,pstats,io
+import impred
 """
 Paolo Simonetto, David Auber, Daniel Archambault. Fully Automatic Visualisation of Overlapping
 Sets. Computer Graphics Forum, 2009, 28 (3), pp.967-974. ￿hal-00407269
@@ -135,7 +137,6 @@ def apply_bertault(g,surrounding_edges,n_iter=20,edge_length=0,fixed_nodes=set()
     # pos = i.layout()
     # import impred_ocotillo
     # impred_ocotillo.impred_ocotillo(g,surrounding_edges,fixed_nodes,gamma=delta,nIter=n_iter,optimalDist=optimalDist,use_bends=bends,flexible_edges=flexible_edges)
-    import impred
     times = [time.perf_counter()]
     
     i = impred.Impred(g,optimalDist,gamma,n_iter,None,surrounding_edges if surrounding_edges is not None else {},fixed_nodes)
@@ -252,6 +253,7 @@ def compute_angle(pos_n,pos_neighbor):
     return a
 def construct_hull(zone,zones,g,grid_graph,adjacent_edges_crossing,grid_nodes):
     nodes = g.nodes()
+    zone_prop = grid_graph.getStringVectorProperty("zones")
     subgraph_nodes = []
     grid_subgraph_nodes = []
     point = None
@@ -259,6 +261,8 @@ def construct_hull(zone,zones,g,grid_graph,adjacent_edges_crossing,grid_nodes):
         if zone in z.split(";"):
             subgraph_nodes.append(nodes[i])
             grid_subgraph_nodes+=grid_nodes[i]
+            for n in grid_nodes[i]:
+                zone_prop[n] = sorted(list(set(zone_prop[n]+z.split(";"))))
             if(zone == z):
                 point=(grid_nodes[i][len(grid_nodes[i])//2])
     if point is None:
@@ -269,7 +273,7 @@ def construct_hull(zone,zones,g,grid_graph,adjacent_edges_crossing,grid_nodes):
     g_subgraph = g.inducedSubGraph(subgraph_nodes,name=zone)
     grid_subgraph = grid_graph.inducedSubGraph(grid_subgraph_nodes,name=f"zone_{zone}")
     vl = grid_subgraph.getStringProperty("viewLabel")
-    vl[point]=zone
+    # vl[point]=zone
  
 
     for e in g_subgraph.edges():
@@ -289,6 +293,7 @@ def construct_regions(g,radius,grid_graph,zones,value_counts):
     alpha= 2*np.pi/3
     vl = g.getLayoutProperty("viewLayout")
     vlab = g.getStringProperty("viewLabel")
+    vlab_grid = grid_graph.getStringProperty("viewLabel")
     vl_grid = grid_graph.getLayoutProperty("viewLayout")
     vl.computeEmbedding()
     positions = []
@@ -317,7 +322,8 @@ def construct_regions(g,radius,grid_graph,zones,value_counts):
         assert sectors[-1]-sectors[0]<=2*np.pi , f"{sectors}"
         sectors.append(np.pi*2+sectors[0])
         angles = []
-        alpha2 = alpha/(np.floor(1+np.log2((1+value_counts[zones[i]])/(1+1))))
+        # alpha2 = alpha/(np.floor(1+np.log2((1+value_counts[zones[i]])/(1+1))))
+        alpha2 = alpha/(np.floor(1+np.log((1+value_counts[zones[i]])/(1+1))/np.log(4)))
         for i in range(len(sectors)-1):
             start = sectors[i]
             end = sectors[i+1]
@@ -336,7 +342,6 @@ def construct_regions(g,radius,grid_graph,zones,value_counts):
                 vl_grid[new_nodes[i][j]]=tlp.Vec3f(pos[j,0],pos[j,1],0.0)
                 # vl[new_nodes3[i][j]]=tlp.Vec3f(pos[j,0],pos[j,1],0.0)
                 # vlab[new_nodes3[i][j]]=str(i)
-        
         for i,e in enumerate(edges):
             if e not in adjacent_edges_crossing:
                 adjacent_edges_crossing[e]={}
@@ -352,6 +357,7 @@ def construct_regions(g,radius,grid_graph,zones,value_counts):
                 # new_nodes4.append(n1)
         for i in range(len(new_nodes2)):
             grid_graph.addEdge(new_nodes2[i],new_nodes2[(i+1)%len(new_nodes2)])
+            vlab_grid[new_nodes2[i]]=vlab[n]
         # for i in range(len(new_nodes4)):
             # g.addEdge(new_nodes4[i],new_nodes4[(i+1)%len(new_nodes4)])
         
@@ -609,20 +615,67 @@ def add_pathways_edges(grid_graph,mapping,all_nodes_and_edges,radius,gene_nodes)
             randomize_pos(grid_graph,n,radius,2*np.pi*i/len(to_randomize))
             # if label_grid[n]=="ENSG00000175899" or label_grid[n]=="ENSG00000183087":
                 # print("rand", label_grid[n],vl[n])
-
-
+def get_next_node(g,n,prev):
+    if prev is None:
+        return next(g.getInOutNodes(n))
+    inout = list(g.getInOutNodes(n))
+    i = inout.index(prev)
+    return inout[(i+1)%len(inout)]
+def get_prev_node(g,n,prev):
+    inout = list(g.getInOutNodes(n))
+    if prev is None:
+        return inout[-1]
+    i = inout.index(prev)
+    return inout[(i-1)%len(inout)]
 def get_hull(zones,grid_graph):
     hulls = {}
     vl = grid_graph.getLayoutProperty('viewLayout')
     for zone in set([z for z2 in zones for z in z2.split(";")]):
         sg = grid_graph.getSubGraph(f"zone_{zone}")
+        tlp.PlanarityTest.planarEmbedding(sg)
         hull = []
         start = sg.nodes()[0]
         vla = sg.getStringProperty("viewLabel")
-        start = vla.getNodesEqualTo(zone).next()
-        for n in sg.dfs(start):
+        start = get_left_most_node(sg)
+        n = start
+        inner = sg.getBooleanProperty("innerface")
+        inner.setAllNodeValue(True)
+        def visit(n):
             p = vl[n]
             hull.append((p.x(),p.y()))
+            inner[n]=False
+        visit(start)
+        n = get_next_node(sg,start,None)
+        prev =start
+        while n!=start:
+            visit(n)
+            n2 = get_next_node(sg,n,prev)
+            prev=n
+            n=n2
+        g2 = grid_graph.inducedSubGraph(sg.nodes())
+        i=0
+        while( inner.getNodesEqualTo(True).hasNext()):
+            innerG = sg.inducedSubGraph(inner)
+            startInner = get_left_most_node(innerG)
+            path = find_path(g2,start,startInner)
+            for n in path : 
+                visit(n)
+            n = get_prev_node(g2,startInner,path[-2])
+            while not (innerG.isElement(n)):
+                n = get_prev_node(g2,startInner,n)
+
+            prev =startInner
+            while n!=startInner:
+                visit(n)
+                n2 = get_prev_node(sg,n,prev)
+                prev=n
+                n=n2
+            path.reverse()
+            for n in path : 
+                visit(n)
+            sg.delSubGraph(innerG)
+            i+=1
+        grid_graph.delSubGraph(g2)
         hulls[zone]=hull
         
 
@@ -698,6 +751,31 @@ def find_tlp_faces(g):
         outers.append(traversed_half_edges[(left_most[i],following)])
     return traversed_half_edges,faces,outers
 
+def find_path(g,src,tgt):
+    vs = g.getBooleanProperty("viewSelection")
+    tlp.selectShortestPaths(g, src, tgt, tlp.OnePath, None, vs)
+    path = [src]
+    vs[src]=False
+    while src !=tgt:
+        for n in g.getInOutNodes(src):
+            if vs[n]:
+                path.append(n)
+                vs[n]=False
+                src = n
+                break
+    return path
+
+def get_left_most_node(g):
+    vl = g.getLayoutProperty("viewLayout")
+    left_most = None
+    left = np.inf
+    for n in g.getNodes():
+        if(vl[n].getX()<left):
+            left_most=n
+            left = vl[n].getX()
+    return left_most
+
+
 def get_surrounding_edges(grid_nodes,traversed_half_edges,faces,gene_nodes,grid_graph,outer_faces_edges,outer_faces):
     vl = grid_graph.getLayoutProperty("viewLayout")
     surrounding_edges={}
@@ -742,14 +820,57 @@ def get_surrounding_edges(grid_nodes,traversed_half_edges,faces,gene_nodes,grid_
     return surrounding_edges
 
 
+def make_surrounding_edges(grid_graph,gene_nodes,zones,grid_nodes):
+    def test_tlp(graph,zone):
+        edges = []
+        def get_prev_node(g,n,prev):
+            inout = list(g.getInOutNodes(n))
+            if prev is None:
+                return inout[-1]
+            i = inout.index(prev)
+            return inout[(i-1)%len(inout)]
+        def find_next_start(g):
+            zone_nodes = g["viewLabel"].getNodesEqualTo(zone)
+            for start in zone_nodes:
 
+                l = g["viewLabel"][start]
+                for n in g.getOutNodes(start):
+                    if l==g["viewLabel"][n]:
+                        return start,n
+        start,n = find_next_start(graph)
 
-    
+        edges.append(graph.existEdge(start,n,tlp.UNDIRECTED))
+        prev = start
+        
+        while n!=start:
+            n2 = get_prev_node(graph,n,prev)
+            edges.append(graph.existEdge(n,n2,tlp.UNDIRECTED))            
+            prev = n
+            n=n2
+        return edges
+    surrounding_edges = {}
+    grid_edges = set()
+    grid_graph["viewLayout"].computeEmbedding()
 
+    for i in range(len(gene_nodes)):
+        zone = zones[i]
 
+        edges = test_tlp(grid_graph,zone)
+        for g in gene_nodes[i]["nodes"]:
+            surrounding_edges[g]=edges
+        grid_edges.update(edges)
+    for z in grid_nodes:
+        for n in z:
+            surrounding_edges[n]=grid_edges
+    return surrounding_edges,grid_edges
 
 
 def euler_layout(data,all_nodes_and_edges,max_gene_size):
+    # pr = cProfile.Profile()
+    # pr.enable()
+
+
+    # times = [time.perf_counter()]
     grouped_data = data.groupby("EnsemblID").agg(lambda x:";".join(sorted(list(set(x)))))
 
     g,zones,value_counts = get_planar_intersection_graph(grouped_data)
@@ -764,6 +885,7 @@ def euler_layout(data,all_nodes_and_edges,max_gene_size):
     #     gamma = delta/2
     #     apply_bertault(g,{n : g.edges() for n in g.nodes()} ,n_iter=30,optimalDist=delta,gamma=gamma,bends=False)
 
+    # times.append(time.perf_counter())
 
     radius = compute_circle_set_radius(g)
     # print("radius", radius,vl.averageEdgeLength())
@@ -777,28 +899,32 @@ def euler_layout(data,all_nodes_and_edges,max_gene_size):
         # radius = compute_circle_set_radius(g)
     # print("radius", radius)
     # tlp.saveGraph(g,"/tmp/not_grid_graph0.tlpb.gz")
+    # times.append(time.perf_counter())
     grid_graph = tlp.newGraph()
     grid_nodes = construct_regions(g,radius,grid_graph,zones,value_counts)
     # tlp.saveGraph(grid_graph,"/tmp/regions.tlpb.gz")
 
-    traversed_half_edges,faces,outer_faces = find_tlp_faces(grid_graph)
-    outer_face_edges = [grid_graph.existEdge(faces[outer_faces[j]][i],faces[outer_faces[j]][(i+1)],False) for j in range(len(outer_faces)) for i in range(len(faces[outer_faces[j]])-1)]
+    # traversed_half_edges,faces,outer_faces = find_tlp_faces(grid_graph)
+    # outer_face_edges = [grid_graph.existEdge(faces[outer_faces[j]][i],faces[outer_faces[j]][(i+1)],False) for j in range(len(outer_faces)) for i in range(len(faces[outer_faces[j]])-1)]
 
     vlgrid = grid_graph.getLayoutProperty("viewLayout")
     # print("a",vlgrid.averageEdgeLength(),tlp.computeBoundingBox(grid_graph))
     # apply_bertault(grid_graph)
     # tlp.saveGraph(grid_graph,"/tmp/grid_graph1.tlpb.gz")
+    # times.append(time.perf_counter())
 
     avg = add_pathways(g,all_nodes_and_edges,zones,grouped_data)
     # print("b",vl.averageEdgeLength())
     # tlp.saveGraph(g,"/tmp/not_grid_graph1.tlpb.gz")
-    spring_layout(g,avg,w=1,k=avg)
+    # times.append(time.perf_counter())
+    # spring_layout(g,avg,w=1,k=avg)
     # print("c",vl.averageEdgeLength())
     # tlp.saveGraph(g,"/tmp/not_grid_graph2.tlpb.gz")
     fixed = grid_graph.getBooleanProperty("fixed")
     fixed.setValueToGraphNodes(True,grid_graph)
     fixed.setNodeDefaultValue(False)
     grid_size=grid_graph.numberOfNodes()
+    # times.append(time.perf_counter())
     
     mapping = add_laidout_pathways(g,grid_graph,{})
     pathway_nodes = set(mapping.values())
@@ -806,9 +932,14 @@ def euler_layout(data,all_nodes_and_edges,max_gene_size):
     # tlp.saveGraph(grid_graph,"/tmp/grid_graph2.tlpb.gz")
     fixed.setNodeDefaultValue(True)
     # print("dlghdlfgdklfgn" ,grid_graph.numberOfNodes())
+    # times.append(time.perf_counter())
     mapping,gene_nodes = insert_elements(g,grid_graph,radius/10,zones,grouped_data,mapping)
+    # times.append(time.perf_counter())
+    surrounding_edges,grid_edges =  make_surrounding_edges(grid_graph,gene_nodes,zones,grid_nodes)
+    # times.append(time.perf_counter())
+
     # print("dlghdlfgdklfgn" ,grid_graph.numberOfNodes())
-    surrounding_edges = get_surrounding_edges(grid_nodes,traversed_half_edges,faces,gene_nodes,grid_graph,outer_face_edges,outer_faces)
+    # surrounding_edges = get_surrounding_edges(grid_nodes,traversed_half_edges,faces,gene_nodes,grid_graph,outer_face_edges,outer_faces)
     # print("e",vlgrid.averageEdgeLength())
     # tlp.saveGraph(grid_graph,"/tmp/grid_graph3.tlpb.gz")
 
@@ -840,20 +971,23 @@ def euler_layout(data,all_nodes_and_edges,max_gene_size):
     #     print(vlgrid[only_grid.nodes()[98]],vlgrid[only_grid.nodes()[100]])
     #     print(vla[only_grid.nodes()[98]],vla[only_grid.nodes()[100]])
     vlgrid.center(tlp.computeBoundingRadius(only_grid)[0],grid_graph)
-    outer_face = grid_graph.getBooleanProperty("outerface")
-    outer_face.setAllNodeValue(False)
-    outer_face.setAllEdgeValue(False)
-    for e in outer_face_edges:
-        outer_face[e]=True
-        outer_face[grid_graph.source(e)]=True
-        outer_face[grid_graph.target(e)]=True
+    # outer_face = grid_graph.getBooleanProperty("outerface")
+    # outer_face.setAllNodeValue(False)
+    # outer_face.setAllEdgeValue(False)
+    # for e in outer_face_edges:
+    #     outer_face[e]=True
+    #     outer_face[grid_graph.source(e)]=True
+    #     outer_face[grid_graph.target(e)]=True
     # tlp.saveGraph(grid_graph,"/tmp/grid_graph6.tlpb.gz")
+    # times.append(time.perf_counter())
     apply_bertault(only_grid,surrounding_edges,n_iter=25,gamma=avg_only_grid/2,optimalDist=avg_only_grid,bends=False,flexible_edges=False,fixed_nodes=pathway_nodes,debug=True)
+    # times.append(time.perf_counter())
     # tlp.saveGraph(grid_graph,"/tmp/grid_graph7.tlpb.gz")
     # apply_bertault(grid_graph,surrounding_edges,n_iter=5,gamma=avg_only_grid/8,optimalDist=avg_only_grid,bends=False,flexible_edges=False,fixed_nodes=set(grid_graph.nodes()).difference(mapping.values()))
     # tlp.saveGraph(grid_graph,"/tmp/grid_graph4.tlpb.gz")
     for n in pathway_nodes:
-        surrounding_edges[n]=outer_face_edges
+        # surrounding_edges[n]=outer_face_edges
+        surrounding_edges[n]=grid_edges
         # edges = set()
         # for n2 in grid_graph.getInOutNodes(n):
         #     edges.update(surrounding_edges[n2])
@@ -863,6 +997,7 @@ def euler_layout(data,all_nodes_and_edges,max_gene_size):
     # print(avg_only_grid,vlgrid.averageEdgeLength(only_grid))
     vlgrid.center(grid_graph)
     apply_bertault(grid_graph,surrounding_edges,n_iter=20,fixed_nodes = set([n for n in grid_graph.nodes() if n not in pathway_nodes]),gamma=avg_only_grid*2,optimalDist=avg_only_grid*2,bends=False,flexible_edges=False,debug=False)
+    # times.append(time.perf_counter())
     # apply_bertault(grid_graph)
     # tlp.saveGraph(grid_graph,"/tmp/grid_graph6.tlpb.gz")
     avg = vlgrid.averageEdgeLength()
@@ -899,8 +1034,20 @@ def euler_layout(data,all_nodes_and_edges,max_gene_size):
             p = vl[mapping[n["data"]["id"]]]
             pos[n["data"]["id"]]=(p.x(),p.y())
             n["position"]={'x':p.x(),'y':p.y()}
+    # times.append(time.perf_counter())
 
     hull  = get_hull(zones,grid_graph)
+    # times.append(time.perf_counter())
+    # times = np.array(times)
+    # np.set_printoptions(linewidth=750)
+    # print(times[1:]-times[:-1])
+    # print((times[1:]-times[:-1])/(times[-1]-times[0]))
+    # pr.disable()
+    # s = io.StringIO()
+    # sortby = pstats.SortKey.CUMULATIVE
+    # ps = pstats.Stats(pr, stream=s).sort_stats(sortby)
+    # ps.print_stats(10)
+    # print(s.getvalue())
     return pos,hull
 
 

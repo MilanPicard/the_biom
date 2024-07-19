@@ -1,6 +1,7 @@
 import dash_cytoscape as cyto
 import pandas as pd
-from dash_extensions.enrich import html
+from dash import html
+# from dash_extensions.enrich import html
 class Edge:
     def __init__(self,source_id,target_id):
         self.source_id = source_id
@@ -90,7 +91,7 @@ def get_elements(dm,**dm_kwargs):
             fake_edges.append({"data":{"source":l[i],"target":c,"fake":True,"type":"fake"},"group":"edges","style":{"width":0}})
     return [{'data':{"id":i["id"],"label":"\n".join(i["id"].split("_")),"Cancer":i["Cancer"],"Comparison":i["Comparison"],"Filter":i["Filter"],"Signature":i["Signature"],"tooltip_content":[
         html.H6(i["id"]),
-        html.Button("Copy genes to clipboard",id={"type":"signature_clipboard","sign":i["id"]} ,value=";".join(i["Signature"])),
+        html.Button("Copy genes to clipboard",id={"type":"signature_clipboard","sign":i["id"]} ,value=";".join(i["Signature"]),className="btn btn-info"),
         html.Br(),
         html.A("gProfiler",href=i["gProfiler"],target="_blank")
 
@@ -110,7 +111,7 @@ def get_default_stylesheet(dm,color_by_diseases=True):
     cm = dm.get_disease_cmap()# if color_by_diseases else dm.get_stage_cmap()
     
     s= [
-        {"selector":"node","style":{"label":"data(label)","text-wrap":"wrap","background-opacity":0.25}},
+        {"selector":"node","style":{"label":"data(label)","text-wrap":"wrap","background-opacity":0.25,"width":50,"height":50,}},
         {"selector":"node.highlight","style":{"background-opacity":1}},
         {"selector":"node.half_highlight","style":{"background-opacity":0.5}},
         {"selector":"edge","style":{"line-opacity":0.5}},
