@@ -130,3 +130,11 @@ div:has(> .legend_canvas){
     position: absolute;
     z-index: 0;
 }
+
+#activation_boxplot svg g.layer-above g.shapelayer > g{
+    opacity: 0;
+}
+
+#activation_boxplot svg g.layer-above g.shapelayer > g.hovered{
+    opacity: 1;
+}

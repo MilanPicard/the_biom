@@ -14,12 +14,13 @@ import pandas as pd
 import plotly.express as px
 import plotly
 import plotly.subplots
+import detail_box_plot
 import overview as ov
 import detail_graph
 import utils
 import stats
 from  data_manager import DataManager
-# import cProfile,pstats,io
+import cProfile,pstats,io
 class Controller(object):
     _instance = None
     def __new__(cls,dm):
@@ -428,11 +429,16 @@ class Controller(object):
             stylesheets =overview_stylesheets if overview_stylesheets is not None else ov.get_default_stylesheet(DataManager.get_instance())
             stylesheets = [s for s in stylesheets if not(s["selector"].startswith("edge#"))]
             if(len(items)>0):
-                diseases,comparisons,signatures,genes_set =get_detail_subset(disease_filter, comparisons, overview_selected, menu_selected)
-                selected_patient_and_genes = DataManager.get_instance().get_activations(items,diseases if len(selected_boxcategories["diseases"])==0 else selected_boxcategories["diseases"],selected_boxcategories["comparisons"]).sort_values(["box_category"])
+                diseases_detail,comparisons,signatures,genes_set =get_detail_subset(disease_filter, comparisons, overview_selected, menu_selected)
                 box_categories_tohighlight =dict({i:set() for i in items})
-                gene_inter = DataManager.get_instance().get_genes_intersections(diseases,comparisons,signatures,genes_set,selected_filter)[1]
-                
+                gene_inter = DataManager.get_instance().get_genes_intersections(diseases_detail,comparisons,signatures,genes_set,selected_filter)[1]
+                diseases = menu_selected_diseases.split(";")
+                if overview_selected is not None:
+                    overview_selected = overview_selected.split(";")
+                    diseases = diseases + list(set([i.split("_")[0] for i in overview_selected]))
+
+                selected_patient_and_genes = DataManager.get_instance().get_activations(items,diseases if len(selected_boxcategories["diseases"])==0 else selected_boxcategories["diseases"],selected_boxcategories["comparisons"]).sort_values(["box_category"])
+                diseases_detail =set()
                 if gene_inter is not None:
                     gene_inter = gene_inter.set_index("gene")["id"].to_dict()
                     for i in items:
@@ -441,6 +447,7 @@ class Controller(object):
                         for s in signature_to_highlight:
                             s = s.split("_")
                             d = s[0]
+                            diseases_detail.add(d)
                             for stage in s[1].split("vs"):
                                 box_categories_tohighlight[i].add(f"{d}_{stage}")
                 box_categories = sorted(pd.unique(selected_patient_and_genes["box_category"]).tolist())
@@ -472,30 +479,83 @@ class Controller(object):
                     df = selected_patient_and_genes.filter(("box_category",symbols[i],"Cancer"))
                     df = df.rename({symbols[i]:"expression"},axis=1)
                     df["gene"] = symbols[i]
+                    df["gene_id"] = items[i]
                     dfs.append(df)
                 df = pd.concat(dfs)
                 box = px.box(df,x="box_category",y="expression",color="Cancer",facet_row="gene",color_discrete_map=disease_cmp,labels={"box_category":"","expression":"expression (log2(TPM+1))","LUAD":"a"})
                 box = plotly.subplots.make_subplots(rows=len(items),cols=1,shared_xaxes=True,shared_yaxes=True,row_titles=symbols)
+                added_to_legend = set()
+                curve_numbers = {}
+                curve_number = 0
                 for i in range(len(items)):
-                    df = selected_patient_and_genes.filter(("box_category",symbols[i],"Cancer"))
-                    df = df.rename({symbols[i]:"expression"},axis=1)
-                    df["gene"] = symbols[i]
+                    df =dfs[i]
                     is_highlighted = df["box_category"].isin(box_categories_tohighlight[items[i]])
 
                     for c in diseases:
-                        trace = go.Box(y=df[is_highlighted].loc[df[is_highlighted]["Cancer"]==c]["expression"],x=df[is_highlighted].loc[df[is_highlighted]["Cancer"]==c]["box_category"],name=c,showlegend =i==0,legendgroup=c,fillcolor=re.sub(r"rgb\(([0-9]+,[0-9]+,[0-9]+)\)",r"rgba(\1,64)",disease_cmp[c]))
-                        trace.line={'color':"black"}
-                        box.add_trace(trace,row=i+1,col=1)
-                        trace = go.Box(y=df[~is_highlighted].loc[df[~is_highlighted]["Cancer"]==c]["expression"],x=df[~is_highlighted].loc[df[~is_highlighted]["Cancer"]==c]["box_category"],name=c,showlegend =i==0,legendgroup=c)
-                        trace.line={'color':disease_cmp[c]}
-                        box.add_trace(trace,row=i+1,col=1)
+                        h = df[is_highlighted].loc[df[is_highlighted]["Cancer"]==c]
+                        displayed_hightlighted = not h.empty
+                        if displayed_hightlighted:
+                            for t in detail_box_plot.make_box_plot(h,c,c not in added_to_legend,disease_cmp,True):
+                                box.add_trace(t,row=i+1,col=1)
+                            added_to_legend.add(c)
+                            curve_numbers[curve_number]=items[i]
+                            curve_number+=1
+                        h = df[~is_highlighted].loc[df[~is_highlighted]["Cancer"]==c]
+                        if not h.empty:
+                            show_legend = c not in diseases_detail and c not in added_to_legend
+                            for t in detail_box_plot.make_box_plot(h,c,show_legend,disease_cmp,False):
+                                box.add_trace(t,row=i+1,col=1)
+                            if show_legend:
+                                added_to_legend.add(c)
+                            curve_numbers[curve_number]=items[i]
+                            curve_number+=1
+
 
                 # box = go.Figure(traces)
                 for axis in box.select_yaxes(col=1):
                     axis.update(title={"text":"expression (log2(TPM+1))"})
+                for axis in box.select_xaxes(col=1):
+                    axis.update(categoryorder="array",categoryarray=box_categories)
                 if(box.layout.margin.t is not None and box.layout.margin.t>20):
                     box.layout.margin.t=20
-                return box ,"visible_plot",stylesheets,{"categories":box_categories,"genes":items},{"stats":stats.ttest(dfs,[0.1,0.05,0.01])}
+
+                stats_data = stats.ttest(dfs,[0.1,0.05,0.01])
+                offsets = {}
+                data_indices={}
+                data_index=0
+                height = 10
+                inner_height = 8
+                for s in stats_data:
+                    g1,bid1,g2,bid2,l = s
+                    offset1 = height*offsets.get(f"{g1}_{bid1}",0)
+                    offset2 = height*offsets.get(f"{g1}_{bid2}",0)
+                    offsets[f"{g1}_{bid1}"]=offsets.get(f"{g1}_{bid1}",0)+1
+                    offsets[f"{g1}_{bid2}"]=offsets.get(f"{g1}_{bid2}",0)+1
+                    x1 = box_categories.index(bid1)
+                    x2 = box_categories.index(bid2)
+                    y1 = 0+offset1#2
+                    y2 = y1+inner_height
+                    box.add_shape(go.layout.Shape(
+                        label=go.layout.shape.Label(text=l,textposition="bottom center"),layer="above",path=f"M{x1},{y1}V{y2}H{x2}V{y1}",type="path",xref="x",xsizemode="scaled",ysizemode="pixel",yanchor=1,yref="y domain",showlegend=False
+                    ),row=1+items.index(g1),col=1)
+                    if f"{g1}_{bid1}" not in data_indices:
+                        data_indices[f"{g1}_{bid1}"]=[data_index]
+                    else:
+                        data_indices[f"{g1}_{bid1}"].append(data_index)
+                    data_index+=1
+                    y1 = 0+offset2
+                    y2 = y1+inner_height
+                    shape = go.layout.Shape(
+                        label=go.layout.shape.Label(text=l,textposition="bottom center"),layer="above",path=f"M{x1},{y1}V{y2}H{x2}V{y1}",type="path",xref="x",xsizemode="scaled",ysizemode="pixel",yanchor=1,yref="y domain",showlegend=False
+                    )
+                    shape.name=f"{bid1}_{bid2}"
+                    box.add_shape(shape,row=1+items.index(g1),col=1)
+                    if f"{g1}_{bid2}" not in data_indices:
+                        data_indices[f"{g1}_{bid2}"]=[data_index]
+                    else:
+                        data_indices[f"{g1}_{bid2}"].append(data_index)
+                    data_index+=1
+                return box ,"visible_plot",stylesheets,{"categories":box_categories,"genes":items},{"stats":{"curve_numbers":curve_numbers,"data_indices":data_indices}}
                 
             else:
                 return go.Figure(data=[
@@ -947,18 +1007,18 @@ class Controller(object):
 
         # )
 
-        # clientside_callback( ClientsideFunction(
-        #         namespace='clientside',
-        #         function_name='on_box_plot_click'
-        #     ),
-        #         Output("title","id",allow_duplicate=True),
-        #             Input("activation_boxplot","hoverData"),
-        #             Input("activation_boxplot","restyleData"),
-        #     Input("activation_boxplot","figure"),
-        #     State("box_plots_stats","data"),
-        #                 prevent_initial_call=True,allow_duplicate=True
+        clientside_callback( ClientsideFunction(
+                namespace='clientside',
+                function_name='on_box_plot_click'
+            ),
+                Output("title","id",allow_duplicate=True),
+                    Input("activation_boxplot","hoverData"),
+                    Input("activation_boxplot","restyleData"),
+            Input("activation_boxplot","figure"),
+            State("box_plots_stats","data"),
+                        prevent_initial_call=True,allow_duplicate=True
 
-        # )
+        )
         clientside_callback( ClientsideFunction(
                 namespace='clientside',
                 function_name='display_legend'

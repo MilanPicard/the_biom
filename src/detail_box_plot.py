@@ -1,6 +1,7 @@
+import re
 from dash import dcc
 import plotly.graph_objs as go
-
+import pandas as pd
 def detail_box_plot():
     fig = go.Figure(data=[])
     return [
@@ -8,6 +9,13 @@ def detail_box_plot():
         dcc.Store(data={'wider_boxplot_border':[]},id="box_plots_to_style"),dcc.Store(data={'stats':[]},id="box_plots_stats"),dcc.Store(data={'draw_stats':True},id="do_box_plots_stats"),dcc.Store(data={'comparisons':[],"diseases":[]},id="box_categories"),
     ]
 
+def make_box_plot(h,c,show_legend,disease_cmp,highlight):
+    fill_color = re.sub(r"rgb\(([0-9]+,[0-9]+,[0-9]+)\)",r"rgba(\1,64)",disease_cmp[c]) if highlight else None
+    line_color = disease_cmp[c] if not highlight else "black"
+
+    trace = go.Box(y=h["expression"],x=h["box_category"],name=c,showlegend =show_legend,legendgroup=c,fillcolor=fill_color)
+    trace.line={'color':line_color}
+    return [trace]
 
 def detail_heatmap():
     fig = go.Figure(data=[])
