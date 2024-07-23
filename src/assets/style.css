@@ -132,9 +132,13 @@ div:has(> .legend_canvas){
 }
 
 #activation_boxplot svg g.layer-above g.shapelayer > g{
-    opacity: 0;
+    opacity: 1;
 }
 
-#activation_boxplot svg g.layer-above g.shapelayer > g.hovered{
+/* #activation_boxplot svg g.layer-above g.shapelayer > g.hovered{
     opacity: 1;
+} */
+
+#activation_boxplot svg.main-svg g.cartesianlayer > g.subplot.masked{
+    opacity:0.2;
 }

@@ -454,16 +454,19 @@ async function draw_offscreen(graph_id,filename,legend_canvas){
 
 }
 function on_box_plot_click(clickData,relayoutData,figure,stats_data){
+    const plot = document.querySelector("#activation_boxplot div.js-plotly-plot");
 
     if(clickData!=undefined && Object.hasOwn(clickData,"points") && clickData.points.length>0){
-        document.querySelectorAll("#activation_boxplot svg g.layer-above g.shapelayer > g.hovered").forEach(n => n.classList.remove("hovered"));
+        document.querySelectorAll("#activation_boxplot svg.main-svg g.cartesianlayer g.subplot").forEach(n => n.classList.add("masked"));
+
         var traceIndex = clickData.points[0].curveNumber;
         var x = clickData.points[0].x;
         data_indices = stats_data["stats"]["data_indices"][stats_data["stats"]["curve_numbers"][traceIndex]+"_"+x];
-        console.log("on_box_plot_click",clickData,stats_data,data_indices);
-        data_indices.forEach(index => {
-            document.querySelector('#activation_boxplot svg g.layer-above g.shapelayer > g[data-index="'+index+'"]').classList.add("hovered");
-        });
+        const y_axis = stats_data["stats"]["shapes"][data_indices[0]].yref.split(" ")[0];
+        let subplot_class = y_axis.replace("y","x")+ y_axis;
+        console.log(subplot_class,"#activation_boxplot svg.main-svg g.cartesianlayer g.subplot."+subplot_class);
+        document.querySelector("#activation_boxplot svg.main-svg g.cartesianlayer g.subplot."+subplot_class).classList.remove("masked");
+        Plotly.relayout(plot,Object.assign({},plot.layout,{"shapes":data_indices.map(i => stats_data["stats"]["shapes"][i])}));
     //     let legendGroup = document.querySelector("#activation_boxplot svg.main-svg g.legend g.scrollbox g.groups:nth-of-type("+(traceIndex+1)+")");
     //     let traceName = legendGroup.__data__[0][0].trace.name;
     //     let filtered_stats_data = [];
@@ -475,7 +478,8 @@ function on_box_plot_click(clickData,relayoutData,figure,stats_data){
     //     box_plots_stats(relayoutData,figure,{"stats":filtered_stats_data});
     //     console.log(traceIndex,x,traceName,filtered_stats_data);
     }else{
-        document.querySelectorAll("#activation_boxplot svg g.layer-above g.shapelayer > g.hovered").forEach(n => n.classList.remove("hovered"));
+        document.querySelectorAll("#activation_boxplot svg.main-svg g.cartesianlayer g.subplot.masked").forEach(n => n.classList.remove("masked"));
+        Plotly.relayout(plot,Object.assign({},plot.layout,{"shapes":[]}));
 
     //     box_plots_stats(relayoutData,figure,{"stats":[]});
 

@@ -482,7 +482,7 @@ class Controller(object):
                     df["gene_id"] = items[i]
                     dfs.append(df)
                 df = pd.concat(dfs)
-                box = px.box(df,x="box_category",y="expression",color="Cancer",facet_row="gene",color_discrete_map=disease_cmp,labels={"box_category":"","expression":"expression (log2(TPM+1))","LUAD":"a"})
+                # box = px.box(df,x="box_category",y="expression",color="Cancer",facet_row="gene",color_discrete_map=disease_cmp,labels={"box_category":"","expression":"expression (log2(TPM+1))","LUAD":"a"})
                 box = plotly.subplots.make_subplots(rows=len(items),cols=1,shared_xaxes=True,shared_yaxes=True,row_titles=symbols)
                 added_to_legend = set()
                 curve_numbers = {}
@@ -512,19 +512,19 @@ class Controller(object):
 
 
                 # box = go.Figure(traces)
-                for axis in box.select_yaxes(col=1):
+                for axis in box.select_yaxes(col=1,row=1):
                     axis.update(title={"text":"expression (log2(TPM+1))"})
                 for axis in box.select_xaxes(col=1):
                     axis.update(categoryorder="array",categoryarray=box_categories)
-                if(box.layout.margin.t is not None and box.layout.margin.t>20):
-                    box.layout.margin.t=20
 
                 stats_data = stats.ttest(dfs,[0.1,0.05,0.01])
                 offsets = {}
                 data_indices={}
                 data_index=0
-                height = 10
-                inner_height = 8
+                height = 7
+                inner_height = height-3
+                shapes = []
+                margin_top = 20
                 for s in stats_data:
                     g1,bid1,g2,bid2,l = s
                     offset1 = height*offsets.get(f"{g1}_{bid1}",0)
@@ -535,9 +535,15 @@ class Controller(object):
                     x2 = box_categories.index(bid2)
                     y1 = 0+offset1#2
                     y2 = y1+inner_height
-                    box.add_shape(go.layout.Shape(
-                        label=go.layout.shape.Label(text=l,textposition="bottom center"),layer="above",path=f"M{x1},{y1}V{y2}H{x2}V{y1}",type="path",xref="x",xsizemode="scaled",ysizemode="pixel",yanchor=1,yref="y domain",showlegend=False
-                    ),row=1+items.index(g1),col=1)
+                    row = 1+items.index(g1)
+                    if row ==1 and margin_top<y2: 
+                        margin_top=y2
+                    yref = f"y{row} domain" if row>1 else "y domain" 
+                    label_position = "bottom center"
+                    shape = go.layout.Shape(
+                        label=go.layout.shape.Label(text=l,textposition=label_position,yanchor="middle",font={"size":10}),layer="above",path=f"M{x1},{y1}V{y2}H{x2}V{y1}",type="path",xref="x",xsizemode="scaled",ysizemode="pixel",yanchor=1,yref=yref,showlegend=False
+                    )
+                    shapes.append(shape)
                     if f"{g1}_{bid1}" not in data_indices:
                         data_indices[f"{g1}_{bid1}"]=[data_index]
                     else:
@@ -546,16 +552,25 @@ class Controller(object):
                     y1 = 0+offset2
                     y2 = y1+inner_height
                     shape = go.layout.Shape(
-                        label=go.layout.shape.Label(text=l,textposition="bottom center"),layer="above",path=f"M{x1},{y1}V{y2}H{x2}V{y1}",type="path",xref="x",xsizemode="scaled",ysizemode="pixel",yanchor=1,yref="y domain",showlegend=False
+                        label=go.layout.shape.Label(text=l,textposition=label_position,yanchor="middle",font={"size":10}),layer="above",path=f"M{x1},{y1}V{y2}H{x2}V{y1}",type="path",xref="x",xsizemode="scaled",ysizemode="pixel",yanchor=1,yref=yref,showlegend=False
                     )
                     shape.name=f"{bid1}_{bid2}"
-                    box.add_shape(shape,row=1+items.index(g1),col=1)
+                    shapes.append(shape)
                     if f"{g1}_{bid2}" not in data_indices:
                         data_indices[f"{g1}_{bid2}"]=[data_index]
                     else:
                         data_indices[f"{g1}_{bid2}"].append(data_index)
                     data_index+=1
-                return box ,"visible_plot",stylesheets,{"categories":box_categories,"genes":items},{"stats":{"curve_numbers":curve_numbers,"data_indices":data_indices}}
+                # for label_position in ["top center","middle center","bottom center"]:
+                #     for anchor in ["top","middle","bottom"]:
+                #         shapes.append(go.layout.Shape(
+                #             label=go.layout.shape.Label(text=f"*** {label_position} {anchor}",textposition=label_position,yanchor=anchor),layer="above",path=f"M{x1},{y1}V{y2}H{x2}V{y1}",type="path",xref="x",xsizemode="scaled",ysizemode="pixel",yanchor=1,yref=yref,showlegend=False
+                #         ))
+                # if(box.layout.margin.t is not None and box.layout.margin.t>20):
+                    # box.layout.margin.t=20
+                box.layout.margin.t = margin_top+5
+                box.layout.minreducedheight=len(items)*200
+                return box ,"visible_plot",stylesheets,{"categories":box_categories,"genes":items},{"stats":{"curve_numbers":curve_numbers,"data_indices":data_indices,"shapes":shapes}}
                 
             else:
                 return go.Figure(data=[
