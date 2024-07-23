@@ -139,6 +139,12 @@ class DataManager(object):
                     else:
                         intersections[(genes[src],genes[tgt])]= [item.EnsemblID]
         return intersections,self.signatures[self.signatures["Filter"]==selected_filter].to_dict('records'),pathways_edges
+    def get_disease_comp_from_genes(self,gene_filter=[],selected_filter="Merge"):
+        exploded = self.exploded[self.exploded["Filter"]==selected_filter]
+        id_filter = exploded[exploded["EnsemblID"].isin(gene_filter)]["id"].unique().tolist()
+        exploded = exploded[exploded["id"].isin(id_filter)]
+        return exploded["Cancer"].unique(),exploded["Comparison"].unique()
+
     def get_genes_intersections(self,disease_filter=[],comparisons_filter=[],id_filter=[],gene_filter=[],selected_filter="Merge"):
         exploded = self.exploded[self.exploded["Filter"]==selected_filter]
 

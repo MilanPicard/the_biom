@@ -59,7 +59,6 @@ class Controller(object):
                         raise dash.exceptions.PreventUpdate()
                 case "detail_graph":
                     
-                    print("fromGraph",fromGraph,multip_tap,ctx.triggered_prop_ids)
                     if("detail_graph.tapNodeData" in ctx.triggered_prop_ids):
                         gene = multip_tap
                         if (not "is_pathways" in gene or not gene["is_pathways"]) and  gene["id"] not in current["selected"]:
@@ -119,7 +118,6 @@ class Controller(object):
             prevent_initial_call=False
         )
         def update_pathways_buttons(store_data,cur_children):
-            print(store_data)
             return update_button(store_data["from_pathways"]["ids"], cur_children,attr="pathway",get_symbol=DataManager.get_instance().get_pathway_label) 
         def update_button(store_data, cur_children,attr,get_symbol):
             patched = Patch()
@@ -171,6 +169,7 @@ class Controller(object):
                 Input("overview_graph","selectedNodeData"),
                 Input("detail_graph","selectedNodeData"),
                 Input("selected_genes_store","data"),
+                Input('data_overview_selected','value'),
                 State("filters_dropdown","value"),
                 State("overview_graph","elements")
                 )
@@ -179,28 +178,29 @@ class Controller(object):
                             selectedSign,
                             selected_detail_gene,
                             selected_genes_store,
+                            data_overview_selected,
                             selected_filter,
                             cur_elems):
             overview_graph_layout = dash.no_update
             if any(["Filter" in c["data"] and c["data"]["Filter"]!=selected_filter for c in cur_elems]):
                 cur_elems = ov.get_elements(DataManager.get_instance(),selected_filter=selected_filter)
                 overview_graph_layout = {"rerun":True}
-                print(cur_elems)
             else:
-                genes = set(selected_genes_store["selected"])
-                for p in selected_genes_store["from_pathways"]["genes"]:
-                    genes.update(p)
+                diseases,comparisons_filter,signs,genes =get_detail_subset(diseases, comparisons_filter, data_overview_selected, selected_genes_store,selected_filter)
+
+                # genes = set(selected_genes_store["selected"])
+                # for p in selected_genes_store["from_pathways"]["genes"]:
+                    # genes.update(p)
 
                 classes = ["highlight","half_highlight"]
-                
-                signs = set([i["id"] for i in selectedSign]) if selectedSign is not None else set()
+                genes=set(genes)
+                # signs = set([i["id"] for i in selectedSign]) if selectedSign is not None else set()
                 # if selectedSign is not None:
                 #     for i in selectedSign:
                 #         if i["Cancer"] not in diseases:
                 #             diseases.append(i["Cancer"])
                 #         if i["Comparison"] not in comparisons_filter:
                 #             comparisons_filter.append(i["Comparison"])
-                print(signs,diseases,comparisons_filter)
                 for i in cur_elems:
                     if "fake" in i["data"] and i["data"]["fake"]:
                         continue               
@@ -258,35 +258,35 @@ class Controller(object):
             if data is None:
                 return ""
             return ";".join(data)
-        @callback(Output('disease_filter','value'),
-                Input("selected_genes_store","data"),
-                State("disease_filter","value"),
-                    prevent_initial_call=True
-                )
-        def update_menu_disease_filter_data(genes,current):
-            genes_set = set(genes["selected"])
-            for p in genes["from_pathways"]["genes"]:
-                genes_set.update(p)
-            genes_diseases= DataManager.get_instance().get_diseases_from_genes(genes_set)
-            for d in genes_diseases:
-                if d not in current:
-                    current.append(d)
-            return current
-        @callback(
-                Output('comparisons_filter','value'),
-                Input("selected_genes_store","data"),
-                State('comparisons_filter','value'),
-                    prevent_initial_call=True
-                )
-        def update_menu_comparison_filter_data(genes,cur_state):
-            genes_set = set(genes["selected"])
-            for p in genes["from_pathways"]["genes"]:
-                genes_set.update(p)
-            if len(genes_set)>0:
-                for c in  DataManager.get_instance().get_comparisons_from_genes(genes_set):
-                    if c not in cur_state:
-                        cur_state.append(c)
-            return cur_state
+        # @callback(Output('disease_filter','value'),
+        #         Input("selected_genes_store","data"),
+        #         State("disease_filter","value"),
+        #             prevent_initial_call=True
+        #         )
+        # def update_menu_disease_filter_data(genes,current):
+        #     genes_set = set(genes["selected"])
+        #     for p in genes["from_pathways"]["genes"]:
+        #         genes_set.update(p)
+        #     genes_diseases= DataManager.get_instance().get_diseases_from_genes(genes_set)
+        #     for d in genes_diseases:
+        #         if d not in current:
+        #             current.append(d)
+        #     return current
+        # @callback(
+        #         Output('comparisons_filter','value'),
+        #         Input("selected_genes_store","data"),
+        #         State('comparisons_filter','value'),
+        #             prevent_initial_call=True
+        #         )
+        # def update_menu_comparison_filter_data(genes,cur_state):
+        #     genes_set = set(genes["selected"])
+        #     for p in genes["from_pathways"]["genes"]:
+        #         genes_set.update(p)
+        #     if len(genes_set)>0:
+        #         for c in  DataManager.get_instance().get_comparisons_from_genes(genes_set):
+        #             if c not in cur_state:
+        #                 cur_state.append(c)
+        #     return cur_state
 
         @callback(Output('detail_graph','elements'),
                 Output('detail_graph','stylesheet'),
@@ -320,16 +320,16 @@ class Controller(object):
                     raise dash.exceptions.PreventUpdate()
                 else:
                     return detail_graph.redraw(existing_elements,detail_pos_store,1 if fake_graph_size is None or "AR" not in fake_graph_size else fake_graph_size["AR"],current_stylesheets)
-            if(all([len(diseases)==0 or len(comparisons)==0 ,signatures is None or signatures ==""])):
-                return [],[],{"name":"preset"},{},dash.no_update,dash.no_update
+            if(all([(len(diseases)==0 or len(comparisons)==0 )and (len(menu_genes["selected"])+len(menu_genes["from_pathways"]["ids"]))==0,signatures is None or signatures ==""])):
+                return [],[],{"name":"preset"},{},dash.no_update,dash.no_update            
+            diseases, comparisons, signatures, genes_set = get_detail_subset(diseases, comparisons, signatures, menu_genes,selected_filter)
             if len(diseases)!=0 or len(signatures)!=0:
-                diseases, comparisons, signatures, genes_set = get_detail_subset(diseases, comparisons, signatures, menu_genes)
                 r = detail_graph.display_detail_graph(diseases,signatures,genes_set,existing_elements,detail_pos_store if detail_pos_store is not None else dict(),1 if fake_graph_size is None or "AR" not in fake_graph_size else fake_graph_size["AR"],selected_filter,comparisons)
                 return r
             else:
                 return existing_elements,[],{"name":"preset"},{},dash.no_update,dash.no_update
 
-        def get_detail_subset(diseases, comparisons, signatures, menu_genes):
+        def get_detail_subset(diseases, comparisons, signatures, menu_genes,selected_filter):
             if diseases is None:
                 diseases =""
             if signatures is None:
@@ -337,7 +337,9 @@ class Controller(object):
             if len(signatures)>0:
                 diseases =[i for i in diseases]
                 comparisons =[i for i in comparisons]
-                for s in signatures.split(";"):
+                if isinstance(signatures,str):
+                    signatures = signatures.split(";")
+                for s in signatures:
                     cancer,comp,fil = s.split("_")
                     if cancer not in diseases:
                         diseases.append(cancer)
@@ -348,9 +350,17 @@ class Controller(object):
             for p in menu_genes["from_pathways"]["genes"]:
                 genes_set.update(p)
             genes_set = menu_genes["selected"] + sorted(list(genes_set.difference(menu_genes["selected"])))
-
+            
             diseases = list(filter(lambda a: len(a)>0,diseases))
-            signatures = list(filter(lambda a: len(a)>0,signatures.split(";")))
+            if isinstance(signatures,str):
+                signatures = list(filter(lambda a: len(a)>0,signatures.split(";")))
+            if len(genes_set)>0:
+                if len(diseases)==0 or len(comparisons)==0:
+                    d,c = DataManager.get_instance().get_disease_comp_from_genes(genes_set,selected_filter)    
+                    if len(diseases)==0:
+                        diseases=d
+                    if len(comparisons)==0:
+                        comparisons=c
             return diseases,comparisons,signatures,genes_set
         @callback(
                 Output('mono_graph','elements'),
@@ -429,15 +439,18 @@ class Controller(object):
             stylesheets =overview_stylesheets if overview_stylesheets is not None else ov.get_default_stylesheet(DataManager.get_instance())
             stylesheets = [s for s in stylesheets if not(s["selector"].startswith("edge#"))]
             if(len(items)>0):
-                diseases_detail,comparisons,signatures,genes_set =get_detail_subset(disease_filter, comparisons, overview_selected, menu_selected)
+                diseases_detail,comparisons,signatures,genes_set =get_detail_subset(disease_filter, comparisons, overview_selected, menu_selected,selected_filter)
                 box_categories_tohighlight =dict({i:set() for i in items})
                 gene_inter = DataManager.get_instance().get_genes_intersections(diseases_detail,comparisons,signatures,genes_set,selected_filter)[1]
-                diseases = menu_selected_diseases.split(";")
-                if overview_selected is not None:
+                if gene_inter is None:
+                    return go.Figure(data=[]),"hidden_plot",stylesheets,{"categories":[],"genes":[]},{"stats":[]}
+
+                items = list(set(items).intersection(set(gene_inter["gene"].tolist())))
+                diseases = menu_selected_diseases.split(";") if menu_selected_diseases is not None and len(menu_selected_diseases)>0 else []
+                if overview_selected is not None and len(overview_selected)>0:
                     overview_selected = overview_selected.split(";")
                     diseases = diseases + list(set([i.split("_")[0] for i in overview_selected]))
 
-                selected_patient_and_genes = DataManager.get_instance().get_activations(items,diseases if len(selected_boxcategories["diseases"])==0 else selected_boxcategories["diseases"],selected_boxcategories["comparisons"]).sort_values(["box_category"])
                 diseases_detail =set()
                 if gene_inter is not None:
                     gene_inter = gene_inter.set_index("gene")["id"].to_dict()
@@ -450,6 +463,9 @@ class Controller(object):
                             diseases_detail.add(d)
                             for stage in s[1].split("vs"):
                                 box_categories_tohighlight[i].add(f"{d}_{stage}")
+                if len(diseases)==0:
+                    diseases = list(diseases_detail)
+                selected_patient_and_genes = DataManager.get_instance().get_activations(items,diseases if len(selected_boxcategories["diseases"])==0 else selected_boxcategories["diseases"],selected_boxcategories["comparisons"]).sort_values(["box_category"])
                 box_categories = sorted(pd.unique(selected_patient_and_genes["box_category"]).tolist())
                 symbols = list(map(lambda s : " ".join(s),DataManager.get_instance().get_symbol(items).to_list()))
                 selected_patient_and_genes =selected_patient_and_genes.rename(columns = dict(zip(items,symbols)))

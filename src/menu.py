@@ -12,7 +12,7 @@ def menu(diseases,comparisons,diseases_cmap,comparisons_cmap,genes,filters,pathw
         #   
             } for d in diseases],
         [],id="disease_filter",labelStyle={"display": "flex", "alignItems": "center"})
-    comparisons_checklist = dcc.Checklist(comparisons,comparisons,id="comparisons_filter")
+    comparisons_checklist = dcc.Checklist(sorted(comparisons),comparisons,id="comparisons_filter")
     filter_select = dcc.Dropdown(filters,"Merge",id="filters_dropdown")
     return [
             dbc.Accordion([
