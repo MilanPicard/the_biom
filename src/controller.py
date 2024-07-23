@@ -517,7 +517,7 @@ class Controller(object):
                 for axis in box.select_xaxes(col=1):
                     axis.update(categoryorder="array",categoryarray=box_categories)
 
-                stats_data = stats.ttest(dfs,[0.1,0.05,0.01])
+                stats_data = stats.ttest(dfs,[0.05,0.01,0.001])
                 offsets = {}
                 data_indices={}
                 data_index=0
