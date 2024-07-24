@@ -5,7 +5,7 @@ import pandas as pd
 def detail_box_plot():
     fig = go.Figure(data=[])
     return [
-        dcc.Graph(figure=fig,id='activation_boxplot',config={"scrollZoom":False,"displayModeBar":False},clear_on_unhover=True,style={"height":"96%","cursor":"auto"}),
+        dcc.Graph(figure=fig,id='activation_boxplot',config={"scrollZoom":False,"displayModeBar":False},clear_on_unhover=True,style={"height":"96%","cursor":"auto"},responsive=True),
         dcc.Store(data={'wider_boxplot_border':[]},id="box_plots_to_style"),dcc.Store(data={'stats':[]},id="box_plots_stats"),dcc.Store(data={'draw_stats':True},id="do_box_plots_stats"),dcc.Store(data={'comparisons':[],"diseases":[]},id="box_categories"),
     ]
 
@@ -14,6 +14,10 @@ def make_box_plot(h,c,show_legend,disease_cmp,highlight):
     line_color = disease_cmp[c] if not highlight else "black"
 
     trace = go.Box(y=h["expression"],x=h["box_category"],name=c,showlegend =show_legend,legendgroup=c,fillcolor=fill_color)
+    trace.hoverinfo = "y"
+    # print(trace.hovertemplate)
+    # trace.hovertemplate = "y: %{y:$.2f}"
+    trace.hoverlabel.bgcolor=disease_cmp[c]
     trace.line={'color':line_color}
     return [trace]
 

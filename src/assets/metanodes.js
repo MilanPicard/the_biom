@@ -191,6 +191,37 @@ function display_legend(multilegend_data,mono_legend_data){
     display_one_legend(mono_legend_data,mono_canvas,height,width);
     return dash_clientside.no_update;
 }
+
+function disease_button_handler(diseases,all_diseases_click,no_diseases_click,options){
+    const filter_id = "disease_filter";
+    const checkAllID = "check_all_diseases";
+    const checkNoneId = "check_no_diseases";
+    return filter_button_handler(filter_id, diseases, options, checkAllID, checkNoneId);
+}
+function comparison_button_handler(comparisons,all_comparisons_click,no_comparisons_click,options){
+    const filter_id = "comparisons_filter";
+    const checkAllID = "check_all_comparisons";
+    const checkNoneId = "check_no_comparisons";
+    console.log(options,options.map(a => a instanceof String ? a:a.value))
+    return filter_button_handler(filter_id, comparisons, options, checkAllID, checkNoneId);
+}
+function filter_button_handler(filter_id, diseases, options, checkAllID, checkNoneId) {
+    switch (dash_clientside.callback_context.triggered_id) {
+        case filter_id:
+            return [dash_clientside.no_update, diseases.length == options.length, diseases.length == 0];
+
+        case checkAllID:
+            return [options.map(a => (typeof a)=="string"? a:a.value), true, false];
+
+        case checkNoneId:
+            return [[], false, true];
+
+        default:
+            break;
+    }
+    return [dash_clientside.no_update, diseases.length == options.length, diseases.length == 0];
+}
+
 function tooltip(mouseoverNodeData,mouseoverEdgeData,fake_graph_size,elements,extent,stylesheets,pos_store_data,cur_children,cur_show,cur_bbox,cur_direction){
     if(mouseoverNodeData==null && mouseoverEdgeData==null){
     
@@ -453,20 +484,31 @@ async function draw_offscreen(graph_id,filename,legend_canvas){
     })
 
 }
+function set_min_height_box_plot(box_plots_to_style){
+    
+    let min_height=200*box_plots_to_style["genes"].length;
+    document.getElementById("second_row_div").style.minHeight=""+min_height+"px";
+    return dash_clientside.no_update;
+}
 function on_box_plot_click(clickData,relayoutData,figure,stats_data){
     const plot = document.querySelector("#activation_boxplot div.js-plotly-plot");
 
     if(clickData!=undefined && Object.hasOwn(clickData,"points") && clickData.points.length>0){
-        document.querySelectorAll("#activation_boxplot svg.main-svg g.cartesianlayer g.subplot").forEach(n => n.classList.add("masked"));
 
         var traceIndex = clickData.points[0].curveNumber;
         var x = clickData.points[0].x;
-        data_indices = stats_data["stats"]["data_indices"][stats_data["stats"]["curve_numbers"][traceIndex]+"_"+x];
-        const y_axis = stats_data["stats"]["shapes"][data_indices[0]].yref.split(" ")[0];
-        let subplot_class = y_axis.replace("y","x")+ y_axis;
-        console.log(subplot_class,"#activation_boxplot svg.main-svg g.cartesianlayer g.subplot."+subplot_class);
-        document.querySelector("#activation_boxplot svg.main-svg g.cartesianlayer g.subplot."+subplot_class).classList.remove("masked");
-        Plotly.relayout(plot,Object.assign({},plot.layout,{"shapes":data_indices.map(i => stats_data["stats"]["shapes"][i])}));
+        let data_indices = stats_data["stats"]["data_indices"][stats_data["stats"]["curve_numbers"][traceIndex]+"_"+x];
+        if(data_indices != undefined){
+            document.querySelectorAll("#activation_boxplot svg.main-svg g.cartesianlayer g.subplot").forEach(n => n.classList.add("masked"));
+            const y_axis = stats_data["stats"]["shapes"][data_indices[0]].yref.split(" ")[0];
+            let subplot_class = y_axis.replace("y","x")+ y_axis;
+            console.log(subplot_class,"#activation_boxplot svg.main-svg g.cartesianlayer g.subplot."+subplot_class);
+            document.querySelector("#activation_boxplot svg.main-svg g.cartesianlayer g.subplot."+subplot_class).classList.remove("masked");
+            Plotly.relayout(plot,Object.assign({},plot.layout,{"shapes":data_indices.map(i => stats_data["stats"]["shapes"][i])}));
+        }else{
+            document.querySelectorAll("#activation_boxplot svg.main-svg g.cartesianlayer g.subplot.masked").forEach(n => n.classList.remove("masked"));
+            Plotly.relayout(plot,Object.assign({},plot.layout,{"shapes":[]}));
+        }
     //     let legendGroup = document.querySelector("#activation_boxplot svg.main-svg g.legend g.scrollbox g.groups:nth-of-type("+(traceIndex+1)+")");
     //     let traceName = legendGroup.__data__[0][0].trace.name;
     //     let filtered_stats_data = [];
@@ -512,7 +554,10 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
         ,use_elem_weight:use_elem_weight,
         box_plots_stats:box_plots_stats,
         on_box_plot_click:on_box_plot_click,
-        display_legend:display_legend
+        display_legend:display_legend,
+        disease_button_handler:disease_button_handler,
+        comparison_button_handler:comparison_button_handler,
+        set_min_height_box_plot:set_min_height_box_plot
     }
 });
 function export_image_event_handler(e){

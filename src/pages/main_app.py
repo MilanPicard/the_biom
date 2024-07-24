@@ -109,7 +109,7 @@ def layout():
                 # ])
                     # ,width=3)
             ],style={
-                "flexGrow":"1","flexBasis":"1%","flexShrink":"1","height": "max-content","borderWidth":"1px","borderStyle":"solid","borderColor":"black","cursor":"n-resize","borderRadius":"5px"
+                "flexGrow":"1","flexBasis":"1%","flexShrink":"1","height": "max-content","borderWidth":"1px","borderStyle":"solid","borderColor":"black","cursor":"n-resize","borderRadius":"5px","overflowY":"auto"
                 },
                 className="g-0",id="second_row")
         ],style={"display":"flex","flexDirection":"column","height":"100%","maxWidth":'calc(100% - 170px)'

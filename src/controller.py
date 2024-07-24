@@ -499,7 +499,7 @@ class Controller(object):
                     dfs.append(df)
                 df = pd.concat(dfs)
                 # box = px.box(df,x="box_category",y="expression",color="Cancer",facet_row="gene",color_discrete_map=disease_cmp,labels={"box_category":"","expression":"expression (log2(TPM+1))","LUAD":"a"})
-                box = plotly.subplots.make_subplots(rows=len(items),cols=1,shared_xaxes=True,shared_yaxes=True,row_titles=symbols)
+                box = plotly.subplots.make_subplots(rows=len(items),cols=1,shared_xaxes=True,shared_yaxes=True,row_titles=symbols,y_title="expression (log2(TPM+1))")
                 added_to_legend = set()
                 curve_numbers = {}
                 curve_number = 0
@@ -528,8 +528,6 @@ class Controller(object):
 
 
                 # box = go.Figure(traces)
-                for axis in box.select_yaxes(col=1,row=1):
-                    axis.update(title={"text":"expression (log2(TPM+1))"})
                 for axis in box.select_xaxes(col=1):
                     axis.update(categoryorder="array",categoryarray=box_categories)
 
@@ -1142,3 +1140,34 @@ class Controller(object):
                 Input('detail_graph',"tapNode"),
                         prevent_initial_call=True
         )
+
+        clientside_callback( ClientsideFunction(
+            namespace='clientside',
+            function_name='disease_button_handler'
+            ),
+            Output('disease_filter','value'),
+            Output('check_all_diseases','disabled'),
+            Output('check_no_diseases','disabled'),
+            Input('disease_filter','value'),
+            Input('check_all_diseases','n_clicks'),
+            Input('check_no_diseases','n_clicks'),
+            State('disease_filter','options'),
+                prevent_initial_call=True
+
+        )
+
+        clientside_callback( ClientsideFunction(
+            namespace='clientside',
+            function_name='comparison_button_handler'
+            ),
+            Output('comparisons_filter','value'),
+            Output('check_all_comparisons','disabled'),
+            Output('check_no_comparisons','disabled'),
+            Input('comparisons_filter','value'),
+            Input('check_all_comparisons','n_clicks'),
+            Input('check_no_comparisons','n_clicks'),
+            State('comparisons_filter','options'),
+                prevent_initial_call=True
+
+        )
+        

@@ -17,10 +17,18 @@ def menu(diseases,comparisons,diseases_cmap,comparisons_cmap,genes,filters,pathw
     return [
             dbc.Accordion([
                 dbc.AccordionItem([
-                    disease_checklist
+                    disease_checklist,
+                    dbc.ButtonGroup([
+                        dbc.Button("All Diseases",id="check_all_diseases",outline=True,color="primary"),
+                        dbc.Button("No Diseases",id="check_no_diseases",outline=True,color="primary",disabled=True)]
+                    ,size="sm")
                 ],title="Diseases",item_id="disease_accordion"),
                 dbc.AccordionItem([
-                    comparisons_checklist
+                    comparisons_checklist,
+                    dbc.ButtonGroup([
+                        dbc.Button("All Comparisons",id="check_all_comparisons",outline=True,color="primary",disabled=True),
+                        dbc.Button("No Comparisons",id="check_no_comparisons",outline=True,color="primary")]
+                    ,size="sm")
                 ],title="Comparisons"),
                 dbc.AccordionItem([
                     filter_select
@@ -43,6 +51,6 @@ def menu(diseases,comparisons,diseases_cmap,comparisons_cmap,genes,filters,pathw
             start_collapsed=False,
             always_open=True,
             active_item=["gene_accordion","disease_accordion"],
-            style={"height":"100%","overflowY": "scroll"}
+            style={"height":"100%","overflowY": "auto"}
             ),
             dcc.Store(id="selected_genes")]

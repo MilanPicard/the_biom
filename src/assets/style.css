@@ -74,7 +74,7 @@
     font-size:smaller;
     max-width: 250px;
     max-height: 200px;
-    overflow: scroll;
+    overflow: auto;
 }
 #activation_boxplot g.boxlayer path.box.nothighlight{
 stroke-dasharray: "5,5"
