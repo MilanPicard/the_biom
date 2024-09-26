@@ -142,3 +142,8 @@ div:has(> .legend_canvas){
 #activation_boxplot svg.main-svg g.cartesianlayer > g.subplot.masked{
     opacity:0.2;
 }
+div.carousel-caption >h5,div.carousel-caption >p{
+    color: black;
+    background-color: rgba(255, 255, 255, 0.75);
+    
+}
