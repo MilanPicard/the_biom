@@ -67,7 +67,7 @@ def layout():
                          html.Span(id="detail_resize_span",draggable="false",style={"width":"3%","height":"100%","cursor":"w-resize","userSelect":"none"},className="resize_span"),
                     dcc.Store(id="fake_graph_size",data={"AR":1}),
                     html.Div([
-                    dbc.Tabs(id="detail_tabs",class_name="detail_tabs",children=[
+                    dbc.Tabs(id="detail_tabs",class_name="detail_tabs",active_tab="multi_signature_view",children=[
                         dbc.Tab(id="mono_tab",label="mono signature view",children=[
                     html.Span(tooltip.create_tooltip(mono_graph),style={"position":"relative","zIndex":"4"}),
                             
@@ -76,7 +76,7 @@ def layout():
                                                                                         html.Canvas(id="mono_canvas")
                                                                                         ])
                                                                                     ]),
-                        dbc.Tab(label="multi signature view",children=[
+                        dbc.Tab(tab_id="multi_signature_view",label="multi signature view",children=[
                     html.Span(tooltip.create_tooltip(multi_graph),style={"position":"relative","zIndex":"4"}),
                             
                             multi_graph,html.Div(className="legend_canvas",children=[html.Canvas(id="multi_canvas")])]),

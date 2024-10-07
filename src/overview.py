@@ -67,7 +67,17 @@ def overview_graph(dm):
             # [{'data':{"id":i["id"],"label":i["id"],"Disease":i["Disease"]}} for i in signatures_ids]+[{"data":{"source":k[0],"target":k[1]}} for k,v in intersections.items()]
             get_elements(dm)
     )
+def get_node(elem):
+    comp_fields = elem["Comparison"].split("vs")
+    label_fields = [elem["Cancer"],comp_fields[1]
+                    ]
+    return {'data':{"id":elem["id"],"label":"\n".join(label_fields),"Cancer":elem["Cancer"],"Comparison":elem["Comparison"],"Filter":elem["Filter"],"Signature":elem["Signature"],"tooltip_content":[
+        html.H6(elem["id"]),
+        html.Button("Copy genes to clipboard",id={"type":"signature_clipboard","sign":elem["id"]} ,value=";".join(elem["Signature"]),className="btn btn-info"),
+        html.Br(),
+        html.A("gProfiler",href=elem["gProfiler"],target="_blank")
 
+    ],"gProfiler":elem["gProfiler"]},"group":"nodes","classes":" ".join([elem["Cancer"]])}
 def get_elements(dm,**dm_kwargs):
     intersections,signatures_ids,pathway_edges = dm.get_signatures_intersections(**dm_kwargs)
     genes = set()
@@ -89,13 +99,7 @@ def get_elements(dm,**dm_kwargs):
         fake_nodes.append({'data':{"id":str(c),"label":"","fake":True},"group":"nodes","style":{"width":0,"height":0}})
         for i in range(len(l)):
             fake_edges.append({"data":{"source":l[i],"target":c,"fake":True,"type":"fake"},"group":"edges","style":{"width":0}})
-    return [{'data':{"id":i["id"],"label":"\n".join(i["id"].split("_")),"Cancer":i["Cancer"],"Comparison":i["Comparison"],"Filter":i["Filter"],"Signature":i["Signature"],"tooltip_content":[
-        html.H6(i["id"]),
-        html.Button("Copy genes to clipboard",id={"type":"signature_clipboard","sign":i["id"]} ,value=";".join(i["Signature"]),className="btn btn-info"),
-        html.Br(),
-        html.A("gProfiler",href=i["gProfiler"],target="_blank")
-
-    ],"gProfiler":i["gProfiler"]},"group":"nodes","classes":" ".join([i["Cancer"]])} for i in signatures_ids]+[{"data":{"source":k[0],"target":k[1],"elems":v,"symbols":[get_toolip(symbols[g]) for g in v],"type":"signature"},"group":"edges","classes":"","style":{"width":5+len(v)}} for k,v in intersections.items()]+fake_nodes+fake_edges+[{
+    return [get_node(i) for i in signatures_ids]+[{"data":{"source":k[0],"target":k[1],"elems":v,"symbols":[get_toolip(symbols[g]) for g in v],"type":"signature"},"group":"edges","classes":"","style":{"width":5+len(v)}} for k,v in intersections.items()]+fake_nodes+fake_edges+[{
         "data":{
             "source":i.Index.split("__")[0],
             "target":i.Index.split("__")[1],
@@ -113,6 +117,7 @@ def get_default_stylesheet(dm,color_by_diseases=True):
     s= [
         {"selector":"node","style":{"label":"data(label)","text-wrap":"wrap","background-opacity":0.25,"width":50,"height":50,}},
         {"selector":"node.highlight","style":{"background-opacity":1}},
+        {"selector":"node:selected","style":{"background-opacity":1,"border-color":"black"}},
         {"selector":"node.half_highlight","style":{"background-opacity":0.5}},
         {"selector":"edge","style":{"line-opacity":0.5}},
         {"selector":"edge","style":{"line-opacity":0.5,"line-color":"red"}},

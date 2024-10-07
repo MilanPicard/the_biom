@@ -147,3 +147,61 @@ div.carousel-caption >h5,div.carousel-caption >p{
     background-color: rgba(255, 255, 255, 0.75);
     
 }
+.menu_all_none_btn_group{
+    width:100%;
+    justify-content: flex-end;
+}
+.menu_all_none_btn_group > div{
+    flex-grow: 1;
+
+}
+.menu_all_none_btn_group >button.btn{
+    flex-grow: 0;
+}
+button.btn-signature{
+    --bs-btn-color: #000;
+    --bs-btn-bg: #f8f9fa;
+    --bs-btn-border-color: #f8f9fa;
+    --bs-btn-hover-color: #000;
+    --bs-btn-hover-bg: #d3d4d5;
+    --bs-btn-hover-border-color: #c6c7c8;
+    --bs-btn-focus-shadow-rgb: 211,212,213;
+    --bs-btn-active-color: #fff;
+    --bs-btn-active-bg: #0a58ca;
+    --bs-btn-active-border-color: #0a53be;
+    --bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+    --bs-btn-disabled-color: #000;
+    --bs-btn-disabled-bg: #f8f9fa;
+    --bs-btn-disabled-border-color: #f8f9fa;
+}
+button.btn-signature::before{
+    content: "\2610"
+}
+button.btn-signature.active::before{
+    content: "\2611";
+
+}
+button.btn-signature:disabled::before{
+    content: "\2612";
+    color: red;
+}
+/* div.signature_accordion div.accordion-item{
+    counter-reset: nb_active;
+}
+div.signature_accordion div.accordion-item::after {
+    content:counter(nb_active);   
+}
+div.signature_accordion div.accordion-item button.btn-signature.active{ 
+    counter-increment: nb_active;
+} */
+
+div.signature_accordion div.accordion-item h2 button> div {
+    display: flex;
+}
+div.signature_accordion div.accordion-item h2 button> div >div:first-child{
+    color: red;
+    font-weight: bold;
+    font-size: larger;
+    /* background-image: radial-gradient(closest-side at 50% 25%, red 50%,blue); */
+    /* background-image: linear-gradient(to top, transparent 39%,red 40%,red); */
+}

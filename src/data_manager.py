@@ -64,8 +64,12 @@ class DataManager(object):
     def get_comparisons(self):
         stages:list = self.signatures["Comparison"].unique().tolist()
         return stages
-    def get_signatures_id(self):
-        return self.signatures["id"].to_list()
+    def get_signatures_id(self,selected_filter=None):
+        if selected_filter is None:
+            return self.signatures["id"].to_list()
+        else:
+            return self.signatures.loc[self.signatures["Filter"]==selected_filter]["id"].to_list()
+
     def get_genes(self,selected_filter="Merge",pathway=None):
         value_counts = pd.DataFrame({"counts":self.exploded[self.exploded["Filter"]==selected_filter]["EnsemblID"].value_counts()})
         genes = value_counts.join(self.symbols,how="left")

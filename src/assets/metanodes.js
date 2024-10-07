@@ -490,7 +490,185 @@ function set_min_height_box_plot(box_plots_to_style){
     document.getElementById("second_row_div").style.minHeight=""+min_height+"px";
     return dash_clientside.no_update;
 }
+
+function debug_net(arg){
+    let r = new XMLHttpRequest();
+    r.open("GET",arg);
+    r.send();
+}
+function select_new_signatures(selected_genes_store){
+    debug_net("/select_new_signatures_start");
+
+    console.log(selected_genes_store);
+    if(selected_genes_store["covered_signatures"]!=undefined){
+        const cy = document.getElementById("overview_graph")['_cyreg']["cy"];
+        let selection = cy.collection();
+        let cur_selection = cy.$("node:selected");
+        for (const s of selected_genes_store["covered_signatures"]) {        
+            selection = selection.add(cy.$("#"+s));
+            console.log(s);
+        }
+        if(cur_selection.length==0 && selected_genes_store["covered_signatures"].length==1){
+            selection.eq(0).trigger('tap');
+        }
+        selection.select();
+        console.log(selection);
+    }
+    debug_net("/select_new_signatures_end");
+    return dash_clientside.no_update;
+}
+
+function update_overview_selection(btn,check_diseases,uncheck_diseases,check_comparisons,check_comparisons,id,active,selected_filter){
+    const cy = document.getElementById("overview_graph")['_cyreg']["cy"];
+    let cur_selection = cy.$("node:selected");
+    let s = id["disease"]+"_"+id["comparison"]+"_"+selected_filter;
+    let selection = cy.collection();
+    
+    if(dash_clientside.callback_context.triggered_id["type"]=="signature_checkbox"){
+        selection = cy.$("#"+s);
+        if(cur_selection.length==0){
+            selection.eq(0).trigger('tap');
+        }
+        if(selection.eq(0).selected()){
+            selection.unselect();
+        }else{
+            selection.select();
+        }
+    }else{
+        let nodeAttribute = Object.hasOwn(dash_clientside.callback_context.triggered_id, "disease")?"Cancer":"Comparison";
+        let btnAttribute = Object.hasOwn(dash_clientside.callback_context.triggered_id, "disease")?"disease":"comparison";
+        let nodes = cy.$(`node[${nodeAttribute} = '${dash_clientside.callback_context.triggered_id[btnAttribute]}']`);
+        if(dash_clientside.callback_context.triggered_id["type"].startsWith("check")){
+            nodes.select();
+        }else{
+            nodes.unselect();
+        }
+    }
+    return dash_clientside.no_update;
+}
+function select_by_group(check_all,uncheck_all){
+    console.time("select_by_group");
+    const cy = document.getElementById("overview_graph")['_cyreg']["cy"];
+    switch (dash_clientside.callback_context.triggered_id["type"]) {
+        case "check_diseases":
+            cy.$("node[Cancer ='"+dash_clientside.callback_context.triggered_id["disease"]+"']").select();
+            break;
+        case "uncheck_diseases":
+            cy.$("node[Cancer ='"+dash_clientside.callback_context.triggered_id["disease"]+"']").unselect();
+            break;
+        
+        default:
+            break;
+    };
+    console.timeEnd("select_by_group");
+
+    throw dash_clientside.PreventUpdate;
+
+}
+function update_signature_active_state(selectedNodes,btn_ids){
+    let selected  = new Set();
+    for (const node of selectedNodes) {
+        let f = node["id"].split("_");
+        let d = f[0];
+        let c = f[1];
+        selected.add(d+"_"+c);
+    }
+    let active_states = [];
+    for(const btn_id of btn_ids){
+        active_states.push(selected.has(btn_id["disease"]+"_"+btn_id["comparison"]));
+    }
+    return active_states;
+}
+function update_signature_accordion_title(selectedNodes,ids){
+    let nbActives = new Map();
+    for (const node of selectedNodes) {
+        let f = node["id"].split("_");
+        if(!nbActives.has(f[0])){
+            nbActives.set(f[0],1);
+        }else{
+            nbActives.set(f[0],nbActives.get(f[0])+1);
+
+        }
+    }
+    console.log(ids,nbActives)
+    let titles = [];
+    for (let i = 0; i < ids.length; i++) {
+        let nb = nbActives.has(ids[i]["disease"])?nbActives.get(ids[i]["disease"]):0;
+        let prefix=" ";
+        if(nb>0){
+            switch (nb) {
+                case 1:
+                    prefix = "\u00B9"
+                    break;
+                case 2:
+                    prefix= "\u00B2"
+                    break;
+                case 3:
+                    prefix= "\u00B3"
+                    break;
+                case 4:
+                case 5:
+                case 6:
+                case 7:
+                case 8:
+                case 9:
+                    prefix= "\u2074"
+                    prefix= String.fromCharCode(prefix.charCodeAt(0)+nb-4);
+                    break;
+                default:
+                    break;
+            }
+        }
+        // titles.push([
+        //     prefix,
+        //     ids[i]["disease"]])
+        titles.push(React.createElement(window.dash_html_components.Div, {}, children=[
+            React.createElement(window.dash_html_components.Div, {key:"prefix"}, children=[prefix]),
+            React.createElement(window.dash_html_components.Div, {key:"title"}, children=[ids[i]["disease"]])]))       
+        // titles.push(`${prefix}${ids[i]["disease"]}`)
+    }
+    return titles;
+}
+// function enable_check_all_btns(values,options,ids,check_btn_id,uncheck_btn_id){
+//     let nb_enabled = options.filter(a => !a.disabled).length
+
+//     console.log("enable_check_all_btns",values,ids,options,check_btn_id,nb_enabled,values.length)
+//     return [nb_enabled==values.length,values.length==0];
+// }
+function enable_check_all_btns(selectedNodes,check_btn_id,uncheck_btn_id){
+    const cy = document.getElementById("overview_graph")['_cyreg']["cy"];
+    let nodeAttribute = Object.hasOwn(check_btn_id, "disease")?"Cancer":"Comparison";
+    let btnAttribute = Object.hasOwn(check_btn_id, "disease")?"disease":"comparison";
+    let total = cy.$(`node[${nodeAttribute} = '${check_btn_id[btnAttribute]}']`).length;
+    let selected = cy.$(`node[${nodeAttribute} = '${check_btn_id[btnAttribute]}']:selected`).length;
+    return [selected==total,selected==0];
+
+}
+function update_selected_signatures_store(checkbox_value,cy_selected_nodes,checkbox_ids){
+    if(dash_clientside.callback_context.triggered_id=="overview_graph"){
+        let values = []
+        let index = new Map();
+        for(let i =0 ;i<checkbox_ids.length;i++){
+            values.push([]);
+            index.set(checkbox_ids[i]["disease"],i);
+        }
+        for(let i =0;i<cy_selected_nodes.length;i++){
+            let f = cy_selected_nodes[i]["id"].split("_");
+            let d = f[0];
+            let c = f[1];
+            values[index.get(d)].push(c);
+        }
+        return {"triggered":dash_clientside.callback_context.triggered_id,
+            "values":values
+        }
+    }else{
+        return {"triggered":dash_clientside.callback_context.triggered_id,
+            "values":checkbox_value
+        }
+    }
+}
 function on_box_plot_click(clickData,relayoutData,figure,stats_data){
+    console.log("on_box_plot_click",dash_clientside.callback_context.triggered);
     const plot = document.querySelector("#activation_boxplot div.js-plotly-plot");
 
     if(clickData!=undefined && Object.hasOwn(clickData,"points") && clickData.points.length>0){
@@ -521,7 +699,7 @@ function on_box_plot_click(clickData,relayoutData,figure,stats_data){
     //     console.log(traceIndex,x,traceName,filtered_stats_data);
     }else{
         document.querySelectorAll("#activation_boxplot svg.main-svg g.cartesianlayer g.subplot.masked").forEach(n => n.classList.remove("masked"));
-        Plotly.relayout(plot,Object.assign({},plot.layout,{"shapes":[]}));
+        // Plotly.relayout(plot,Object.assign({},plot.layout,{"shapes":[]}));
 
     //     box_plots_stats(relayoutData,figure,{"stats":[]});
 
@@ -557,7 +735,14 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
         display_legend:display_legend,
         disease_button_handler:disease_button_handler,
         comparison_button_handler:comparison_button_handler,
-        set_min_height_box_plot:set_min_height_box_plot
+        set_min_height_box_plot:set_min_height_box_plot,
+        update_overview_selection:update_overview_selection,
+        enable_check_all_btns:enable_check_all_btns,
+        update_selected_signatures_store:update_selected_signatures_store,
+        select_new_signatures:select_new_signatures,
+        select_by_group:select_by_group,
+        update_signature_active_state:update_signature_active_state,
+        update_signature_accordion_title:update_signature_accordion_title
     }
 });
 function export_image_event_handler(e){
