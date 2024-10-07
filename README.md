@@ -2,7 +2,7 @@
 
 Welcome to the development project repository of **THe Biom** (**T**CGA **H**EFS **Biom**arkers).
 
-Running it only requires Python version 3.10 or higher.
-You can install all the required packages from the `requirements.txt` file with the following command:
+This project requires Python 3.10.
+To install the necessary dependencies, run the following command using the `requirements.txt` file:
 
 `pip install -r requirements.txt`
