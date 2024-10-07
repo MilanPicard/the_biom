@@ -103,11 +103,15 @@ class Controller(object):
                     current["from_pathways"]["genes"]=[]
                 case _:
                     if "gene" in ctx.triggered_id:
-                        current["selected"].remove(ctx.triggered_id["gene"])
+                        if(ctx.triggered_id["gene"] in current["selected"]):
+                            current["selected"].remove(ctx.triggered_id["gene"])
                     else:
-                        index = current["from_pathways"]["ids"].index(ctx.triggered_id["pathway"])
-                        current["from_pathways"]["ids"].remove(ctx.triggered_id["pathway"])
-                        del current["from_pathways"]["genes"][index]
+                        try:
+                            index = current["from_pathways"]["ids"].index(ctx.triggered_id["pathway"])
+                            current["from_pathways"]["ids"].remove(ctx.triggered_id["pathway"])
+                            del current["from_pathways"]["genes"][index]
+                        except ValueError :
+                            pass
             
             # diseases_detail,comparisons,signatures,genes_set = get_detail_subset(None, [], [], current,selected_filter)
             if(len(added)>0):
@@ -207,7 +211,7 @@ class Controller(object):
                 Output('multi_legend',"data"),
                 Output('multi_export',"data"),
                 Input('overview_graph','selectedNodeData'),
-                State('selected_genes_store','data'),
+                Input('selected_genes_store','data'),
                 Input("fake_graph_size","data"),
                 Input("filters_dropdown","value"),
                 State('detail_graph','elements'),
@@ -223,7 +227,11 @@ class Controller(object):
         def display_detail_graph(
             overview_nodes,
             menu_genes,fake_graph_size,selected_filter,existing_elements,detail_pos_store,current_stylesheets):
-            signatures = ";".join([n["id"] for n in overview_nodes]) if overview_nodes is not None else None
+            selected = [n["id"] for n in overview_nodes] if overview_nodes is not None else []
+            if (ctx.triggered_id=="selected_genes_store" and len(menu_genes["covered_signatures"])>0):
+                if any([i not in selected for i in menu_genes["covered_signatures"]]):
+                    raise dash.exceptions.PreventUpdate
+            signatures = ";".join(selected) if overview_nodes is not None else None
             
             if ctx.triggered_id=="fake_graph_size" :
                 if (fake_graph_size is None or "just_redraw" not in fake_graph_size or not fake_graph_size["just_redraw"]):
@@ -231,11 +239,13 @@ class Controller(object):
                 else:
                     return detail_graph.redraw(existing_elements,detail_pos_store,1 if fake_graph_size is None or "AR" not in fake_graph_size else fake_graph_size["AR"],current_stylesheets)
             if(all([
-                  (len(menu_genes["selected"])+len(menu_genes["from_pathways"]["ids"]))==0,signatures is None or signatures ==""])):
+                #   (len(menu_genes["selected"])+len(menu_genes["from_pathways"]["ids"]))==0,
+                  signatures is None or signatures ==""])):
                 return [],[],{"name":"preset"},{},dash.no_update,dash.no_update            
+            
             diseases, comparisons, signatures, genes_set = get_detail_subset(None, [], signatures, menu_genes,selected_filter)
             if len(diseases)!=0 or len(signatures)!=0:
-                r = detail_graph.display_detail_graph(diseases,signatures,genes_set,existing_elements,detail_pos_store if detail_pos_store is not None else dict(),1 if fake_graph_size is None or "AR" not in fake_graph_size else fake_graph_size["AR"],selected_filter,comparisons)
+                r = detail_graph.display_detail_graph([],signatures,genes_set,existing_elements,detail_pos_store if detail_pos_store is not None else dict(),1 if fake_graph_size is None or "AR" not in fake_graph_size else fake_graph_size["AR"],selected_filter,comparisons)
                 return r
             else:
                 return existing_elements,[],{"name":"preset"},{},dash.no_update,dash.no_update
@@ -281,7 +291,6 @@ class Controller(object):
                 State('mono_graph','elements'),
                 State("mono_graph_pos","data"),            
                 State('mono_graph','stylesheet'),
-
                     prevent_initial_call=True
                 )
         def display_mono_graph(tapNodeData,fake_graph_size,selected_filter,
