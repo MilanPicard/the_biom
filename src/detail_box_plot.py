@@ -1,12 +1,18 @@
 import re
-from dash import dcc
+from dash import dcc, html
 import plotly.graph_objs as go
 import pandas as pd
+
 def detail_box_plot():
-    fig = go.Figure(data=[])
     return [
-        dcc.Graph(figure=fig,id='activation_boxplot',config={"scrollZoom":False,"displayModeBar":False},clear_on_unhover=True,style={"height":"96%","cursor":"auto"},responsive=True),
-        dcc.Store(data={'wider_boxplot_border':[]},id="box_plots_to_style"),dcc.Store(data={'stats':[]},id="box_plots_stats"),dcc.Store(data={'draw_stats':True},id="do_box_plots_stats"),dcc.Store(data={'comparisons':[],"diseases":[]},id="box_categories"),
+        html.Div([
+            html.Div(id='remove_all_boxplots_button_container', style={'position': 'absolute', 'top': '10px', 'right': '10px', 'zIndex': 10}),
+            html.Div(id="box_plots_container", style={"height": "100%", "display": "flex", "flexDirection": "column", 'position': 'relative', 'marginTop': '48px'})
+        ], style={"height": "100%", "display": "flex", "flexDirection": "column", 'position': 'relative'}),
+        dcc.Store(data={'wider_boxplot_border':[]}, id="box_plots_to_style"),
+        dcc.Store(data={'stats':[]}, id="box_plots_stats"),
+        dcc.Store(data={'draw_stats':True}, id="do_box_plots_stats"),
+        dcc.Store(data={'comparisons':[],"diseases":[]}, id="box_categories"),
     ]
 
 def make_box_plot(h,c,show_legend,disease_cmp,highlight):

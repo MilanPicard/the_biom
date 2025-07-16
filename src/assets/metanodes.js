@@ -160,21 +160,40 @@ function display_one_legend(legend_data,canvas,height,width){
 
     }
     for(let legendItem in legend_data.comparisons){
-
         ctx.fillText(legendItem,40,spaces*space+(items+0.5)*itemSize);
         let img = document.createElement("img");
         img.src=legend_data.comparisons[legendItem]["background-image"];
-        let n=2;
-        for (let i = 0; i < n; i++) {
-            for (let j = 0; j < n; j++) {
-                ctx.drawImage(img,20-itemSize/2+j*itemSize/n,spaces*space+(items)*itemSize+i*itemSize/n,itemSize/n,itemSize/n );
-
-            }
+        // Capture the current coordinates for this legend item
+        let x = 20-itemSize/2;
+        let y = spaces*space+(items)*itemSize;
+        let size = itemSize;
+        img.onload = function() {
+            ctx.save();
+            ctx.beginPath();
+            ctx.rect(x, y, size, size);
+            ctx.closePath();
+            ctx.clip();
+            ctx.drawImage(img, x, y, size, size);
+            ctx.restore();
+            ctx.strokeStyle = "black";
+            ctx.lineWidth = 1;
+            ctx.strokeRect(x, y, size, size);
+        };
+        // For immediate drawing (in case image is cached and already loaded)
+        if (img.complete) {
+            ctx.save();
+            ctx.beginPath();
+            ctx.rect(x, y, size, size);
+            ctx.closePath();
+            ctx.clip();
+            ctx.drawImage(img, x, y, size, size);
+            ctx.restore();
+            ctx.strokeStyle = "black";
+            ctx.lineWidth = 1;
+            ctx.strokeRect(x, y, size, size);
         }
-
         items+=1;
         spaces+=1;
-
     }
 
 
@@ -182,6 +201,10 @@ function display_one_legend(legend_data,canvas,height,width){
 function display_legend(multilegend_data,mono_legend_data){
     const multi_canvas = document.querySelector(".legend_canvas #multi_canvas");
     const mono_canvas = document.querySelector(".legend_canvas #mono_canvas");
+    if (!multi_canvas || !mono_canvas) {
+        // One or both canvases are not present in the DOM, so skip drawing
+        return dash_clientside.no_update;
+    }
     const height = Math.max(multi_canvas.clientHeight,mono_canvas.clientHeight);
     const width = Math.max(multi_canvas.clientWidth,mono_canvas.clientWidth);
     // console.log(legend_data);
@@ -222,20 +245,12 @@ function filter_button_handler(filter_id, diseases, options, checkAllID, checkNo
     return [dash_clientside.no_update, diseases.length == options.length, diseases.length == 0];
 }
 
-function tooltip(mouseoverNodeData,mouseoverEdgeData,fake_graph_size,elements,extent,stylesheets,pos_store_data,cur_children,cur_show,cur_bbox,cur_direction){
-    if(mouseoverNodeData==null && mouseoverEdgeData==null){
-    
-    //TODO keep cur if close else reset
-        //return [cur_children,cur_show,cur_bbox,cur_direction];
-        return [[],false,{},"right",""];
-    }else{
-        try{
+function tooltip(mouseoverNodeData, mouseoverEdgeData, selectedEdgeData, fake_graph_size, elements, extent, stylesheets, pos_store_data, cur_children, cur_show, cur_bbox, cur_direction) {
+    if (mouseoverNodeData != null && (mouseoverEdgeData == null || !mouseoverEdgeData.id)) {
+        try {
             elem_id = mouseoverEdgeData != null?  mouseoverEdgeData["id"]: mouseoverNodeData["id"];
             const cy = document.getElementById(dash_clientside.callback_context.triggered_id)['_cyreg']["cy"];
             const cy_elem = cy.elements("#" + elem_id).toArray();
-            cy.nodes("#" + elem_id).closedNeighborhood().flashClass("testFlash",1000);
-            cy.edges("#" + elem_id).sources().flashClass("testFlash",1000);
-            cy.edges("#" + elem_id).targets().flashClass("testFlash",1000);
 
             var direction="left";
             var elem = undefined;
@@ -244,7 +259,7 @@ function tooltip(mouseoverNodeData,mouseoverEdgeData,fake_graph_size,elements,ex
             let triggered_id =dash_clientside.callback_context.triggered_id;
             if(cy_elem[0].isEdge()){
                 if(dash_clientside.callback_context.triggered_id=="overview_graph"){
-                    content=[{'type': 'H6', 'namespace': 'dash_html_components', 'props': {'children': "Intersection of "+cy_elem[0].data("source")+" and "+cy_elem[0].data("target")}}].concat(cy_elem[0].data("symbols"))
+                    content=cy_elem[0].data("symbols")
                 }else{
                     content = "edge_tooltip";
                     signatures = cy.elements("#"+cy_elem[0].data('source')).data("Signatures");
@@ -264,19 +279,14 @@ function tooltip(mouseoverNodeData,mouseoverEdgeData,fake_graph_size,elements,ex
                 }
                 rmp = cy_elem[0].renderedMidpoint()
                 mp = cy_elem[0].midpoint()
-                setTimeout(() => document.getElementById(triggered_id+"_tooltip").classList.add("pouet"),500);
+                setTimeout(() => {
+                    const tooltipElement = document.getElementById(triggered_id+"_tooltip");
+                    if (tooltipElement) {
+                        tooltipElement.classList.add("pouet");
+                    }
+                }, 50);
                 return [content,true,{"x0":rmp['x'],"y0":rmp['y'],"x1":rmp['x'],"y1":rmp['y']},direction,""];
             }else{
-                // if( mouseoverNodeData["id"] in pos_store_data){
-                //     elem=pos_store_data[mouseoverNodeData["id"]];
-                // }else{
-                //     for(var i of elements){
-                //         if( i["data"]["id"] == mouseoverNodeData["id"]){
-                //             elem = i;
-                //             break;
-                //         }
-                //     }
-                // }
                 if(dash_clientside.callback_context.triggered_id!="overview_graph"){
                     var detail_graph = document.getElementById(dash_clientside.callback_context.triggered_id);
                     var detail_resize_span = document.getElementById(dash_clientside.callback_context.triggered_id+'_span');
@@ -286,7 +296,7 @@ function tooltip(mouseoverNodeData,mouseoverEdgeData,fake_graph_size,elements,ex
                     var height=0;
                     var wratio=detail_graph.clientWidth/(extent["x2"]-extent["x1"]);
                     var hratio=detail_graph.clientHeight/(extent["y2"]-extent["y1"]);
-                    x = cy_elem[0].renderedPosition("x")//+document.getElementById("detail_resize_span").clientWidth
+                    x = cy_elem[0].renderedPosition("x")
                     y = cy_elem[0].renderedPosition("y")
                     direction = (x/detail_graph.clientWidth>0.5)?"left":"right";
                     if( "weight" in mouseoverNodeData){
@@ -321,22 +331,71 @@ function tooltip(mouseoverNodeData,mouseoverEdgeData,fake_graph_size,elements,ex
                         width=0
                         height=0
                     }
-                    setTimeout(() => document.getElementById(triggered_id+"_tooltip").classList.add("pouet"),500);
+                    setTimeout(() => {
+                        const tooltipElement = document.getElementById(triggered_id+"_tooltip");
+                        if (tooltipElement) {
+                            tooltipElement.classList.add("pouet");
+                        }
+                    }, 50);
                     return [mouseoverNodeData["tooltip_content"],true,{"x0":x-width*wratio/2,"y0":y-height*hratio/2,"x1":x+width*wratio/2,"y1":y+height*hratio/2},direction,""];
                 }else{
                     console.log(cy_elem[0].renderedBoundingBox());
                     console.log(cy_elem[0]);
                     let bb = cy_elem[0].renderedBoundingBox({'includeLabels':false});
-                    setTimeout(() => document.getElementById(triggered_id+"_tooltip").classList.add("pouet"),500);
+                    setTimeout(() => {
+                        const tooltipElement = document.getElementById(triggered_id+"_tooltip");
+                        if (tooltipElement) {
+                            tooltipElement.classList.add("pouet");
+                        }
+                    }, 50);
                     return [mouseoverNodeData["tooltip_content"],true,{"x0":bb.x1,"y0":bb.y1,"x1":bb.x2,"y1":bb.y2},"right",""];
                 }  
             }
         }catch(error){
             console.log(error);
             return [[],false,{},"right",""];
-
         }
     }
+    if (selectedEdgeData && selectedEdgeData.length > 0) {
+        try {
+            const edgeData = selectedEdgeData[0];
+            const elem_id = edgeData.id;
+            const cy = document.getElementById(dash_clientside.callback_context.triggered_id)['_cyreg']["cy"];
+            const cy_elem = cy.elements("#" + elem_id).toArray();
+            var direction = "left";
+            var content = "";
+            let triggered_id = dash_clientside.callback_context.triggered_id;
+            if (cy_elem[0].isEdge()) {
+                if (dash_clientside.callback_context.triggered_id == "overview_graph") {
+                    content = cy_elem[0].data("symbols");
+                } else {
+                    content = "edge_tooltip";
+                    let signatures = cy.elements("#" + cy_elem[0].data('source')).data("Signatures");
+                    content = [];
+                    content.push({ 'type': 'H6', 'namespace': 'dash_html_components', 'props': { 'children': "Gene Signatures" } });
+                    let signature_li = [];
+                    for (var s of signatures) {
+                        signature_li.push({ 'type': 'Li', 'namespace': 'dash_html_components', 'props': { 'children': s } });
+                    }
+                    content.push({ 'type': 'Ul', 'namespace': 'dash_html_components', 'props': { 'children': signature_li } });
+                    content.push({ 'type': 'H6', 'namespace': 'dash_html_components', 'props': { 'children': "Gene symbols : " + cy.elements("#" + cy_elem[0].data('source')).data("tooltip_content")[0].props["children"] } });
+                    content.push({ 'type': 'H6', 'namespace': 'dash_html_components', 'props': { 'children': "Pathway : " + cy.elements("#" + cy_elem[0].data('target')).data("tooltip_content")[0].props["children"] } });
+                }
+                let rmp = cy_elem[0].renderedMidpoint();
+                setTimeout(() => {
+                    const tooltipElement = document.getElementById(triggered_id + "_tooltip");
+                    if (tooltipElement) {
+                        tooltipElement.classList.add("pouet");
+                    }
+                }, 50);
+                return [content, true, { "x0": rmp['x'], "y0": rmp['y'], "x1": rmp['x'], "y1": rmp['y'] }, direction, ""];
+            }
+        } catch (error) {
+            console.log(error);
+            return [[], false, {}, "right", ""];
+        }
+    }
+    return [[], false, {}, "right", ""];
 }
 function layout_overview(elems){
     function idealEdgeLength(edge){
@@ -440,11 +499,17 @@ function box_plots_stats(relayoutData,figure,stats_data,do_stats_data){
 
 function tapMultiSignPathway(pathway_id){
     const cy = document.getElementById("detail_graph")['_cyreg']["cy"];
-    cy.edges(".tapped").removeClass("tapped")
     if(pathway_id!=undefined){
-        cy.nodes("#"+pathway_id).connectedEdges().addClass("tapped")
+        let edges = cy.nodes("#"+pathway_id).connectedEdges();
+        // Toggle .tapped class for these edges
+        edges.forEach(function(edge) {
+            if(edge.hasClass("tapped")) {
+                edge.removeClass("tapped");
+            } else {
+                edge.addClass("tapped");
+            }
+        });
     }
-
 }
 async function draw_offscreen(graph_id,filename,legend_canvas){
     const cy = document.getElementById(graph_id)['_cyreg']["cy"];
@@ -485,9 +550,7 @@ async function draw_offscreen(graph_id,filename,legend_canvas){
 
 }
 function set_min_height_box_plot(box_plots_to_style){
-    
-    let min_height=200*box_plots_to_style["genes"].length;
-    document.getElementById("second_row_div").style.minHeight=""+min_height+"px";
+    // Remove dynamic height calculation as it's now handled by CSS
     return dash_clientside.no_update;
 }
 
@@ -724,12 +787,12 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
             // }
             // metanodes.forEach((v,k,m) => draw_bounding_box(k,v))
         },
-        activate_tooltip: function (mouseoverNodeData,mouseoverEdgeData,fake_graph_size,elements,extent,stylesheets,pos_store_data,cur_children,cur_show,cur_bbox,cur_direction){
-            return tooltip(mouseoverNodeData,mouseoverEdgeData,fake_graph_size,elements,extent,stylesheets,pos_store_data,cur_children,cur_show,cur_bbox,cur_direction);
-        }
-        ,layout_overview:layout_overview
-        ,highlight_pathway_neighbourhood:highlight_pathway_neighbourhood
-        ,use_elem_weight:use_elem_weight,
+        activate_tooltip: function (mouseoverNodeData, mouseoverEdgeData, selectedEdgeData, fake_graph_size, elements, extent, stylesheets, pos_store_data, cur_children, cur_show, cur_bbox, cur_direction) {
+            return tooltip(mouseoverNodeData, mouseoverEdgeData, selectedEdgeData, fake_graph_size, elements, extent, stylesheets, pos_store_data, cur_children, cur_show, cur_bbox, cur_direction);
+        },
+        layout_overview:layout_overview,
+        highlight_pathway_neighbourhood:highlight_pathway_neighbourhood,
+        use_elem_weight:use_elem_weight,
         box_plots_stats:box_plots_stats,
         on_box_plot_click:on_box_plot_click,
         display_legend:display_legend,
@@ -778,10 +841,14 @@ function export_text_event_handler(e){
     }
 }
 function node_event_handler(e){
+    // Prevent clicks on metanodes
+    if(e.target.data()["is_metanode"]){
+        return;
+    }
+    
     let href = "";
     if(e.target.data()["is_metanode"]){
         href = e.target.data().tooltip_content.props.children[1].props.href;
-
     }else{
         href = e.target.data().tooltip_content[1].props.href;
     }
@@ -968,4 +1035,56 @@ function get_y_max(plot) {
     }
     return y_max;
 }
+
+// Add edge hover effect for all graphs
+function addEdgeHoverEffect(graphId) {
+    const cy = document.getElementById(graphId)?._cyreg?.cy;
+    if (!cy) return;
+    // Remove previous listeners to avoid duplicates
+    cy.off('mouseover', 'edge');
+    cy.off('mouseout', 'edge');
+
+    if (graphId === 'overview_graph') {
+        // For the overview graph, increase width and change color on hover
+        cy.on('mouseover', 'edge', function(evt) {
+            const edge = evt.target;
+            const originalWidth = edge.style('width');
+            edge.scratch('originalWidth', originalWidth); // Store original width
+
+            const newWidth = parseFloat(originalWidth) + 4;
+            edge.style('width', newWidth);
+            edge.addClass('edge-hover');
+        });
+
+        cy.on('mouseout', 'edge', function(evt) {
+            const edge = evt.target;
+            const originalWidth = edge.scratch('originalWidth');
+            if (originalWidth) {
+                edge.style('width', originalWidth); // Restore original width
+            }
+            edge.removeClass('edge-hover');
+        });
+    } else {
+        // For other graphs, just change color
+    cy.on('mouseover', 'edge', function(evt) {
+        evt.target.addClass('edge-hover');
+    });
+    cy.on('mouseout', 'edge', function(evt) {
+        evt.target.removeClass('edge-hover');
+    });
+    }
+}
+
+function attachAllEdgeHoverEffects() {
+    addEdgeHoverEffect('overview_graph');
+    addEdgeHoverEffect('detail_graph');
+    addEdgeHoverEffect('mono_graph');
+}
+
+// Attach on window load
+window.addEventListener('load', function() {
+    setTimeout(attachAllEdgeHoverEffects, 1000); // Delay to ensure Cytoscape is initialized
+});
+
+window.tapMultiSignPathway = tapMultiSignPathway;
 

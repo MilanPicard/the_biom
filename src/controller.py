@@ -1,7 +1,7 @@
 import re
 import time
 # from dash_extensions.enrich import Dash, html, Input, Output, State, callback,ctx,ALL
-from dash import Dash, html, Input, Output, State, callback,ctx,ALL,MATCH
+from dash import Dash, html, dcc, Input, Output, State, callback,ctx,ALL,MATCH
 import dash_bootstrap_components as dbc
 import dash_cytoscape as cyto
 from dash import clientside_callback,ClientsideFunction, Input, Output
@@ -21,6 +21,9 @@ import utils
 import stats
 from  data_manager import DataManager
 import cProfile,pstats,io
+from dash.dependencies import ALL
+from detail_graph import get_multi_signature_genes, get_last_green_genes, update_node_highlight_styles, legend_highlight_stylesheet
+
 class Controller(object):
     _instance = None
     def __new__(cls,dm):
@@ -39,6 +42,7 @@ class Controller(object):
             return [{"label":"None","value":"None"}]+[{"label":f"{' '.join(j['GeneSymbolID'])}","title" : f"{j['counts']} signatures","value":i} for i,j in DataManager.get_instance().get_genes(selected_filter).items()],[{"label":"None","value":"None"}]+[{"label":j['PathwayDisplayName'],"title" : f"{j['counts']} genes","value":i} for i,j in DataManager.get_instance().get_pathways([],selected_filter).items()]
         @callback(
                 Output('selected_genes_store','data'),
+                Output('pathway_to_highlight', 'data'),
                 Input("genes_menu_select","value"),
                 Input({"type":"selected_gene_button","gene":ALL},"n_clicks"),
                 Input("detail_graph","selectedNodeData"),
@@ -48,81 +52,123 @@ class Controller(object):
                 Input({"type":"selected_pathway_button","pathway":ALL},"n_clicks"),
                 Input("mono_graph","selectedNodeData"),
                 Input("mono_graph","tapNodeData"),
-                State('selected_genes_store','data'),prevent_initial_call=True
+                Input({"type": "close_boxplot", "gene": ALL}, "n_clicks"),
+                State('selected_genes_store','data'),
+                prevent_initial_call=True
         )
-        def add_remove_gene(menu_select,button,fromGraph,multip_tap,selected_filter,menu_pathway,pathway_button,fromMonoGraph,monotap,current):
+        def add_remove_gene(menu_select,button,fromGraph,multip_tap,selected_filter,menu_pathway,pathway_button,fromMonoGraph,monotap,close_clicks,current):
+            # Initialize current if None
+            if current is None:
+                current = {"selected": [], "from_pathways": {"ids": [], "genes": []}, "covered_signatures": []}
+            highlight_pathway_id = None
+            
+            # Handle gene removal first
+            if ctx.triggered and isinstance(ctx.triggered_id, dict):
+                if ctx.triggered_id["type"] == "close_boxplot":
+                    # Remove gene from selection when boxplot is closed
+                    gene_to_remove = ctx.triggered_id["gene"]
+                    if gene_to_remove in current["selected"]:
+                        current["selected"].remove(gene_to_remove)
+                        # If this was the last gene, clear covered signatures
+                        if len(current["selected"]) == 0:
+                            current["covered_signatures"] = []
+                    return current, None
+                elif ctx.triggered_id["type"] == "selected_gene_button":
+                    # Remove gene from selection when menu button is clicked
+                    if ctx.triggered_id["gene"] in current["selected"]:
+                        current["selected"].remove(ctx.triggered_id["gene"])
+                        # If this was the last gene, clear covered signatures
+                        if len(current["selected"]) == 0:
+                            current["covered_signatures"] = []
+                    return current, None
+                elif ctx.triggered_id["type"] == "selected_pathway_button":
+                    # Remove pathway and its genes
+                    try:
+                        index = current["from_pathways"]["ids"].index(ctx.triggered_id["pathway"])
+                        current["from_pathways"]["ids"].remove(ctx.triggered_id["pathway"])
+                        del current["from_pathways"]["genes"][index]
+                        # If no genes and no pathways left, clear covered_signatures
+                        if len(current["selected"]) == 0 and len(current["from_pathways"]["ids"]) == 0:
+                            current["covered_signatures"] = []
+                    except ValueError:
+                        pass
+                    return current, None
+
+            # Handle filter change
+            if ctx.triggered_id == "filters_dropdown":
+                current["selected"] = []
+                current["from_pathways"]["ids"] = []
+                current["from_pathways"]["genes"] = []
+                current["covered_signatures"] = []
+                return current, None
+
+            # Handle gene addition
             added = []
             match ctx.triggered_id:
                 case "genes_menu_select":
-                    if menu_select is not None and menu_select != "None" and menu_select not in current["selected"]:
+                    if menu_select == "None":
+                        current["selected"] = []
+                        current["covered_signatures"] = []
+                    elif menu_select is not None and menu_select.startswith("ENSG") and menu_select not in current["selected"]:
                         current["selected"].append(menu_select)
                         added = [menu_select]
                     else:
                         raise dash.exceptions.PreventUpdate()
                 case "detail_graph":
-                    
-                    if("detail_graph.tapNodeData" in ctx.triggered_prop_ids):
+                    if "detail_graph.tapNodeData" in ctx.triggered_prop_ids:
                         gene = multip_tap
-                        if (not "is_pathways" in gene or not gene["is_pathways"]) and  gene["id"] not in current["selected"]:
+                        if (not "is_pathways" in gene or not gene["is_pathways"]) and gene["id"].startswith("ENSG") and gene["id"] not in current["selected"]:
                             current["selected"].append(gene["id"])
                             added = [gene["id"]]
                         else:
                             raise dash.exceptions.PreventUpdate()
-                    else:
-                        if fromGraph is not None and len(fromGraph)>0:
-                            added_any = False
-                            for gene in fromGraph:
-                                if (not "is_pathways" in gene or not gene["is_pathways"]) and  gene["id"] not in current["selected"]:
-                                    current["selected"].append(gene["id"])
-                                    added_any = True
-                                    added.append(gene["id"])
-                            if not added_any:
-                                raise dash.exceptions.PreventUpdate()
-                        else:
+                    elif fromGraph is not None and len(fromGraph) > 0:
+                        added_any = False
+                        for gene in fromGraph:
+                            if (not "is_pathways" in gene or not gene["is_pathways"]) and gene["id"].startswith("ENSG") and gene["id"] not in current["selected"]:
+                                current["selected"].append(gene["id"])
+                                added_any = True
+                                added.append(gene["id"])
+                        if not added_any:
                             raise dash.exceptions.PreventUpdate()
+                    else:
+                        raise dash.exceptions.PreventUpdate()
                 case "mono_graph":
-                    if fromMonoGraph is not None and len(fromMonoGraph)>0:
+                    if fromMonoGraph is not None and len(fromMonoGraph) > 0:
                         for gene in fromMonoGraph:
-                            if (not "is_pathways" in gene or not gene["is_pathways"]) and  gene["id"] not in current["selected"]:
+                            if (not "is_pathways" in gene or not gene["is_pathways"]) and gene["id"].startswith("ENSG") and gene["id"] not in current["selected"]:
                                 current["selected"].append(gene["id"])
                                 added.append(gene["id"])
                     else:
                         raise dash.exceptions.PreventUpdate()
                 case "pathways_menu_select":
-                    if menu_pathway is not None and menu_pathway != "None" and menu_pathway not in current["from_pathways"]:
+                    if menu_pathway is not None and menu_pathway != "None" and menu_pathway not in current["from_pathways"]["ids"]:
                         current["from_pathways"]["ids"].append(menu_pathway)
-                        to_add = DataManager.get_instance().get_genes(selected_filter,pathway = menu_pathway)
+                        to_add = DataManager.get_instance().get_genes(selected_filter, pathway=menu_pathway)
                         current["from_pathways"]["genes"].append(to_add)
                         added = to_add
+                        # --- Update covered_signatures for pathway selection ---
+                        pathway_gene_ids = list(to_add.keys()) if isinstance(to_add, dict) else list(to_add)
+                        if pathway_gene_ids:
+                            gene_inter = DataManager.get_instance().get_genes_intersections([], [], [], pathway_gene_ids, selected_filter)[1]
+                            if gene_inter is not None:
+                                current["covered_signatures"] = gene_inter["id"].explode().unique().tolist()
+                            else:
+                                current["covered_signatures"] = []
+                        # --- END ---
+                        highlight_pathway_id = menu_pathway
                     else:
                         raise dash.exceptions.PreventUpdate()
 
-                case "filters_dropdown":
-                    current["selected"]=[]
-                    current["from_pathways"]["ids"]=[]
-                    current["from_pathways"]["genes"]=[]
-                case _:
-                    if "gene" in ctx.triggered_id:
-                        if(ctx.triggered_id["gene"] in current["selected"]):
-                            current["selected"].remove(ctx.triggered_id["gene"])
-                    else:
-                        try:
-                            index = current["from_pathways"]["ids"].index(ctx.triggered_id["pathway"])
-                            current["from_pathways"]["ids"].remove(ctx.triggered_id["pathway"])
-                            del current["from_pathways"]["genes"][index]
-                        except ValueError :
-                            pass
-            
-            # diseases_detail,comparisons,signatures,genes_set = get_detail_subset(None, [], [], current,selected_filter)
-            if(len(added)>0):
-                gene_inter = DataManager.get_instance().get_genes_intersections([],[],[],added,selected_filter)[1]
+            # Update covered signatures only for menu selection
+            if ctx.triggered_id == "genes_menu_select" and len(added) > 0:
+                gene_inter = DataManager.get_instance().get_genes_intersections([], [], [], added, selected_filter)[1]
+                if gene_inter is not None:
+                    current["covered_signatures"] = gene_inter["id"].explode().unique().tolist()
+                else:
+                    current["covered_signatures"] = []
 
-                current["covered_signatures"]= gene_inter["id"].explode().unique().tolist()
-                print(current)
-            else:
-                current["covered_signatures"]= []
-
-            return current        
+            return current, highlight_pathway_id
         @callback(
             Output("selected_genes_div","children"),
             Input("selected_genes_store","data"),
@@ -143,7 +189,7 @@ class Controller(object):
             patched = Patch()
             if cur_children is None:
                 cur_children = []
-            n=len(cur_children)
+            n = len(cur_children)
             if len(store_data)==0 and n>0:
                 patched.clear()
             else:
@@ -160,15 +206,25 @@ class Controller(object):
                         if not found:
                             del patched[len(cur_children)-1]
                             del cur_children[-1]
-
                         n-=1
                     else:
                         for i in range(len(cur_children),len(store_data)):
-                            btn_style = {}
-                            btn = html.Button(get_symbol(store_data[i]),id={"type":f"selected_{attr}_button",attr:store_data[i]},className="btn",style=btn_style)
+                            if attr == "gene":
+                                # For genes, get the symbol
+                                try:
+                                    symbol = get_symbol(store_data[i])
+                                    btn = html.Button(symbol,id={"type":f"selected_{attr}_button",attr:store_data[i]},className="btn",style={})
+                                except KeyError:
+                                    # If it's not a gene ID, skip it
+                                    continue
+                            else:
+                                # For pathways, get the label
+                                btn = html.Button(get_symbol(store_data[i]),id={"type":f"selected_{attr}_button",attr:store_data[i]},className="btn",style={})
                             patched.append(btn)
                             n+=1
                     for i,g in enumerate(store_data):
+                        if attr == "gene" and not g.startswith("ENSG"):
+                            continue
                         tc = utils.get_text_color(color_scheme[i%len(color_scheme)])
                         patched[i]["props"]["style"]={
                             "--bs-btn-bg":color_scheme[i%len(color_scheme)],
@@ -217,6 +273,7 @@ class Controller(object):
                 State('detail_graph','elements'),
                 State("detail_graph_pos","data"),            
                 State('detail_graph','stylesheet'),
+                State('legend_active_store', 'data'),
                     prevent_initial_call=True,
                         cancel=[
                 Input('overview_graph','selectedNodeData'),
@@ -226,56 +283,64 @@ class Controller(object):
                 )
         def display_detail_graph(
             overview_nodes,
-            menu_genes,fake_graph_size,selected_filter,existing_elements,detail_pos_store,current_stylesheets):
+            menu_genes,fake_graph_size,selected_filter,existing_elements,detail_pos_store,current_stylesheets,legend_active_data):
             selected = [n["id"] for n in overview_nodes] if overview_nodes is not None else []
-            if (ctx.triggered_id=="selected_genes_store" and len(menu_genes["covered_signatures"])>0):
+            if (ctx.triggered_id == "selected_genes_store"
+                and menu_genes is not None
+                and "covered_signatures" in menu_genes
+                and len(menu_genes["covered_signatures"]) > 0):
                 if any([i not in selected for i in menu_genes["covered_signatures"]]):
                     raise dash.exceptions.PreventUpdate
             signatures = ";".join(selected) if overview_nodes is not None else None
-            
             if ctx.triggered_id=="fake_graph_size" :
                 if (fake_graph_size is None or "just_redraw" not in fake_graph_size or not fake_graph_size["just_redraw"]):
                     raise dash.exceptions.PreventUpdate()
                 else:
                     return detail_graph.redraw(existing_elements,detail_pos_store,1 if fake_graph_size is None or "AR" not in fake_graph_size else fake_graph_size["AR"],current_stylesheets)
             if(all([
-                #   (len(menu_genes["selected"])+len(menu_genes["from_pathways"]["ids"]))==0,
                   signatures is None or signatures ==""])):
                 return [],[],{"name":"preset"},{},dash.no_update,dash.no_update            
-            
             diseases, comparisons, signatures, genes_set = get_detail_subset(None, [], signatures, menu_genes,selected_filter)
+            # Determine highlight_gene_ids from legend state
+            highlight_gene_ids = []
+            if legend_active_data and 'active_ids' in legend_active_data:
+                for active_id in legend_active_data['active_ids']:
+                    import ast
+                    item_dict = ast.literal_eval(active_id)
+                    if item_dict.get('category') == 'genes' and item_dict.get('name') == 'genes in multiple signatures':
+                        highlight_gene_ids = get_last_green_genes()
             if len(diseases)!=0 or len(signatures)!=0:
-                r = detail_graph.display_detail_graph([],signatures,genes_set,existing_elements,detail_pos_store if detail_pos_store is not None else dict(),1 if fake_graph_size is None or "AR" not in fake_graph_size else fake_graph_size["AR"],selected_filter,comparisons)
+                r = detail_graph.display_detail_graph([],signatures,genes_set,existing_elements,detail_pos_store if detail_pos_store is not None else dict(),1 if fake_graph_size is None or "AR" not in fake_graph_size else fake_graph_size["AR"],selected_filter,comparisons,highlight_gene_ids=highlight_gene_ids)
                 return r
             else:
                 return existing_elements,[],{"name":"preset"},{},dash.no_update,dash.no_update
 
         def get_detail_subset(diseases, comparisons, signatures, menu_genes,selected_filter):
             if diseases is None:
-                diseases =""
+                diseases = []
             if signatures is None:
-                signatures = ""
-            if len(signatures)>0:
-                diseases =[i for i in diseases]
-                comparisons =[i for i in comparisons]
-                if isinstance(signatures,str):
+                signatures = []
+            if len(signatures) > 0:
+                if isinstance(signatures, str):
                     signatures = signatures.split(";")
+                # Only process signature IDs (those containing "_")
                 for s in signatures:
-                    cancer,comp,fil = s.split("_")
-                    if cancer not in diseases:
-                        diseases.append(cancer)
-                    if comp not in comparisons:
-                        comparisons.append(comp)
+                    if "_" in s:  # Only process signature IDs
+                        cancer, comp, fil = s.split("_")
+                        if cancer not in diseases:
+                            diseases.append(cancer)
+                        if comp not in comparisons:
+                            comparisons.append(comp)
                         
             genes_set = set()
             for p in menu_genes["from_pathways"]["genes"]:
                 genes_set.update(p)
             genes_set = menu_genes["selected"] + sorted(list(genes_set.difference(menu_genes["selected"])))
             
-            diseases = list(filter(lambda a: len(a)>0,diseases))
-            if isinstance(signatures,str):
-                signatures = list(filter(lambda a: len(a)>0,signatures.split(";")))
-            return diseases,comparisons,signatures,genes_set
+            diseases = list(filter(lambda a: len(a) > 0, diseases))
+            if isinstance(signatures, str):
+                signatures = list(filter(lambda a: len(a) > 0, signatures.split(";")))
+            return diseases, comparisons, signatures, genes_set
         @callback(
                 Output('mono_graph','elements'),
                 Output('mono_graph','stylesheet'),
@@ -319,222 +384,198 @@ class Controller(object):
         #     return ";".join([i["id"] for i in nodes])
 
         @callback(
-            Output("activation_boxplot","figure"),
-            Output("activation_boxplot","className"),
+            Output("box_plots_container", "children"),
             Output("overview_graph","stylesheet"),
             Output("box_plots_to_style","data"),
             Output("box_plots_stats","data"),
-            Input("overview_graph","selectedNodeData"),
-            Input("selected_genes_store","data"),
-                Input("box_categories","data"),
-                Input("filters_dropdown","value"),
-
-                State("overview_graph","elements"),
-                State("overview_graph","stylesheet"),
-                prevent_initial_call=False
+            Input("selected_genes_store","data"),  # Only depend on selected_genes_store
+            Input("box_categories","data"),
+            Input("filters_dropdown","value"),
+            Input({"type": "close_boxplot", "gene": ALL}, "n_clicks"),
+            Input("overview_graph", "selectedNodeData"),  # Add this line
+            State("overview_graph","elements"),
+            State("overview_graph","stylesheet"),
+            prevent_initial_call=False
         )
         def update_box_plot(
-            overview_selected_nodes,menu_selected,selected_boxcategories,
-            selected_filter,overview_elements,overview_stylesheets):
-            overview_selected = ";".join([n["id"] for n in overview_selected_nodes]) if overview_selected_nodes is not None else None
+            menu_selected, selected_boxcategories,
+            selected_filter, close_clicks, overview_selected_nodes,
+            overview_elements, overview_stylesheets):
+            # Extract selected cancer(s) from overview graph selection
+            selected_cancers = []
+            if overview_selected_nodes:
+                for node in overview_selected_nodes:
+                    if "Cancer" in node:
+                        selected_cancers.append(node["Cancer"])
+            selected_cancers = list(set(selected_cancers))
+            
+            #print("\n=== Boxplot Update Debug ===")
+            #print(f"Triggered by: {dash.callback_context.triggered_id}")
+            #print(f"Menu selected genes: {menu_selected['selected'] if menu_selected and 'selected' in menu_selected else []}")
+            #print(f"Selected box categories: {selected_boxcategories}")
+            #print(f"Selected filter: {selected_filter}")
+            
+            # Initialize box_categories at the start
+            box_categories = []
+            
+            # Handle close button clicks
+            ctx = dash.callback_context
+            if ctx.triggered and "close_boxplot" in str(ctx.triggered_id):
+                gene_to_remove = ctx.triggered_id["gene"]
+                #print(f"Removing boxplot for gene: {gene_to_remove}")
+                if menu_selected is not None and "selected" in menu_selected:
+                    items = [g for g in menu_selected["selected"] if g != gene_to_remove]
+                    #print(f"Remaining genes after removal: {items}")
+                    if not items:
+                        #print("No genes left after removal")
+                        return [], overview_stylesheets, {"categories":[],"genes":[]}, {"stats":[]}
+                else:
+                    return [], overview_stylesheets, {"categories":[],"genes":[]}, {"stats":[]}
+
+            # Get genes from menu selection
             items = []
-            if menu_selected is not None and (len(menu_selected["selected"])!=0 or len(menu_selected["from_pathways"]["ids"])>0):
-                genes_set = set()
-                for p in menu_selected["from_pathways"]["genes"]:
-                    genes_set.update(p)
-                items += menu_selected["selected"] + sorted(list(genes_set.difference(menu_selected["selected"])))
-            stylesheets =overview_stylesheets if overview_stylesheets is not None else ov.get_default_stylesheet(DataManager.get_instance())
+            if menu_selected is not None and "selected" in menu_selected:
+                items = menu_selected["selected"].copy()
+                #print(f"Initial items from menu selection: {items}")
+                if "from_pathways" in menu_selected and "genes" in menu_selected["from_pathways"]:
+                    genes_set = set()
+                    for p in menu_selected["from_pathways"]["genes"]:
+                        genes_set.update(p)
+                    pathway_genes = sorted(list(genes_set.difference(menu_selected["selected"])))
+                    items.extend(pathway_genes)
+                    #print(f"Added pathway genes: {pathway_genes}")
+                    #print(f"Total items after adding pathway genes: {items}")
+            
+            stylesheets = overview_stylesheets if overview_stylesheets is not None else ov.get_default_stylesheet(DataManager.get_instance())
             stylesheets = [s for s in stylesheets if not(s["selector"].startswith("edge#"))]
-            if(len(items)>0):
-                diseases_detail,comparisons,signatures,genes_set =get_detail_subset(None, [], overview_selected, menu_selected,selected_filter)
-                box_categories_tohighlight =dict({i:set() for i in items})
+            
+            if len(items) > 0:
+                gene_items = [item for item in items if isinstance(item, str) and item.startswith("ENSG")]
+                signature_items = [item for item in items if isinstance(item, str) and "_" in item]
+                #print(f"Filtered gene items: {gene_items}")
+                #print(f"Filtered signature items: {signature_items}")
+                
+                diseases_detail, comparisons, signatures, genes_set = get_detail_subset(
+                    None, [], signature_items, menu_selected, selected_filter
+                )
+                #print(f"Detail subset - Diseases: {diseases_detail}, Comparisons: {comparisons}, Signatures: {signatures}")
+                
+                if gene_items:
+                    gene_diseases = DataManager.get_instance().get_diseases_from_genes(gene_items)
+                    diseases_detail.extend(gene_diseases)
+                    diseases_detail = list(set(diseases_detail))
+                    #print(f"Added gene diseases: {gene_diseases}")
+                    #print(f"Final diseases list: {diseases_detail}")
+                
+                box_categories_tohighlight = dict({i: set() for i in items})
                 gene_inter = DataManager.get_instance().get_genes_intersections(diseases_detail,comparisons,signatures,genes_set,selected_filter)[1]
                 if gene_inter is None:
-                    return go.Figure(data=[]),"hidden_plot",stylesheets,{"categories":[],"genes":[]},{"stats":[]}
+                    #print("No gene intersections found")
+                    return [], stylesheets, {"categories":[],"genes":[]}, {"stats":[]}
 
                 diseases = []
-                if overview_selected is not None and len(overview_selected)>0:
-                    overview_selected = overview_selected.split(";")
-                    diseases = diseases + list(set([i.split("_")[0] for i in overview_selected]))
+                if overview_elements is not None:
+                    for elem in overview_elements:
+                        if "data" in elem and "elems" in elem["data"]:
+                            for e in elem["data"]["elems"]:
+                                if isinstance(e, str) and "_" in e:
+                                    disease = e.split("_")[0]
+                                    if disease not in diseases:
+                                        diseases.append(disease)
+                    #print(f"Diseases from overview elements: {diseases}")
 
-                diseases_detail =set()
-                if gene_inter is not None:
-                    gene_inter = gene_inter.set_index("gene")["id"].to_dict()
-                    for i in items:
-                        if(i in gene_inter):
-                            signature_to_highlight = gene_inter[i]
-                            for s in signature_to_highlight:
-                                s = s.split("_")
-                                d = s[0]
-                                diseases_detail.add(d)
-                                for stage in s[1].split("vs"):
-                                    box_categories_tohighlight[i].add(f"{d}_{stage}")
-                if len(diseases)==0:
-                    diseases = list(diseases_detail)
-                selected_patient_and_genes = DataManager.get_instance().get_activations(items,diseases if len(selected_boxcategories["diseases"])==0 else selected_boxcategories["diseases"],selected_boxcategories["comparisons"]).sort_values(["box_category"])
-                box_categories = sorted(pd.unique(selected_patient_and_genes["box_category"]).tolist())
-                symbols = list(map(lambda s : " ".join(s),DataManager.get_instance().get_symbol(items).to_list()))
-                selected_patient_and_genes =selected_patient_and_genes.rename(columns = dict(zip(items,symbols)))
-                for i in overview_elements:
-                    if "elems" in i["data"] and  any([j in items for j in i["data"]["elems"]]):
-                        stylesheets.append({"selector":'edge#'+i["data"]["id"],"style":{"line-color":"red","width":6}})
-                        # if("classes" in i):
-                            # i["classes"] = " ".join(set(i["classes"].split(" ") + ["highlight_edge"]))
-                        # else:
-                            # i["classes"] =  ["highlight_edge"]
-                    # else:
-                        # if("classes" in i) and "highlight_edge" in i["classes"]:
-                            # classes:list = i["classes"].split(" ")
-                            # classes.remove("highlight_edge")
-                            # i["classes"] = " ".join(classes)
-                # if(len(items)==1):
-                #     box = px.box(selected_patient_and_genes,x="box_category",y=symbols[0],color_discrete_sequence=detail_graph.get_color_scheme(items),labels={"box_category":""})
-                #     if(box.layout.margin.t is not None and box.layout.margin.t>20):
-                #         box.layout.margin.t=20
-                #     return box,"visible_plot",stylesheets,{"categories":box_categories,"genes":items}
+                # Get color maps for diseases and comparisons
+                disease_cmap = DataManager.get_instance().get_disease_cmap()
+                comparison_cmap = DataManager.get_instance().get_comparison_cmap()
+                #print(f"Available disease colors: {list(disease_cmap.keys())}")
+                #print(f"Available comparison colors: {list(comparison_cmap.keys())}")
 
-                # else:
-                dfs = []
-                color_scheme=detail_graph.get_color_scheme(items)
-                disease_cmp ={i:f"rgb({int(255*j[0])},{int(255*j[1])},{int(255*j[2])})" for i,j in DataManager.get_instance().get_disease_cmap().items()}
-                for i in range(len(items)):
-                    df = selected_patient_and_genes.filter(("box_category",symbols[i],"Cancer"))
-                    df = df.rename({symbols[i]:"expression"},axis=1)
-                    df["gene"] = symbols[i]
-                    df["gene_id"] = items[i]
-                    dfs.append(df)
-                df = pd.concat(dfs)
-                # box = px.box(df,x="box_category",y="expression",color="Cancer",facet_row="gene",color_discrete_map=disease_cmp,labels={"box_category":"","expression":"expression (log2(TPM+1))","LUAD":"a"})
-                box = plotly.subplots.make_subplots(rows=len(items),cols=1,shared_xaxes=True,shared_yaxes=True,row_titles=symbols,y_title="expression (log2(TPM+1))")
-                added_to_legend = set()
-                curve_numbers = {}
-                curve_number = 0
-                for i in range(len(items)):
-                    df =dfs[i]
-                    is_highlighted = df["box_category"].isin(box_categories_tohighlight[items[i]])
-
-                    for c in diseases:
-                        h = df[is_highlighted].loc[df[is_highlighted]["Cancer"]==c]
-                        displayed_hightlighted = not h.empty
-                        if displayed_hightlighted:
-                            for t in detail_box_plot.make_box_plot(h,c,c not in added_to_legend,disease_cmp,True):
-                                box.add_trace(t,row=i+1,col=1)
-                            added_to_legend.add(c)
-                            curve_numbers[curve_number]=items[i]
-                            curve_number+=1
-                        h = df[~is_highlighted].loc[df[~is_highlighted]["Cancer"]==c]
-                        if not h.empty:
-                            show_legend = c not in diseases_detail and c not in added_to_legend
-                            for t in detail_box_plot.make_box_plot(h,c,show_legend,disease_cmp,False):
-                                box.add_trace(t,row=i+1,col=1)
-                            if show_legend:
-                                added_to_legend.add(c)
-                            curve_numbers[curve_number]=items[i]
-                            curve_number+=1
-
-
-                # box = go.Figure(traces)
-                for axis in box.select_xaxes(col=1):
-                    axis.update(categoryorder="array",categoryarray=box_categories)
-
-                stats_data = stats.ttest(dfs,[0.05,0.01,0.001])
-                offsets = {}
-                data_indices={}
-                data_index=0
-                height = 7
-                inner_height = height-3
-                shapes = []
-                margin_top = 20
-                for s in stats_data:
-                    g1,bid1,g2,bid2,l = s
-                    offset1 = height*offsets.get(f"{g1}_{bid1}",0)
-                    offset2 = height*offsets.get(f"{g1}_{bid2}",0)
-                    offsets[f"{g1}_{bid1}"]=offsets.get(f"{g1}_{bid1}",0)+1
-                    offsets[f"{g1}_{bid2}"]=offsets.get(f"{g1}_{bid2}",0)+1
-                    x1 = box_categories.index(bid1)
-                    x2 = box_categories.index(bid2)
-                    y1 = 0+offset1#2
-                    y2 = y1+inner_height
-                    row = 1+items.index(g1)
-                    if row ==1 and margin_top<y2: 
-                        margin_top=y2
-                    yref = f"y{row} domain" if row>1 else "y domain" 
-                    label_position = "bottom center"
-                    shape = go.layout.Shape(
-                        label=go.layout.shape.Label(text=l,textposition=label_position,yanchor="middle",font={"size":10}),layer="above",path=f"M{x1},{y1}V{y2}H{x2}V{y1}",type="path",xref="x",xsizemode="scaled",ysizemode="pixel",yanchor=1,yref=yref,showlegend=False
+                # Create a div for each gene's boxplot
+                boxplot_divs = []
+                for gene in items:
+                    if not isinstance(gene, str) or not gene.startswith("ENSG"):
+                        continue
+                        
+                    #print(f"\nProcessing boxplot for gene: {gene}")
+                    selected_patient_and_genes = DataManager.get_instance().get_activations(
+                        [gene],
+                        selected_cancers if selected_cancers else diseases if len(selected_boxcategories["diseases"])==0 else selected_boxcategories["diseases"],
+                        selected_boxcategories["comparisons"]
+                    ).sort_values(["box_category"])
+                    
+                    if selected_patient_and_genes.empty:
+                        #print(f"No data found for gene {gene}")
+                        continue
+                        
+                    current_box_categories = sorted(pd.unique(selected_patient_and_genes["box_category"]).tolist())
+                    #print(f"Box categories for {gene}: {current_box_categories}")
+                    box_categories = list(set(box_categories + current_box_categories))
+                    symbol = " ".join(DataManager.get_instance().get_symbol(gene))
+                    selected_patient_and_genes = selected_patient_and_genes.rename(columns={gene: symbol})
+                    
+                    # Create the boxplot with color coding
+                    fig = go.Figure()
+                    for category in current_box_categories:
+                        disease, stage = category.split("_")
+                        category_data = selected_patient_and_genes[selected_patient_and_genes["box_category"] == category]
+                        
+                        # Determine color based on disease
+                        color = disease_cmap.get(disease, "gray")
+                        if isinstance(color, tuple):  # Convert matplotlib RGB tuple to plotly rgba
+                            # Convert from 0-1 range to 0-255 range and create rgba string
+                            r, g, b = [int(x * 255) for x in color[:3]]
+                            rgba_color = f"rgba({r},{g},{b},0.2)"
+                            # For the line color, use solid rgb
+                            line_color = f"rgb({r},{g},{b})"
+                        else:
+                            # Default gray colors
+                            rgba_color = "rgba(128,128,128,0.2)"
+                            line_color = "rgb(128,128,128)"
+                        
+                        fig.add_trace(go.Box(
+                            y=category_data[symbol],
+                            x=[category] * len(category_data),
+                            name=category,
+                            showlegend=False,
+                            fillcolor=rgba_color,
+                            line=dict(color=line_color)
+                        ))
+                        #print(f"Added box for {category} with color {color}")
+                    
+                    fig.update_layout(
+                        title=symbol,
+                        showlegend=False,
+                        margin=dict(t=30, l=10, r=10, b=10),
+                        height=200
                     )
-                    shapes.append(shape)
-                    if f"{g1}_{bid1}" not in data_indices:
-                        data_indices[f"{g1}_{bid1}"]=[data_index]
-                    else:
-                        data_indices[f"{g1}_{bid1}"].append(data_index)
-                    data_index+=1
-                    y1 = 0+offset2
-                    y2 = y1+inner_height
-                    shape = go.layout.Shape(
-                        label=go.layout.shape.Label(text=l,textposition=label_position,yanchor="middle",font={"size":10}),layer="above",path=f"M{x1},{y1}V{y2}H{x2}V{y1}",type="path",xref="x",xsizemode="scaled",ysizemode="pixel",yanchor=1,yref=yref,showlegend=False
-                    )
-                    shape.name=f"{bid1}_{bid2}"
-                    shapes.append(shape)
-                    if f"{g1}_{bid2}" not in data_indices:
-                        data_indices[f"{g1}_{bid2}"]=[data_index]
-                    else:
-                        data_indices[f"{g1}_{bid2}"].append(data_index)
-                    data_index+=1
-                # for label_position in ["top center","middle center","bottom center"]:
-                #     for anchor in ["top","middle","bottom"]:
-                #         shapes.append(go.layout.Shape(
-                #             label=go.layout.shape.Label(text=f"*** {label_position} {anchor}",textposition=label_position,yanchor=anchor),layer="above",path=f"M{x1},{y1}V{y2}H{x2}V{y1}",type="path",xref="x",xsizemode="scaled",ysizemode="pixel",yanchor=1,yref=yref,showlegend=False
-                #         ))
-                # if(box.layout.margin.t is not None and box.layout.margin.t>20):
-                    # box.layout.margin.t=20
-                box.layout.margin.t = margin_top+5
-                box.layout.minreducedheight=len(items)*200
-                return box ,"visible_plot",stylesheets,{"categories":box_categories,"genes":items},{"stats":{"curve_numbers":curve_numbers,"data_indices":data_indices,"shapes":shapes}}
+                    
+                    boxplot_div = html.Div([
+                        html.Div([
+                            html.Button(
+                                "×",
+                                id={"type": "close_boxplot", "gene": gene},
+                                className="close-button"),
+                            dcc.Graph(
+                                figure=fig,
+                                config={"displayModeBar": False},
+                                style={"height": "100%"}
+                            )
+                        ], className="boxplot-wrapper")
+                    ], style={"width": "100%", "marginBottom": "10px"})
+                    
+                    boxplot_divs.append(boxplot_div)
+                    #print(f"Created boxplot div for {gene}")
                 
-            else:
-                return go.Figure(data=[
-                    ]),"hidden_plot",stylesheets,{"categories":[],"genes":[]},{"stats":[]}
-        # clientside_callback(
-        #     ClientsideFunction(
-        #         namespace='clientside',
-        #         function_name='box_plots_stats'
-        #     ),Input("activation_boxplot","restyleData"),
-        #     Input("activation_boxplot","figure"),
-        #     State("box_plots_stats","data"),
-        #     State("do_box_plots_stats","data"),
-        #         prevent_initial_call=False)
-
-        # @callback(
-        #     Output("activation_heatmap","figure"),
-        #     Output("activation_heatmap","className"),
-        #     Input("overview_graph","selectedNodeData" ),
-        #     Input("detail_graph","selectedNodeData"),
-        #     Input("activation_boxplot","clickData")
-        # )
-        # def update_heatmap(overview_selected,detail_selected,selected_box):
-        #     if(detail_selected is not None and len(detail_selected)==1 and selected_box is not None and len(selected_box)==1):
-        #         g = detail_selected[0]['id']
-        #         disease,stage = selected_box['points'][0]['x'].split("_")
-
-        #         selected_patient_and_genes = DataManager.get_instance().get_activations(g,[disease]).sort_values(by=["Stage",g])
-        #         y_labels = []
-        #         for item in selected_patient_and_genes.itertuples():
-        #             if len(y_labels)==0 or y_labels[-1]!=item.box_category:
-        #                 y_labels.append(item.box_category)
-        #             else:
-        #                 y_labels.append("")
-        #         fig =  px.imshow(np.expand_dims(selected_patient_and_genes[g].to_numpy(),1),y=y_labels,color_continuous_scale="turbo")
-        #         fig.update_xaxes(showticklabels=False)
-
-        #         return fig,"visible_plot"
-        #     else:
-        #         return go.Figure(data=[
-        #         ]),"hidden_plot"
+                #print(f"\nFinal boxplot count: {len(boxplot_divs)}")
+                #print(f"Final box categories: {box_categories}")
+                return boxplot_divs, stylesheets, {"categories": box_categories, "genes": items}, {"stats": []}
+            
+            #print("No items to display boxplots for")
+            return [], stylesheets, {"categories":[],"genes":[]}, {"stats":[]}
 
         @callback(
-                Output("data_gene_menu_selected","value"),
-                Input("genes_menu_select","value")
+            Output("data_gene_menu_selected","value"),
+            Input("genes_menu_select","value")
         )
         def update_data_gene_menu_selected(v):
             return v
@@ -550,9 +591,9 @@ class Controller(object):
             Output("detail_graph_tooltip","bbox"),
             Output("detail_graph_tooltip","direction"),
             Output("detail_graph_tooltip","className"),
-        #     # Output("detail_graph_tooltip","bbox"),
             Input("detail_graph","mouseoverNodeData"),
             Input("detail_graph","mouseoverEdgeData"),
+            Input("detail_graph","selectedEdgeData"),
             Input("fake_graph_size","data"),
             State("detail_graph","elements"),
             State("detail_graph","extent"),
@@ -574,9 +615,9 @@ class Controller(object):
             Output("mono_graph_tooltip","bbox"),
             Output("mono_graph_tooltip","direction"),
             Output("mono_graph_tooltip","className"),
-        #     # Output("mono_graph_tooltip","bbox"),
             Input("mono_graph","mouseoverNodeData"),
             Input("mono_graph","mouseoverEdgeData"),
+            Input("mono_graph","selectedEdgeData"),
             Input("fake_graph_size","data"),
             State("mono_graph","elements"),
             State("mono_graph","extent"),
@@ -593,15 +634,14 @@ class Controller(object):
                 namespace='clientside',
                 function_name='activate_tooltip'
             ),
-
             Output("overview_graph_tooltip","children"),
             Output("overview_graph_tooltip","show"),
             Output("overview_graph_tooltip","bbox"),
             Output("overview_graph_tooltip","direction"),
             Output("overview_graph_tooltip","className"),
-        #     # Output("detail_graph_tooltip","bbox"),
             Input("overview_graph","mouseoverNodeData"),
             Input("overview_graph","mouseoverEdgeData"),
+            Input("overview_graph","selectedEdgeData"),
             Input("fake_graph_size","data"),
             State("overview_graph","elements"),
             State("overview_graph","extent"),
@@ -622,98 +662,88 @@ class Controller(object):
         # )
 
         clientside_callback(
-                """
-        function update_width_start(n1,n2,e_width,e_height,state,detail_graph_pos,dw,fake_graph_size){
+            """
+    function update_width_start(n1,e_width,state,detail_graph_pos,dw,fake_graph_size){
         var graph_width = document.getElementById("detail_graph").clientWidth!=0?document.getElementById("detail_graph").clientWidth:document.getElementById("mono_graph").clientWidth;
         var graph_height = document.getElementById("detail_graph").clientWidth!=0?document.getElementById("detail_graph").clientHeight:document.getElementById("mono_graph").clientHeight;
 
-            var e = dash_clientside.callback_context.triggered_id=="full_col"?e_height:e_width;
-            if(dash_clientside.callback_context.triggered_id===undefined){
-                var elem = document.getElementById('detail_graph');
-                var span = document.getElementById('detail_resize_span');
+        var e = e_width;
+        if(dash_clientside.callback_context.triggered_id===undefined){
+            var elem = document.getElementById('detail_graph');
+            var span = document.getElementById('detail_resize_span');
 
-                return  Object.assign({},fake_graph_size,{'width':graph_width,'height':graph_height,'width_span':span.clientWidth,"AR":graph_width/graph_height});
-            }
-            if(e["type"]=="click" && !e["isTrusted"]){
-                if(fake_graph_size["width"]===undefined || fake_graph_size["height"]===undefined || Math.abs(fake_graph_size["width"]-graph_width)/graph_width>0.05 ||Math.abs(fake_graph_size["height"]-graph_height)/graph_height>0.05){
+            return  Object.assign({},fake_graph_size,{'width':graph_width,'height':graph_height,'width_span':span.clientWidth,"AR":graph_width/graph_height});
+        }
+        if(e["type"]=="click" && !e["isTrusted"]){
+            if(fake_graph_size["width"]===undefined || fake_graph_size["height"]===undefined || Math.abs(fake_graph_size["width"]-graph_width)/graph_width>0.05 ||Math.abs(fake_graph_size["height"]-graph_height)/graph_height>0.05){
                 fake_graph_size["width"]=graph_width;
                 fake_graph_size["height"]=graph_height;
                 fake_graph_size["AR"]=fake_graph_size["width"]/fake_graph_size["height"];
                 fake_graph_size["just_redraw"]=true;
-                //document.getElementById("overview_graph")['_cyreg']["cy"].layout({"name":"cose","nodeDimensionsIncludeLabels":true,"animate":false}).run();
-                layout_overview();
+                
+                // Update layout directly instead of calling layout_overview
+                var overview_graph = document.getElementById("overview_graph");
+                if (overview_graph && overview_graph['_cyreg'] && overview_graph['_cyreg']["cy"]) {
+                    overview_graph['_cyreg']["cy"].layout({
+                        name: "cola",
+                        nodeDimensionsIncludeLabels: true,
+                        animate: false
+                    }).run();
+                }
 
                 return fake_graph_size;
-                }
-                else
-                    return dash_clientside.no_update;
-
             }
-            if(e["type"]=="mousedown"){
-                let in_tooltip = false;
-                for(let t of document.querySelectorAll(".dcc-tooltip-bounding-box")){
-                    in_tooltip = in_tooltip || t.contains(e.target);
-                }
+            else
+                return dash_clientside.no_update;
+        }
+        if(e["type"]=="mousedown"){
+            let in_tooltip = false;
+            for(let t of document.querySelectorAll(".dcc-tooltip-bounding_box")){
+                in_tooltip = in_tooltip || t.contains(e.target);
+            }
 
-                if(e.target.classList.contains("resize_span") && !in_tooltip){
-                    if(dash_clientside.callback_context.triggered_id==="move_in_ov"){
-                        if(!state["width"]["is_resizing"]){
-                            state["width"]["is_resizing"]=true;
-                            state["width"]["original_width"]=dw;
-                            dash_clientside.set_props("resize_state", {"data":{"width":state["width"],"height":state["height"]}});
-                            document.querySelectorAll("#overview_col canvas, #detail_col canvas").forEach(c => c.style.cursor="w-resize");
+            if(false && e.target.classList.contains("resize_span") && !in_tooltip){
+                if(dash_clientside.callback_context.triggered_id==="move_in_ov"){
+                    if(!state["width"]["is_resizing"]){
+                        state["width"]["is_resizing"]=true;
+                        state["width"]["original_width"]=dw;
+                        dash_clientside.set_props("resize_state", {"data":{"width":state["width"],"height":state["height"]}});
+                        document.querySelectorAll("#overview_col canvas, #detail_col canvas").forEach(c => c.style.cursor="w-resize");
+                        return dash_clientside.no_update;
+                    }
+                }
+            }else{
+                if(!in_tooltip){
+                    var possibleTargets = ["overview_col","detail_col"];
+                    if(false && ((dash_clientside.callback_context.triggered_id==="full_col" && "second_row_div" == e.target.id) || (possibleTargets.includes(e.target.id) && (e.target.clientHeight-e.offsetY<50)&& dash_clientside.callback_context.triggered_id==="move_in_ov"))){
+                        if(!state["height"]["is_resizing"]){
+                            state["height"]["is_resizing"]=true;
+                            dash_clientside.set_props("resize_state", {"data":{"width":{"is_resizing":false},"height":{"is_resizing":true}}});
                             return dash_clientside.no_update;
                         }
-                    }
-                }else{
-                    if(!in_tooltip){
-                        var possibleTargets = ["overview_col","detail_col"];
-                        if((dash_clientside.callback_context.triggered_id==="full_col" && "second_row_div" == e.target.id) || (possibleTargets.includes(e.target.id) && (e.target.clientHeight-e.offsetY<50)&& dash_clientside.callback_context.triggered_id==="move_in_ov")){
-                            if(!state["height"]["is_resizing"]){
-                                state["height"]["is_resizing"]=true;
-                                dash_clientside.set_props("resize_state", {"data":{"width":{"is_resizing":false},"height":{"is_resizing":true}}});
-                                return dash_clientside.no_update;
-                            }
-                        }else{
-                            console.log(possibleTargets.includes(e.target.id),e.target.id,dash_clientside.callback_context.triggered_id==="full_col",dash_clientside.callback_context.triggered_id)
-                        }
+                    }else{
+                        console.log(possibleTargets.includes(e.target.id),e.target.id,dash_clientside.callback_context.triggered_id==="full_col",dash_clientside.callback_context.triggered_id)
                     }
                 }
-                return dash_clientside.no_update;
             }
-            if(e["type"]=="mouseup"){
-                if(state["width"]["is_resizing"]){
-                    state["width"]["is_resizing"]=false;
-                    dash_clientside.set_props("resize_state", {"data":{"width":state["width"],"height":state["height"]}});
-                    document.querySelectorAll("#overview_col canvas, #detail_col canvas").forEach(c => c.style.cursor="auto");
-                    //document.getElementById("overview_graph")['_cyreg']["cy"].layout({"name":"cose","nodeDimensionsIncludeLabels":true}).run();
-                    layout_overview();
+            return dash_clientside.no_update;
+        }
+        if(e["type"]=="mouseup"){
+            if(state["width"]["is_resizing"]){
+                state["width"]["is_resizing"]=false;
+                dash_clientside.set_props("resize_state", {"data":{"width":state["width"],"height":state["height"]}});
+                document.querySelectorAll("#overview_col canvas, #detail_col canvas").forEach(c => c.style.cursor="auto");
+                layout_overview();
 
-                    fake_graph_size["width"]=graph_width;
-                    fake_graph_size["height"]=graph_height;
-                    fake_graph_size["AR"]=fake_graph_size["width"]/fake_graph_size["height"];
-                    return fake_graph_size;
-                }
-                if(state["height"]["is_resizing"]){
-                    state["height"]["is_resizing"]=false;
-                    dash_clientside.set_props("resize_state", {"data":{"width":state["width"],"height":state["height"]}});
-                    //document.getElementById("overview_graph")['_cyreg']["cy"].layout({"name":"cose","nodeDimensionsIncludeLabels":true}).run();
-                    layout_overview();
-
-                    fake_graph_size["width"]=graph_width;
-                    fake_graph_size["height"]=graph_height;
-                    fake_graph_size["AR"]=fake_graph_size["width"]/fake_graph_size["height"];
-                    return fake_graph_size;
-                }
-                return dash_clientside.no_update;
+                fake_graph_size["width"]=graph_width;
+                fake_graph_size["height"]=graph_height;
+                fake_graph_size["AR"]=fake_graph_size["width"]/fake_graph_size["height"];
+                return fake_graph_size;
             }
-            if(e["type"]=="mousemove" && state["width"]["is_resizing"] && e["buttons"]==0){
-                console.log("triggered event",document.getElementById("overview_col").dispatchEvent(new MouseEvent("mouseup")));
-            }
-            if(e["type"]=="mousemove" && state["height"]["is_resizing"] && e["buttons"]==0){
+            if(state["height"]["is_resizing"]){
                 state["height"]["is_resizing"]=false;
                 dash_clientside.set_props("resize_state", {"data":{"width":state["width"],"height":state["height"]}});
-        //        document.getElementById("overview_graph")['_cyreg']["cy"].layout({"name":"cose","nodeDimensionsIncludeLabels":true}).run();
+    //        document.getElementById("overview_graph")['_cyreg']["cy"].layout({"name":"cose","nodeDimensionsIncludeLabels":true}).run();
                 layout_overview();
 
                 fake_graph_size["width"]=graph_width;
@@ -723,12 +753,26 @@ class Controller(object):
             }
             return dash_clientside.no_update;
         }
-                """,
+        if(e["type"]=="mousemove" && state["width"]["is_resizing"] && e["buttons"]==0){
+            console.log("triggered event",document.getElementById("overview_col").dispatchEvent(new MouseEvent("mouseup")));
+        }
+        if(e["type"]=="mousemove" && state["height"]["is_resizing"] && e["buttons"]==0){
+            state["height"]["is_resizing"]=false;
+            dash_clientside.set_props("resize_state", {"data":{"width":state["width"],"height":state["height"]}});
+    //        document.getElementById("overview_graph")['_cyreg']["cy"].layout({"name":"cose","nodeDimensionsIncludeLabels":true}).run();
+            layout_overview();
+
+            fake_graph_size["width"]=graph_width;
+            fake_graph_size["height"]=graph_height;
+            fake_graph_size["AR"]=fake_graph_size["width"]/fake_graph_size["height"];
+            return fake_graph_size;
+        }
+        return dash_clientside.no_update;
+    }
+            """,
             Output('fake_graph_size','data'),
             Input("move_in_ov","n_events"),
-            Input("full_col","n_events"),
             State("move_in_ov","event"),
-            State("full_col","event"),
             State("resize_state","data"),
             State("detail_graph_pos","data"),
             State("detail_col","width"),
@@ -737,10 +781,12 @@ class Controller(object):
                     )
 
         clientside_callback(
-                """
-        function update_width(n,n_height,e_width,e_height,ow,dw,resize_state,fake_graph_size){
+            """
+    function update_width(n,e_width,ow,dw,resize_state,fake_graph_size){
         //console.time("update_width");
-        var e = dash_clientside.callback_context.triggered_id=="full_col"?e_height:e_width;
+        var e = e_width;
+        var graph_width = document.getElementById("detail_graph").clientWidth!=0?document.getElementById("detail_graph").clientWidth:document.getElementById("mono_graph").clientWidth;
+        var graph_height = document.getElementById("detail_graph").clientWidth!=0?document.getElementById("detail_graph").clientHeight:document.getElementById("mono_graph").clientHeight;
 
         function find_row(elem){
             var p =  elem;
@@ -748,21 +794,37 @@ class Controller(object):
                 p = p.parentNode;
             return p;
         }
-        if(fake_graph_size ===null)
-            fake_graph_size = {};
-        var graph_width = document.getElementById("detail_graph").clientWidth!=0?document.getElementById("detail_graph").clientWidth:document.getElementById("mono_graph").clientWidth;
-        var graph_height = document.getElementById("detail_graph").clientWidth!=0?document.getElementById("detail_graph").clientHeight:document.getElementById("mono_graph").clientHeight;
+        
+        // Handle window resize
+        window.addEventListener('resize', function() {
+            if (fake_graph_size === null) fake_graph_size = {};
+            fake_graph_size["width"] = graph_width;
+            fake_graph_size["height"] = graph_height;
+            fake_graph_size["AR"] = graph_width/graph_height;
+            fake_graph_size["just_redraw"] = true;
+            dash_clientside.set_props("fake_graph_size", fake_graph_size);
+            
+            // Update layout
+            var overview_graph = document.getElementById("overview_graph");
+            if (overview_graph && overview_graph['_cyreg'] && overview_graph['_cyreg']["cy"]) {
+                overview_graph['_cyreg']["cy"].layout({
+                    name: "cola",
+                    nodeDimensionsIncludeLabels: true,
+                    animate: false
+                }).run();
+            }
+        });
 
-        if(resize_state["width"]["is_resizing"]){
+        if(false && resize_state["width"]["is_resizing"]){
             var overviewCol = document.getElementById("overview_col");
             var detailCol = document.getElementById("detail_col");
-            if(e["type"]=="mousemove" &&e.target.tagName==="CANVAS" && (overviewCol.contains(e.target) || detailCol.contains(e.target))){
+            if(e["type"]=="mousemove" && e.target && e.target.tagName==="CANVAS" && (overviewCol.contains(e.target) || detailCol.contains(e.target))){
                 if(overviewCol.contains(e.target) && ow>2){
                     var w = ow;
                     var width = find_row(e.target).clientWidth;
-                    while(w>2&&e.offsetX<(w-1)*width/12){
-                            w=w-1;
-                        }
+                    while(w>2 && e.offsetX<(w-1)*width/12){
+                        w=w-1;
+                    }
                     if(w!=ow){
                         dash_clientside.set_props("overview_col", {width: w});
                         dash_clientside.set_props("detail_col", {width: 12-w});
@@ -776,7 +838,7 @@ class Controller(object):
                     if(detailCol.contains(e.target) && dw>2){
                         var width = find_row(e.target).clientWidth;
                         var w = dw;
-                        while(w>2&&e.target.clientWidth-e.offsetX<(w-1)*width/12){
+                        while(w>2 && e.target.clientWidth-e.offsetX<(w-1)*width/12){
                             w=w-1;
                         }
                         if(dw!=w){
@@ -793,50 +855,25 @@ class Controller(object):
                 }
             }
         }
-        if(e_width==e && resize_state["height"]["is_resizing"]){
-            if(e["type"]=="mousemove" ){
-                if(ajust_flex(e.offsetY)){
-                    fake_graph_size["width"]=graph_width;
-                    fake_graph_size["height"]=graph_height;
-                    fake_graph_size["AR"]=fake_graph_size["width"]/fake_graph_size["height"];
-                    fake_graph_size["just_redraw"]=true;
-                    dash_clientside.set_props("fake_graph_size", fake_graph_size);
-                }
+
+        if(false && resize_state["height"]["is_resizing"] && e["type"]=="mousemove"){
+            var upHeight = document.getElementById("overview_col").parentNode.clientHeight;
+            if(ajust_flex(e.offsetY+upHeight)){
+                fake_graph_size["width"]=graph_width;
+                fake_graph_size["height"]=graph_height;
+                fake_graph_size["AR"]=fake_graph_size["width"]/fake_graph_size["height"];
+                fake_graph_size["just_redraw"]=true;
+                dash_clientside.set_props("fake_graph_size", fake_graph_size);
             }
         }
 
-        if(e_height==e && resize_state["height"]["is_resizing"]){
-            if(e["type"]=="mousemove" ){
-                var upHeight = document.getElementById("overview_col").parentNode.clientHeight;
-                if(ajust_flex(e.offsetY+upHeight)){
-                    fake_graph_size["width"]=graph_width;
-                    fake_graph_size["height"]=graph_height;
-                    fake_graph_size["AR"]=fake_graph_size["width"]/fake_graph_size["height"];
-                    fake_graph_size["just_redraw"]=true;
-                    dash_clientside.set_props("fake_graph_size", fake_graph_size);
-                }
-            }
-        }
-        if(e == e_width &&  !resize_state["width"]["is_resizing"]){
-        if(e["type"]=="click"){
-        if(document.getElementById("detail_graph").contains(e.target))
-        {
-            tapMultiSignPathway();
-
-        }
-
-        }
-        }
-        //console.timeEnd("update_width");
         return dash_clientside.no_update;
-        }
+    }
                 """,
             Output("overview_col","width"),
             Output("detail_col","width"),
             Input("move_in_ov","n_events"),
-            Input("full_col","n_events"),
             State("move_in_ov","event"),
-            State("full_col","event"),
             State("overview_col","width"),
             State("detail_col","width"),
             State("resize_state","data"),
@@ -854,6 +891,8 @@ class Controller(object):
             prevent_initial_call=True
         )
         def update_link_style(pathname,about,main):
+            about = dict(about) if about else {}
+            main = dict(main) if main else {}
             match pathname:
                 case "/":
                     about["display"]="inline"
@@ -862,53 +901,6 @@ class Controller(object):
                     main["display"]="inline"
                     about["display"]="none"
             return about,main
-
-        # clientside_callback(
-        #     """
-        #     function update_box_style(box_plots_to_style,elements){
-        #     console.log(box_plots_to_style);
-        #     if(box_plots_to_style["genes"].length>0){
-        #         var cy = document.getElementById("detail_graph")['_cyreg']["cy"];
-        #         var traces = document.querySelector("#activation_boxplot .boxlayer").children;
-        #         for(var i =0;i<box_plots_to_style["genes"].length;i+=1){
-        #             var gene = box_plots_to_style["genes"][i];
-        #             var trace = traces[i];
-        #             const cy_elem = cy.elements("#" + gene).toArray();
-        #                 if(cy_elem!==undefined){
-        #                 console.log(gene,cy_elem);
-        #                 var signatures = cy_elem[0].data("Signatures");
-        #                 for(var j=0;j<box_plots_to_style["categories"].length;j+=1){
-        #                     var category = box_plots_to_style["categories"][j].split("_");
-        #                     var found = false;
-        #                     for(var k=0;k<signatures.length&& !found;k+=1){
-        #                         var s = signatures[k].split("_");
-        #                         if(s[0]==category[0]){
-        #                             var stages = s[1].split("vs");
-        #                             if(category[1]==stages[0] || category[1]==stages[1]){
-        #                                 found=true;
-        #                             }
-        #                         }
-        #                     }
-        #                     if(found){
-        #                         //trace.children[j].style.strokeWidth=4;
-        #                     }else{
-        #                         trace.children[j].classList.add("nothighlight");
-        #                     }
-        #                     console.log(signatures,category);
-        #                 }
-        #                 console.log(gene,trace,cy_elem);
-        #             }
-        #         }
-        #     }
-        #     }
-        #     """,
-        #     Input("box_plots_to_style","data"),
-        #     Input("detail_graph","elements"),
-            
-        #     prevent_initial_call=True
-
-        #     )
-
 
         clientside_callback(
             """function sign_clipboard(n,sign){
@@ -932,15 +924,6 @@ class Controller(object):
                                     Output('overview_graph','layout'),
                                     Input('overview_graph_layout','data'),
         )
-
-        # clientside_callback(    ClientsideFunction(
-        #         namespace='clientside',
-        #         function_name='highlight_pathway_neighbourhood'
-        #     ),
-
-        #         Input("detail_graph","selectedNodeData"),
-
-        # )
 
         clientside_callback( ClientsideFunction(
                 namespace='clientside',
@@ -1019,16 +1002,6 @@ class Controller(object):
                 State('mono_export',"data"),
                         prevent_initial_call=True
         )
-        # @callback(
-        #     Output("box_plot_filter", "is_open"),
-        #     Input("box_plot_filter_button", "n_clicks"),
-        #     State("box_plot_filter", "is_open"),prevent_initial_call=True
-        # )
-        # def toggle_collapse(n_clicks, is_open):
-        #     if n_clicks is not None:
-        #         return not is_open
-        #     return dash.no_update
-
         clientside_callback( """
             function tap_multi_node(tappedNodeData){
                 let id = undefined;
@@ -1185,7 +1158,7 @@ class Controller(object):
                     diseases_detail,comparisons,signatures,genes_set = get_detail_subset(None, [], [], menu_genes,selected_filter)
                     if(len(genes_set)>0):
                         gene_inter = DataManager.get_instance().get_genes_intersections(diseases_detail,comparisons,signatures,genes_set,selected_filter)[1]
-                        print()
+                        # print()
                         for s in gene_inter["id"].explode().unique():
                             f = s.split("_")
                             d= f[0]
@@ -1197,7 +1170,7 @@ class Controller(object):
                         return cur
                 case _:
                     if(isinstance(ctx.triggered_id,dict)):
-                        print("ctx.triggered_id is dict",ctx.triggered_id)
+                        # print("ctx.triggered_id is dict",ctx.triggered_id)
                         if("type" in ctx.triggered_id):
                             if(ctx.triggered_id["type"]=="check_diseases"):
                                 d = ctx.triggered_id["disease"]
@@ -1231,4 +1204,809 @@ class Controller(object):
                     prevent_initial_call=True)
                     
 
-        
+        @callback(
+            Output('multi_html_legend', 'children'),
+            Input('multi_legend', 'data'),
+            Input('legend_tooltip_store', 'data'),
+            Input('legend_hover_store', 'data'),
+            Input('legend_active_store', 'data'),
+            prevent_initial_call=False
+        )
+        def render_multi_html_legend(legend_data, tooltip_data, hover_data, active_data):
+            items = []
+            hovered_id = hover_data.get('hovered_id') if hover_data else None
+            active_ids = active_data.get('active_ids', []) if active_data else []
+            if not legend_data:
+                # Return empty list instead of showing "Legend not available"
+                pass
+            else:
+                # Genes
+                if 'genes' in legend_data:
+                    for k, v in legend_data['genes'].items():
+                        item_id = {"type": "legend-item", "category": "genes", "name": k}
+                        is_hovered = str(item_id) == hovered_id
+                        is_active = str(item_id) in active_ids
+                        item_style = {
+                            'cursor': 'pointer',
+                            'marginBottom': 2,
+                            'display': 'flex',
+                            'alignItems': 'center',
+                            'pointerEvents': 'auto',
+                            'background': '#f0f0f0' if is_hovered else ('#d1eaff' if is_active else 'none'),
+                            'border': '1.5px solid #007bff' if is_active else ('1.5px solid #888' if is_hovered else '1px solid transparent'),
+                            'borderRadius': '4px',
+                            'transition': 'background 0.15s, border 0.15s',
+                        }
+                        class_list = ['legend-item']
+                        if is_active:
+                            class_list.append('active')
+                        items.append(
+                            html.Div([
+                                html.Span(style={
+                                    'backgroundColor': v if isinstance(v, str) else v.get('color', 'black'),
+                                    'display': 'inline-block',
+                                    'width': 12,
+                                    'height': 12,
+                                    'marginRight': 3,
+                                    'borderRadius': '50%' if 'gene' in k else '0%',
+                                    'border': '1px solid #333',
+                                    'pointerEvents': 'auto',
+                                }),
+                                html.Span(k, style={'fontSize': '11px'})
+                            ],
+                            id=item_id,
+                            n_clicks=0,
+                            className=' '.join(class_list),
+                            style=item_style)
+                        )
+                # Pathways
+                if 'pathway' in legend_data:
+                    for k, v in legend_data['pathway'].items():
+                        shape = v.get('shape', 'rect')
+                        color = v.get('color', 'gray')
+                        item_id = {"type": "legend-item", "category": "pathway", "name": k}
+                        is_hovered = str(item_id) == hovered_id
+                        is_active = str(item_id) in active_ids
+                        item_style = {
+                            'cursor': 'pointer',
+                            'marginBottom': 2,
+                            'display': 'flex',
+                            'alignItems': 'center',
+                            'pointerEvents': 'auto',
+                            'background': '#f0f0f0' if is_hovered else ('#d1eaff' if is_active else 'none'),
+                            'border': '1.5px solid #007bff' if is_active else ('1.5px solid #888' if is_hovered else '1px solid transparent'),
+                            'borderRadius': '4px',
+                            'transition': 'background 0.15s, border 0.15s',
+                        }
+                        shape_elem = html.Span(style={
+                            'display': 'inline-block',
+                            'width': 0,
+                            'height': 0,
+                            'borderLeft': '6px solid transparent' if shape == 'triangle' else '',
+                            'borderRight': '6px solid transparent' if shape == 'triangle' else '',
+                            'borderBottom': f'12px solid {color}' if shape == 'triangle' else '',
+                            'backgroundColor': color if shape != 'triangle' else '',
+                            'marginRight': 3,
+                            'pointerEvents': 'auto',
+                        })
+                        class_list = ['legend-item']
+                        if is_active:
+                            class_list.append('active')
+                        items.append(
+                            html.Div([
+                                shape_elem,
+                                html.Span(k, style={'fontSize': '11px'})
+                            ],
+                            id=item_id,
+                            n_clicks=0,
+                            className=' '.join(class_list),
+                            style=item_style)
+                        )
+                # Diseases
+                if 'diseases' in legend_data:
+                    for d, color in legend_data['diseases'].items():
+                        item_id = {"type": "legend-item", "category": "disease", "name": d}
+                        is_hovered = str(item_id) == hovered_id
+                        is_active = str(item_id) in active_ids
+                        item_style = {
+                            'cursor': 'pointer',
+                            'marginBottom': 2,
+                            'display': 'flex',
+                            'alignItems': 'center',
+                            'pointerEvents': 'auto',
+                            'background': '#f0f0f0' if is_hovered else ('#d1eaff' if is_active else 'none'),
+                            'border': '1.5px solid #007bff' if is_active else ('1.5px solid #888' if is_hovered else '1px solid transparent'),
+                            'borderRadius': '4px',
+                            'transition': 'background 0.15s, border 0.15s',
+                        }
+                        class_list = ['legend-item']
+                        if is_active:
+                            class_list.append('active')
+                        items.append(
+                            html.Div([
+                                html.Span(style={
+                                    'backgroundColor': color,
+                                    'display': 'inline-block',
+                                    'width': 12,
+                                    'height': 12,
+                                    'marginRight': 3,
+                                    'borderRadius': '50%',
+                                    'border': '1px solid #333',
+                                    'pointerEvents': 'auto',
+                                }),
+                                html.Span(d, style={'fontSize': '11px'})
+                            ],
+                            id=item_id,
+                            n_clicks=0,
+                            className=' '.join(class_list),
+                            style=item_style)
+                        )
+                # Comparisons (Stages)
+                if 'comparisons' in legend_data:
+                    for comp, style in legend_data['comparisons'].items():
+                        item_id = {"type": "legend-item", "category": "comparison", "name": comp}
+                        is_hovered = str(item_id) == hovered_id
+                        is_active = str(item_id) in active_ids
+                        item_style = {
+                            'cursor': 'pointer',
+                            'marginBottom': 2,
+                            'display': 'flex',
+                            'alignItems': 'center',
+                            'pointerEvents': 'auto',
+                            'background': '#f0f0f0' if is_hovered else ('#d1eaff' if is_active else 'none'),
+                            'border': '1.5px solid #007bff' if is_active else ('1.5px solid #888' if is_hovered else '1px solid transparent'),
+                            'borderRadius': '4px',
+                            'transition': 'background 0.15s, border 0.15s',
+                        }
+                        swatch_style = {
+                            'display': 'inline-block',
+                            'width': 12,
+                            'height': 12,
+                            'marginRight': 3,
+                            'border': '1px solid #333',
+                            'pointerEvents': 'auto',
+                            'backgroundColor': '#eee',  # fallback color
+                        }
+                        # Set different stripe directions for each stage in the legend
+                        #print(f"[LEGEND DEBUG] comp: {comp}")
+                        stage_gradient = 'repeating-linear-gradient(45deg, #888 0 1px, transparent 1px 4px)'
+                        stage = None
+                        if 'Stage' in comp:
+                            parts = comp.split('Stage')
+                            if len(parts) > 1:
+                                stage = parts[1].strip().split()[0].replace(':','').replace('_','')
+                        #print(f"[LEGEND DEBUG] extracted stage: {stage}")
+                        if stage == 'I' or stage == '1':
+                            stage_gradient = 'repeating-linear-gradient(90deg, #888 0 1px, transparent 1px 4px)'  # vertical
+                        elif stage == 'II' or stage == '2':
+                            stage_gradient = 'repeating-linear-gradient(135deg, #888 0 1px, transparent 1px 4px)'  # diagonal top right to bottom left
+                        elif stage == 'III' or stage == '3':
+                            stage_gradient = 'repeating-linear-gradient(0deg, #888 0 1px, transparent 1px 4px)'  # horizontal
+                        elif stage == 'IV' or stage == '4':
+                            stage_gradient = 'repeating-linear-gradient(45deg, #888 0 1px, transparent 1px 4px)'  # diagonal bottom left to top right
+                        #print(f"[LEGEND DEBUG] stage_gradient: {stage_gradient}")
+                        swatch_style['backgroundImage'] = stage_gradient
+                        swatch_style['backgroundRepeat'] = 'repeat'
+                        swatch_style['backgroundSize'] = '6px 6px'
+                        swatch = html.Span(style=swatch_style)
+                        class_list = ['legend-item']
+                        if is_active:
+                            class_list.append('active')
+                        items.append(
+                            html.Div([
+                                swatch,
+                                html.Span(comp, style={'fontSize': '11px'})
+                            ],
+                            id=item_id,
+                            n_clicks=0,
+                            className=' '.join(class_list),
+                            style=item_style)
+                        )
+            # Add custom tooltip div if needed
+            tooltip_div = None
+            if tooltip_data and tooltip_data.get('open') and tooltip_data.get('target_id'):
+                tooltip_div = html.Div(
+                    tooltip_data.get('text', ''),
+                    style={
+                        'position': 'absolute',
+                        'left': tooltip_data.get('left', 0),
+                        'top': tooltip_data.get('top', 0),
+                        'background': 'rgba(0,0,0,0.85)',
+                        'color': 'white',
+                        'padding': '2px 8px',
+                        'borderRadius': '4px',
+                        'fontSize': '12px',
+                        'zIndex': 9999,
+                        'pointerEvents': 'none',
+                        'whiteSpace': 'nowrap',
+                    }
+                )
+            return items + ([tooltip_div] if tooltip_div else [])
+
+        # Hover state store
+        @callback(
+            Output('legend_hover_store', 'data'),
+            Input('multi_legend', 'data'),
+            [Input({"type": "legend-item", "category": "genes", "name": ALL}, 'n_mouseover')] +
+            [Input({"type": "legend-item", "category": "pathway", "name": ALL}, 'n_mouseover')] +
+            [Input({"type": "legend-item", "category": "disease", "name": ALL}, 'n_mouseover')] +
+            [Input({"type": "legend-item", "category": "comparison", "name": ALL}, 'n_mouseover')],
+            [State({"type": "legend-item", "category": "genes", "name": ALL}, 'id')] +
+            [State({"type": "legend-item", "category": "pathway", "name": ALL}, 'id')] +
+            [State({"type": "legend-item", "category": "disease", "name": ALL}, 'id')] +
+            [State({"type": "legend-item", "category": "comparison", "name": ALL}, 'id')],
+            prevent_initial_call=True
+        )
+        def update_legend_hover(legend_data, *args):
+            # Extract the actual legend items from legend_data to create dynamic inputs
+            all_inputs = args[:len(args)//2]
+            all_states = args[len(args)//2:]
+            
+            for i, input_list in enumerate(all_inputs):
+                if input_list:  # Check if the list exists
+                    for j, value in enumerate(input_list):
+                        if value and value > 0:
+                            # Find the corresponding state ID
+                            if i < len(all_states) and j < len(all_states[i]):
+                                hovered_id = str(all_states[i][j])
+                                return {'hovered_id': hovered_id}
+            return {'hovered_id': None}
+
+        # Active (clicked) state store
+        @callback(
+            Output('legend_active_store', 'data', allow_duplicate=True),
+            Input('multi_legend', 'data'),
+            Input('detail_graph', 'elements'),
+            [Input({"type": "legend-item", "category": "genes", "name": ALL}, 'n_clicks')] +
+            [Input({"type": "legend-item", "category": "pathway", "name": ALL}, 'n_clicks')] +
+            [Input({"type": "legend-item", "category": "disease", "name": ALL}, 'n_clicks')] +
+            [Input({"type": "legend-item", "category": "comparison", "name": ALL}, 'n_clicks')],
+            [State({"type": "legend-item", "category": "genes", "name": ALL}, 'id')] +
+            [State({"type": "legend-item", "category": "pathway", "name": ALL}, 'id')] +
+            [State({"type": "legend-item", "category": "disease", "name": ALL}, 'id')] +
+            [State({"type": "legend-item", "category": "comparison", "name": ALL}, 'id')],
+            State('legend_active_store', 'data'),
+            State('filters_dropdown', 'value'),
+            prevent_initial_call=True
+        )
+        def handle_legend_click_print_genes(legend_data, graph_elements, *args):
+            # The structure is: [genes_clicks, pathway_clicks, disease_clicks, comparison_clicks, genes_ids, pathway_ids, disease_ids, comparison_ids, active_data, selected_filter]
+            if len(args) < 8:
+                return dash.no_update
+            
+            # Extract inputs and states
+            genes_clicks = args[0] if args[0] else []
+            pathway_clicks = args[1] if args[1] else []
+            disease_clicks = args[2] if args[2] else []
+            comparison_clicks = args[3] if args[3] else []
+            
+            genes_ids = args[4] if args[4] else []
+            pathway_ids = args[5] if args[5] else []
+            disease_ids = args[6] if args[6] else []
+            comparison_ids = args[7] if args[7] else []
+            
+            active_data = args[8] if len(args) > 8 else {}
+            selected_filter = args[9] if len(args) > 9 else "Merge"
+            
+            # Get current active items from the store
+            current_active = active_data.get('active_ids', []) if active_data else []
+            
+            # Handle the toggle logic for selection/deselection
+            all_clicks = [genes_clicks, pathway_clicks, disease_clicks, comparison_clicks]
+            all_ids = [genes_ids, pathway_ids, disease_ids, comparison_ids]
+            
+            for i, click_list in enumerate(all_clicks):
+                if click_list:  # Check if the list exists
+                    for j, value in enumerate(click_list):
+                        if value and value > 0:
+                            # Find the corresponding state ID
+                            if i < len(all_ids) and j < len(all_ids[i]):
+                                clicked_id = str(all_ids[i][j])
+                                
+                                # Toggle the clicked item
+                                if clicked_id in current_active:
+                                    # Remove from active list
+                                    current_active.remove(clicked_id)
+                                else:
+                                    # Add to active list
+                                    current_active.append(clicked_id)
+                                
+                                return {'active_ids': current_active}
+            
+            # Don't modify the active state if no changes
+            return dash.no_update
+
+        @callback(
+            Output('selected_genes_legend', 'children'),
+            Output('selected_genes_legend', 'style'),
+            Input('legend_active_store', 'data'),
+            Input('multi_legend', 'data'),
+            prevent_initial_call=False
+        )
+        def render_selected_genes_legend(active_data, legend_data):
+            active_ids = active_data.get('active_ids', []) if active_data else []
+
+            visible_style = {
+                "position": "absolute",
+                "bottom": "0px",
+                "left": "0px",
+                "padding": "4px 6px",
+                "zIndex": 200,
+                "minWidth": "0px",
+                "maxWidth": "200px",
+                "pointerEvents": "auto",
+                "backgroundColor": "rgba(255, 255, 255, 0.95)",
+                "border": "1px solid #ccc",
+                "borderRadius": "4px",
+                "boxShadow": "0 2px 4px rgba(0,0,0,0.1)"
+            }
+            
+            # If no items are selected, return empty children and hide the container
+            if not active_ids:
+                return [], {'display': 'none'}
+            
+            # Parse the active IDs to get the selected items
+            selected_items = []
+            for active_id in active_ids:
+                try:
+                    # Parse the string representation of the dict
+                    import ast
+                    item_dict = ast.literal_eval(active_id)
+                    selected_items.append(item_dict)
+                except:
+                    continue
+            
+            # Create the legend content
+            items = []
+            
+            # Add title
+            items.append(
+                html.Div(
+                    "Selected genes",
+                    style={
+                        'fontWeight': 'bold',
+                        'fontSize': '12px',
+                        'marginBottom': '4px',
+                        'color': '#333'
+                    }
+                )
+            )
+            
+            # Add action buttons
+            copy_button = html.Div(
+                "📋 Copy to clipboard",
+                id={"type": "legend-action", "action": "copy"},
+                n_clicks=0,
+                style={
+                    'cursor': 'pointer',
+                    'marginBottom': 2,
+                    'display': 'flex',
+                    'alignItems': 'center',
+                    'pointerEvents': 'auto',
+                    'background': 'none',
+                    'border': '1px solid transparent',
+                    'borderRadius': '4px',
+                    'transition': 'background 0.15s, border 0.15s',
+                    'fontSize': '11px',
+                    'padding': '2px 4px'
+                },
+                className='legend-action-item'
+            )
+            
+            gprofiler_button = html.Div(
+                "🔗 View in gProfiler",
+                id={"type": "legend-action", "action": "gprofiler"},
+                n_clicks=0,
+                style={
+                    'cursor': 'pointer',
+                    'marginBottom': 2,
+                    'display': 'flex',
+                    'alignItems': 'center',
+                    'pointerEvents': 'auto',
+                    'background': 'none',
+                    'border': '1px solid transparent',
+                    'borderRadius': '4px',
+                    'transition': 'background 0.15s, border 0.15s',
+                    'fontSize': '11px',
+                    'padding': '2px 4px'
+                },
+                className='legend-action-item'
+            )
+            
+            items.extend([copy_button, gprofiler_button])
+            
+            return items, visible_style
+
+        # Callback to handle copy to clipboard action
+        @callback(
+            Output('copy_toast_store', 'data'),
+            Input({"type": "legend-action", "action": "copy"}, 'n_clicks'),
+            State('clipboard_text_store', 'data'),
+            prevent_initial_call=True
+        )
+        def handle_copy_to_clipboard(n_clicks, current_clipboard_data):
+            if not n_clicks or n_clicks == 0:
+                return dash.no_update
+            
+            # Count the number of genes in the current clipboard data
+            if current_clipboard_data and isinstance(current_clipboard_data, str):
+                genes = [g for g in current_clipboard_data.split(';') if g.strip()]
+                n = len(genes)
+                if n > 0:
+                    #print(f"Copy button clicked - copying {n} genes to clipboard")
+                    return {"is_open": True, "message": f"Successfully copied {n} gene{'s' if n != 1 else ''}"}
+                else:
+                    #print("Copy button clicked - copying 0 genes to clipboard")
+                    return {"is_open": True, "message": "0 genes copied"}
+            
+            return {"is_open": True, "message": "0 genes copied"}
+
+        # Callback to handle view in gProfiler action
+        @callback(
+            Output('gprofiler_url_store', 'data'),
+            Input({"type": "legend-action", "action": "gprofiler"}, 'n_clicks'),
+            Input('legend_active_store', 'data'),
+            Input('detail_graph', 'elements'),
+            State('filters_dropdown', 'value'),
+            prevent_initial_call=True
+        )
+        def handle_view_in_gprofiler(n_clicks, active_data, graph_elements, selected_filter):
+            if not n_clicks or n_clicks == 0:
+                return dash.no_update
+            # Get selected signatures from the current detail graph
+            selected_signatures = []
+            for elem in graph_elements:
+                if "source" not in elem.get("data", {}) and not elem.get("data", {}).get("is_pathways", False):
+                    signatures = elem.get("data", {}).get("Signatures", [])
+                    selected_signatures.extend(signatures)
+            selected_signatures = list(set(selected_signatures))
+            # Get the selected items and extract gene information
+            active_ids = active_data.get('active_ids', []) if active_data else []
+            if not active_ids:
+                return ""
+            # Extract genes from selected legend items
+            all_genes = set()
+            dm = DataManager._instance
+            for active_id in active_ids:
+                try:
+                    import ast
+                    item_dict = ast.literal_eval(active_id)
+                    category = item_dict.get('category')
+                    name = item_dict.get('name')
+                    if category and name:
+                        genes = get_genes_for_legend_item(category, name, graph_elements, selected_filter, selected_signatures=selected_signatures)
+                        if genes:
+                            all_genes.update(genes)
+                except Exception as e:
+                    #print(f"Error parsing legend item {active_id}: {e}")
+                    pass
+            if not all_genes:
+                return ""
+            # Generate gProfiler URL dynamically
+            try:
+                # Use Ensembl IDs directly (gProfiler expects Ensembl IDs)
+                ensembl_ids = []
+                for gene_id in sorted(all_genes):
+                    if gene_id.startswith("ENSG"):  # Ensure it's an Ensembl ID
+                        ensembl_ids.append(gene_id)
+                # Create gProfiler URL with Ensembl IDs (space-separated)
+                genes_param = " ".join(ensembl_ids)
+                gprofiler_url = f"https://biit.cs.ut.ee/gprofiler/gost?query={genes_param}&organism=hsapiens&sources=GO:BP,GO:MF,GO:CC,KEGG,REAC,WP&user_threshold=0.05&all_results=false&ordered=false&significant=true&no_iea=false&domain_scope=annotated&measure_underrepresentation=false&evcodes=false&as_ranges=false&background=0&domain_size_type=known&term_size_filter_min=3&term_size_filter_max=500&numeric_namespace=ENTREZGENE_ACC&pictograms=false&min_set_size=3&max_set_size=500"
+                #print(f"Generated gProfiler URL for {len(ensembl_ids)} Ensembl IDs")
+                return gprofiler_url
+            except Exception as e:
+                #print(f"Error generating gProfiler URL: {e}")
+                return ""
+
+        # Separate callback for printing genes that triggers when active store changes
+        @callback(
+            Output('legend_active_store', 'data', allow_duplicate=True),
+            Input('legend_active_store', 'data'),
+            Input('detail_graph', 'elements'),
+            State('filters_dropdown', 'value'),
+            prevent_initial_call=True
+        )
+        def print_genes_on_active_change(active_data, graph_elements, selected_filter):
+            #print("DEBUG: print_genes_on_active_change called")
+            # Get current active items from the store
+            current_active = active_data.get('active_ids', []) if active_data else []
+            #print(f"DEBUG: Current active items: {current_active}")
+            # Get selected signatures from the current detail graph
+            selected_signatures = []
+            for elem in graph_elements:
+                if "source" not in elem.get("data", {}) and not elem.get("data", {}).get("is_pathways", False):
+                    signatures = elem.get("data", {}).get("Signatures", [])
+                    selected_signatures.extend(signatures)
+            selected_signatures = list(set(selected_signatures))
+            # Print all genes from all active legend items
+            if current_active:
+                #print(f"\n=== Genes from all selected legend items ({len(current_active)} items) ===")
+                all_genes = {}
+                for active_id in current_active:
+                    try:
+                        import ast
+                        item_dict = ast.literal_eval(active_id)
+                        category = item_dict.get('category')
+                        name = item_dict.get('name')
+                        if category and name:
+                            # Pass selected_signatures for legend logic
+                            genes = get_genes_for_legend_item(category, name, graph_elements, selected_filter, selected_signatures=selected_signatures)
+                            if genes:
+                                all_genes[f"{category} - {name}"] = genes
+                    except Exception as e:
+                        #print(f"Error parsing legend item {active_id}: {e}")
+                        pass
+                # Print summary and detailed gene lists
+                total_unique_genes = set()
+                for legend_name, genes in all_genes.items():
+                    total_unique_genes.update(genes)
+                    #print(f"\n{legend_name} ({len(genes)} genes):")
+                    try:
+                        symbols = DataManager._instance.get_symbol(genes)
+                        for gene_id in sorted(genes):
+                            symbol = symbols.get(gene_id, [gene_id])[0] if gene_id in symbols else gene_id
+                            #print(f"  {gene_id} ({symbol})")
+                    except KeyError as e:
+                        #print(f"Error getting symbols: {e}")
+                        for gene_id in sorted(genes):
+                            #print(f"  {gene_id}")
+                            pass
+                #print(f"\n=== SUMMARY ===")
+                #print(f"Total unique genes across all selections: {len(total_unique_genes)}")
+                #print("=" * 50)
+            else:
+                #print("No legend items selected")
+                pass
+            # Don't modify the active state
+            return dash.no_update
+
+        def get_genes_for_legend_item(category, name, graph_elements, selected_filter, selected_signatures=None):
+            """Get gene list for a specific legend item without printing"""
+            if not graph_elements:
+                return []
+            dm = DataManager._instance
+            if not dm:
+                return []
+            genes = []
+            if category == "genes":
+                if name == "genes":
+                    # All genes in detail graph (all black dots)
+                    for elem in graph_elements:
+                        if "source" not in elem.get("data", {}) and not elem.get("data", {}).get("is_pathways", False):
+                            gene_id = elem.get("data", {}).get("id")
+                            if gene_id and gene_id.startswith("ENSG"):  # Only actual genes, not signature nodes
+                                genes.append(gene_id)
+                elif name == "genes in multiple signatures":
+                    # Genes in multiple signatures (all green dots)
+                    try:
+                        green_genes = get_last_green_genes()
+                        genes = green_genes
+                    except Exception as e:
+                        genes = []
+            elif category == "pathway":
+                if name == "pathways linking multiple signatures":
+                    # Genes connected with pathways (all dots linked to red triangles)
+                    pathway_genes = set()
+                    for elem in graph_elements:
+                        if "source" in elem.get("data", {}) and elem.get("data", {}).get("is_pathway_edge", False):
+                            source = elem.get("data", {}).get("source")
+                            target = elem.get("data", {}).get("target")
+                            # Check if this is a gene-to-pathway connection
+                            if source and target:
+                                # Find which one is the gene (not pathway)
+                                for gene_elem in graph_elements:
+                                    if "source" not in gene_elem.get("data", {}) and not gene_elem.get("data", {}).get("is_pathways", False):
+                                        if gene_elem.get("data", {}).get("id") == source:
+                                            pathway_genes.add(source)
+                                        elif gene_elem.get("data", {}).get("id") == target:
+                                            pathway_genes.add(target)
+                    genes = list(pathway_genes)
+            elif category == "disease":
+                # Cancer like LIHC: print every gene in the selected cancer
+                cancer_name = name
+                try:
+                    # Extract signature IDs from graph elements to filter the query
+                    signature_ids = set()
+                    for elem in graph_elements:
+                        if "source" not in elem.get("data", {}) and not elem.get("data", {}).get("is_pathways", False):
+                            signatures = elem.get("data", {}).get("Signatures", [])
+                            signature_ids.update(signatures)
+                    # Get genes for only the selected signatures that match the cancer
+                    intersections, items = dm.get_genes_intersections(
+                        id_filter=list(signature_ids),
+                        selected_filter=selected_filter
+                    )
+                    if items is not None and not items.empty:
+                        # Filter to only include genes from the specified cancer
+                        cancer_genes = []
+                        for _, row in items.iterrows():
+                            gene_id = row['gene']
+                            signatures = row['id']
+                            # Check if any of the gene's signatures contain the cancer name
+                            if any(cancer_name in sig for sig in signatures):
+                                cancer_genes.append(gene_id)
+                        genes = cancer_genes
+                except Exception as e:
+                    genes = []
+            elif category == "comparison":
+                # Normal vs Stage N: print every gene across cancer types in stage N
+                stage_name = name
+                try:
+                    # Extract signature IDs from graph elements to filter the query
+                    signature_ids = set()
+                    for elem in graph_elements:
+                        if "source" not in elem.get("data", {}) and not elem.get("data", {}).get("is_pathways", False):
+                            signatures = elem.get("data", {}).get("Signatures", [])
+                            signature_ids.update(signatures)
+                    # Get genes for only the selected signatures that match the stage
+                    intersections, items = dm.get_genes_intersections(
+                        id_filter=list(signature_ids),
+                        selected_filter=selected_filter
+                    )
+                    if items is not None and not items.empty:
+                        # Filter to only include genes from the specified stage
+                        stage_genes = []
+                        # Extract stage identifier from the legend name
+                        # "Normal vs StageII" -> "StageII"
+                        stage_identifier = stage_name
+                        if "vs" in stage_name:
+                            stage_identifier = stage_name.split("vs")[1].strip()
+                        # Filter signatures to only include those that match the stage
+                        matching_signatures = []
+                        for sig in signature_ids:
+                            if stage_identifier in sig:
+                                stage_pos = sig.find(stage_identifier)
+                                if stage_pos != -1:
+                                    before_stage = sig[:stage_pos]
+                                    after_stage = sig[stage_pos + len(stage_identifier):]
+                                    valid_before = not before_stage or before_stage.endswith("vs")
+                                    valid_after = not after_stage or after_stage.startswith("_")
+                                    if valid_before and valid_after:
+                                        matching_signatures.append(sig)
+                        for _, row in items.iterrows():
+                            gene_id = row['gene']
+                            gene_signatures = row['id']
+                            if any(sig in matching_signatures for sig in gene_signatures):
+                                stage_genes.append(gene_id)
+                        genes = stage_genes
+                except Exception as e:
+                    genes = []
+            return genes
+
+        # Callback to update clipboard store when legend selection changes
+        @callback(
+            Output('clipboard_text_store', 'data', allow_duplicate=True),
+            Input('legend_active_store', 'data'),
+            Input('detail_graph', 'elements'),
+            State('filters_dropdown', 'value'),
+            prevent_initial_call=True
+        )
+        def update_clipboard_store_on_legend_change(active_data, graph_elements, selected_filter):
+            #print("DEBUG: update_clipboard_store_on_legend_change called")
+            # Get selected signatures from the current detail graph
+            selected_signatures = []
+            for elem in graph_elements:
+                if "source" not in elem.get("data", {}) and not elem.get("data", {}).get("is_pathways", False):
+                    signatures = elem.get("data", {}).get("Signatures", [])
+                    selected_signatures.extend(signatures)
+            selected_signatures = list(set(selected_signatures))
+            # Collect all genes from selected legend items
+            active_ids = active_data.get('active_ids', []) if active_data else []
+            #print(f"DEBUG: Active IDs: {active_ids}")
+            if not active_ids:
+                #print("DEBUG: No active IDs, returning blank space")
+                return " "
+            all_genes = set()
+            for active_id in active_ids:
+                try:
+                    import ast
+                    item_dict = ast.literal_eval(active_id)
+                    category = item_dict.get('category')
+                    name = item_dict.get('name')
+                    if category and name:
+                        genes = get_genes_for_legend_item(category, name, graph_elements, selected_filter, selected_signatures=selected_signatures)
+                        if genes:
+                            all_genes.update(genes)
+                except Exception as e:
+                    #print(f"Error parsing legend item {active_id}: {e}")
+                    pass
+            if not all_genes:
+                #print("DEBUG: No genes found, returning blank space")
+                return " "
+            # Return as semicolon-separated string
+            gene_str = ";".join(sorted(all_genes))
+            #print(f"DEBUG: Returning gene string: '{gene_str}'")
+            return gene_str
+
+        @callback(
+            Output('detail_graph', 'elements', allow_duplicate=True),
+            Output('detail_graph', 'stylesheet', allow_duplicate=True),
+            Input('legend_active_store', 'data'),
+            State('detail_graph', 'elements'),
+            State('detail_graph', 'stylesheet'),
+            State('detail_graph', 'elements'),  # for get_genes_for_legend_item
+            State('filters_dropdown', 'value'),
+            prevent_initial_call=True
+        )
+        def highlight_nodes_on_legend(legend_active_data, elements, stylesheet, graph_elements, selected_filter):
+            import copy
+            # Defensive copy
+            elements = copy.deepcopy(elements)
+            stylesheet = copy.deepcopy(stylesheet)
+            highlight_gene_ids = set()
+            if legend_active_data and 'active_ids' in legend_active_data:
+                for active_id in legend_active_data['active_ids']:
+                    import ast
+                    item_dict = ast.literal_eval(active_id)
+                    category = item_dict.get('category')
+                    name = item_dict.get('name')
+                    if category and name:
+                        genes = get_genes_for_legend_item(category, name, graph_elements, selected_filter)
+                        highlight_gene_ids.update(genes)
+            # Update node highlight styles
+            if elements is not None:
+                update_node_highlight_styles(elements, list(highlight_gene_ids))
+            # Ensure highlight style is in stylesheet
+            if highlight_gene_ids and not any(s.get("selector") == ".legend-highlight" for s in stylesheet):
+                stylesheet.append(legend_highlight_stylesheet)
+            return elements, stylesheet
+
+        @callback(
+            Output('selected_genes_store', 'data', allow_duplicate=True),
+            Input('remove_all_boxplots_button', 'n_clicks'),
+            State('selected_genes_store', 'data'),
+            prevent_initial_call=True
+        )
+        def remove_all_boxplots(n_clicks, current):
+            if n_clicks:
+                # Clear all selected genes and pathway genes, as if all boxplots were closed
+                return {"selected": [], "from_pathways": {"ids": [], "genes": []}, "covered_signatures": []}
+            raise dash.exceptions.PreventUpdate()
+
+        @callback(
+            Output('remove_all_boxplots_button_container', 'children'),
+            Input('selected_genes_store', 'data'),
+            prevent_initial_call=False
+        )
+        def show_remove_all_boxplots_button(selected_genes_store):
+            # Check if there are any boxplots to show the button for
+            has_boxplots = False
+            if selected_genes_store:
+                if selected_genes_store.get('selected'):
+                    if len(selected_genes_store['selected']) > 0:
+                        has_boxplots = True
+                # Check pathway genes
+                if selected_genes_store.get('from_pathways') and selected_genes_store['from_pathways'].get('genes'):
+                    for gene_group in selected_genes_store['from_pathways']['genes']:
+                        if gene_group and len(gene_group) > 0:
+                            has_boxplots = True
+            if has_boxplots:
+                # Use dcc.Markdown to inject a <style> block for the hover effect
+                return [
+                    dcc.Markdown(
+                        '    <style>\n.remove-all-boxplots-btn:hover { background: #e0e0e0 !important; border-color: #bbb !important; }\n</style>',
+                        dangerously_allow_html=True,
+                        style={'display': 'none'}
+                    ),
+                    html.Button(
+                        ['🗑️ ', 'Remove all boxplots'],
+                        id='remove_all_boxplots_button',
+                        className='remove-all-boxplots-btn',
+                        style={
+                            'padding': '3px 10px',
+                            'fontSize': '0.85em',
+                            'background': '#f5f5f5',
+                            'color': '#333',
+                            'border': '1px solid #ccc',
+                            'borderRadius': '4px',
+                            'cursor': 'pointer',
+                            'boxShadow': 'none',
+                            'transition': 'background 0.2s, color 0.2s, border 0.2s',
+                            'outline': 'none',
+                            'display': 'flex',
+                            'alignItems': 'center',
+                            'gap': '4px',
+                        }
+                    )
+                ]
+            return None

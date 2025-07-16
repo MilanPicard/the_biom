@@ -10,6 +10,10 @@ from dash import html,ctx
 from dash_svg import Svg, G, Path, Circle,Rect
 import euler_layout
 from urllib.parse import quote
+import urllib.parse
+# Module-level variable to store the last green genes
+last_green_genes = []
+
 class Edge:
     def __init__(self,source_id,target_id):
         self.source_id = source_id
@@ -39,9 +43,7 @@ def detail_graph(elemId):
             "height":"100%"},
         boxSelectionEnabled=True,
         autoungrabify=False,
-                wheelSensitivity=0.25,
-                # maxZoom=4,
-                # minZoom=0.1,
+        wheelSensitivity=0.2,
         layout={"name":"preset"},
         clearOnUnhover=True,
         contextMenu=[
@@ -246,6 +248,7 @@ def choose_signature_label_pos(shape_polygon_points):
         case -1:
             y = "top"
     return x,y
+
 def add_signature_metanodes(gene_hull_points,existing_elements,stylesheet_detail,updated_elements,genes_anchor_points,sign_info,style_only=False,convex=True):
     
     index = dict([(elem["selector"],i) for i,elem in enumerate(stylesheet_detail)])
@@ -289,10 +292,30 @@ def add_signature_metanodes(gene_hull_points,existing_elements,stylesheet_detail
                 }
         if not style_only:    
             split = i.split("_")
+            
+            # Generate gProfiler URL dynamically for this signature
+            # Get genes for this signature from the data
+            signature_genes = []
+            try:
+                # Extract genes that belong to this signature
+                for elem in existing_elements:
+                    if "source" not in elem["data"] and not elem["data"].get("is_pathways", False):
+                        if i in elem["data"].get("Signatures", []):
+                            gene_id = elem["data"]["id"]
+                            # Use Ensembl ID directly (gProfiler expects Ensembl IDs)
+                            if gene_id.startswith("ENSG"):  # Ensure it's an Ensembl ID
+                                signature_genes.append(gene_id)
+                
+                # Generate dynamic gProfiler URL
+                gprofiler_url = generate_gprofiler_url(i, signature_genes)
+            except Exception as e:
+                #print(f"Error generating gProfiler URL for signature {i}: {e}")
+                gprofiler_url = ""
+            
             existing_elements.append({
                 "data":{"id":i,"label":"","is_metanode":True,"tooltip_content":html.Div([
                     html.H6(i),
-                    html.A("gProfiler",href=sign_info[i],target="_blank"),
+                    html.A("gProfiler",href=gprofiler_url,target="_blank"),
 
                     # html.Button("Copy genes to cliboard",id={"type":"signature_clipboard","sign":i} ,value=";".join(test[i].tolist()))
                     ])},
@@ -360,7 +383,7 @@ def color_metanodes(cm,stylesheet_detail,unique_diseases,unique_comparisons):
                 y2 = "100%"
                 roman = "IV"
         if f"Stage{roman}" in unique_comparisons:
-
+            # Original SVG for main graph hulls
             svg = f'<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE svg><svg version="1.1" baseProfile="full" xmlns="http://www.w3.org/2000/svg" width="40" height="40"> <defs> <linearGradient id="grad"  x1="{x1}" x2="{x2}" y1="{y1}" y2="{y2}"> <stop stop-color="white" stop-opacity="0" offset="0%" /> <stop stop-color="white" stop-opacity="0" offset="43%" /> <stop stop-color="black" stop-opacity="0.25" offset="44%" /> <stop stop-color="black" stop-opacity="0.25" offset="50%" /> <stop stop-color="black" stop-opacity="0.25" offset="56%" /> <stop stop-color="white" stop-opacity="0" offset="57%" /> <stop stop-color="white" stop-opacity="0" offset="100%" /> </linearGradient > </defs> <rect width="100%" height="100%" fill="url(#grad)"/></svg>'
             stylesheet_detail.append({
                 "selector":f"node.Stage{roman}",
@@ -369,11 +392,15 @@ def color_metanodes(cm,stylesheet_detail,unique_diseases,unique_comparisons):
                     "background-repeat":"repeat"
                 }
             })
+            # Small, high-contrast SVG for the legend swatch
+            legend_svg = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='6' height='6'><rect width='6' height='6' fill='white'/><rect x='0' y='0' width='3' height='6' fill='black' fill-opacity='0.25' transform='rotate(45 3 3)'/></svg>"
             signature_legend["comparisons"][f"Normal vs Stage{roman}"]={
-                    "background-image":f'data:image/svg+xml;utf8,{quote(svg)}',
-                    "background-repeat":"repeat"
-                }
+                "background-image":f'data:image/svg+xml;utf8,{quote(svg)}',
+                "legend-background-image": legend_svg,
+                "background-repeat":"repeat"
+            }
     return signature_legend
+
 def get_color_scheme(selected_genes):
     if len(selected_genes)<len(px.colors.qualitative.D3):
         return px.colors.qualitative.D3
@@ -393,7 +420,8 @@ def color_selected_node(stylesheet_detail,selected_genes):
         })
     return stylesheet_detail
 
-def display_detail_graph(selectedDiseases,selected_signatures,selected_genes,existing_elements,detail_pos_store,AR,selected_filter,comparison_filter,all_pathway=False):
+def display_detail_graph(selectedDiseases,selected_signatures,selected_genes,existing_elements,detail_pos_store,AR,selected_filter,comparison_filter,all_pathway=False,highlight_gene_ids=None):
+    global last_green_genes
     updated_elements = Patch()
     legend_data = {}
     edges = []
@@ -446,7 +474,8 @@ def display_detail_graph(selectedDiseases,selected_signatures,selected_genes,exi
         "style":{
             "lineColor":"red", 
         }
-    }
+    },
+    {"selector":".edge-hover","style":{"width":8,"line-color":"black","transition-property":"width, line-color","transition-duration":"0.2s"}},
     ]
     stylesheet_detail = color_selected_node(stylesheet_detail,selected_genes)
     color_by_diseases = True # TODO
@@ -465,13 +494,41 @@ def display_detail_graph(selectedDiseases,selected_signatures,selected_genes,exi
     signature_legend = color_metanodes(cm,stylesheet_detail,unique_diseases,unique_comparisons)
     legend_data.update(signature_legend)
     if(items is None):
-        print("redraw")
+        # print("redraw")
         return redraw([],{},AR,stylesheet_detail)
     # sizes = items.set_index("gene")
     updated = set()
     # update_cur_elements(existing_elements,updated,stylesheet_detail,sizes,updated_elements)
     symbols = DataManager._instance.get_symbol([g.gene for g in items.itertuples() if g.gene not in updated])
-    all_nodes = [{'data':{'id':g.gene,"label":"","weight":size(g.size),"Signatures":g.id,"tooltip_content":[html.H6(symbols[g.gene]),html.A("Ensembl",href=f"https://ensembl.org/Homo_sapiens/Search/Results?q={g.gene};site=ensembl_all;facet_species=Human;facet_feature_type=Gene",target="_blank")]},"grabbable":False} for g in items.itertuples()]
+    all_nodes = []
+    for g in items.itertuples():
+        node_classes = []
+        # Mark as green node if in multiple signatures
+        if isinstance(g.id, (list, set)) and len(g.id) > 1:
+            node_classes.append('multi-signature-gene')
+        # Add highlight class if needed
+        if highlight_gene_ids is not None and g.gene in highlight_gene_ids:
+            node_classes.append('legend-highlight')
+        all_nodes.append({
+            'data': {
+                'id': g.gene,
+                'label': "",
+                'weight': size(g.size),
+                'Signatures': g.id,
+                'tooltip_content': [
+                    html.H6(symbols[g.gene]),
+                    html.A("Ensembl", href=f"https://ensembl.org/Homo_sapiens/Search/Results?q={g.gene};site=ensembl_all;facet_species=Human;facet_feature_type=Gene", target="_blank")
+                ]
+            },
+            'grabbable': False,
+            'classes': ' '.join(node_classes) if node_classes else None
+        })
+    # Print and store green nodes (genes in multiple signatures) immediately after graph generation
+    green_genes = [n['data']['id'] for n in all_nodes if n.get('classes') and 'multi-signature-gene' in n['classes']]
+    last_green_genes = green_genes
+    #print("=== GREEN GENES (genes in multiple signatures, upon graph generation) ===")
+    #print(green_genes)
+    #print("=== END GREEN GENES ===")
     # nodes = [{'data':{'id':g.gene,"label":"","weight":size(g.size),"Signatures":g.id,"tooltip_content":symbols[g.gene]}} for g in items.itertuples() if g.gene not in updated]
 
     # edges = [{"data":{"source":k[0],"target":k[1]}} for k,v in intersections.items() ]
@@ -634,4 +691,100 @@ def redraw(existing_elements,detail_pos_store,AR,stylesheet_detail):
             i["style"]["width"]=float(i["style"]["width"])*AR/cur_ar
     return list(detail_pos_store.values())+[i for i in existing_elements if "source" in i["data"]],stylesheet_detail,{"name":"preset",'positions': pos,
         "animate":False},detail_pos_store,dash.no_update,dash.no_update
+    
+def generate_gprofiler_url(signature_id, genes):
+    """
+    Generate a gProfiler URL dynamically for a given signature and its genes.
+    
+    Args:
+        signature_id (str): The signature ID (e.g., "LIHC_NormalvsStageI_Merge")
+        genes (list): List of Ensembl IDs (e.g., ["ENSG00000128710", "ENSG00000104938"])
+    
+    Returns:
+        str: Complete gProfiler URL
+    """
+    if not genes:
+        return ""
+    
+    # Use Ensembl IDs directly (space-separated as expected by gProfiler)
+    genes_param = " ".join(genes)
+    
+    # Create gProfiler URL with comprehensive parameters
+    gprofiler_url = (
+        f"https://biit.cs.ut.ee/gprofiler/gost?"
+        f"query={genes_param}&"
+        f"organism=hsapiens&"
+        f"sources=GO:BP,GO:MF,GO:CC,KEGG,REAC,WP&"
+        f"user_threshold=0.05&"
+        f"all_results=false&"
+        f"ordered=false&"
+        f"significant=true&"
+        f"no_iea=false&"
+        f"domain_scope=annotated&"
+        f"measure_underrepresentation=false&"
+        f"evcodes=false&"
+        f"as_ranges=false&"
+        f"background=0&"
+        f"domain_size_type=known&"
+        f"term_size_filter_min=3&"
+        f"term_size_filter_max=500&"
+        f"numeric_namespace=ENTREZGENE_ACC&"
+        f"pictograms=false&"
+        f"min_set_size=3&"
+        f"max_set_size=500"
+    )
+    
+    return gprofiler_url
+    
+# Utility function to retrieve green nodes (genes in multiple signatures) from elements
+
+def get_multi_signature_genes(elements):
+    """
+    Given a list of elements (nodes), return the list of gene IDs that are colored green (i.e., genes in multiple signatures),
+    identified by the 'multi-signature-gene' class.
+    """
+    green_genes = []
+    for elem in elements:
+        data = elem.get('data', {})
+        classes = elem.get('classes', '')
+        if (
+            'id' in data and data['id'].startswith('ENSG')
+            and 'multi-signature-gene' in (classes or '')
+        ):
+            green_genes.append(data['id'])
+    return green_genes
+    
+def get_last_green_genes():
+    """
+    Return the most recently generated list of green node gene IDs (genes in multiple signatures).
+    """
+    global last_green_genes
+    return last_green_genes
+    
+def update_node_highlight_styles(elements, highlight_gene_ids):
+    """
+    Given a list of elements and a list of gene IDs, add the 'legend-highlight' class to those nodes.
+    Remove the class from all others.
+    """
+    for elem in elements:
+        data = elem.get('data', {})
+        if 'id' in data and data['id'] in highlight_gene_ids:
+            classes = elem.get('classes', '') or ''
+            if 'legend-highlight' not in classes:
+                elem['classes'] = (classes + ' legend-highlight').strip()
+        else:
+            classes = elem.get('classes', '') or ''
+            if 'legend-highlight' in classes:
+                elem['classes'] = ' '.join([c for c in classes.split() if c != 'legend-highlight'])
+    return elements
+
+# Add a style for 'legend-highlight' to be used in the Cytoscape stylesheet
+legend_highlight_stylesheet = {
+    "selector": ".legend-highlight",
+    "style": {
+        "border-width": 3,
+        "border-color": "#FF8800",  # Subtle orange, can be changed
+        "border-opacity": 1,
+    }
+}
     

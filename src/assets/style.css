@@ -29,7 +29,13 @@
 }
 #_pages_content{
     height: 100%;
+    overflow-y: auto;
 }
+
+#_pages_content > div {
+    min-height: 100%;
+}
+
 #overview_col span .dcc-tooltip-bounding-box{
     z-index:0;
     pointer-events: none;
@@ -48,21 +54,23 @@
 }
 #detail_graph_tooltip ,#mono_graph_tooltip ,#overview_graph_tooltip{
     opacity: 0;
+    /* Remove animation for instant appearance */
+    /* animation: none !important; */
 }
 #detail_graph_tooltip.pouet ,#mono_graph_tooltip.pouet ,#overview_graph_tooltip.pouet{
-    animation: appear 1s ease-in forwards;
+    opacity: 1;
+    /* Remove animation for instant appearance */
+    /* animation: none !important; */
 }
-@keyframes appear {
-    0%{
+/* Removed fade-in animation */
+/* @keyframes appear {
+    from {
         opacity: 0;
-        display: none;
     }
-    100%{
+    to {
         opacity: 1;
-        display: inline-block;
     }
-    
-}
+} */
 #detail_graph_tooltip img {
     max-height:40vh;
     max-width:40vh;
@@ -89,14 +97,84 @@ stroke-dasharray: "5,5"
     width: 100%;
 }
 .detail_tabs{
-    flex-grow: 1;
     display: flex;
     flex-direction: row;
-    height: fit-content;
+    border-radius: 8px 8px 0 0;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    background: #f8fafd;
+    border-bottom: 2px solid #e3e8ee;
+    margin-bottom: 0;
+    padding: 0;
 }
-.detail_tabs > div{
-    flex-grow: 1;
-    height: fit-content;
+.detail_tabs > div, .detail_tabs .nav-item {
+    flex: 1 1 0;
+    text-align: center;
+    font-weight: 500;
+    font-size: 1.08rem;
+    color: #222;
+    background: #f8fafd;
+    border: none;
+    border-radius: 0;
+    margin: 0;
+    padding: 0.7rem 0.5rem 0.6rem 0.5rem;
+    cursor: pointer;
+    transition: background 0.18s, color 0.18s, box-shadow 0.18s, border-bottom 0.25s cubic-bezier(0.4,0,0.2,1), font-size 0.18s, font-weight 0.18s;
+    box-shadow: none;
+    position: relative;
+    z-index: 1;
+}
+.detail_tabs .nav-item.active, .detail_tabs .nav-link.active {
+    background: #fff;
+    color: #0056b3;
+    border-bottom: 3px solid #007bff;
+    font-weight: 700;
+    font-size: 1.13rem;
+    z-index: 2;
+    box-shadow: 0 2px 8px rgba(0,123,255,0.04);
+}
+.detail_tabs .nav-item.active::after, .detail_tabs .nav-link.active::after {
+    content: "";
+    display: block;
+    position: absolute;
+    left: 20%;
+    right: 20%;
+    bottom: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #007bff 60%, #0056b3 100%);
+    border-radius: 2px 2px 0 0;
+    transform: scaleX(1);
+    opacity: 1;
+    transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+}
+.detail_tabs .nav-item:not(.active)::after, .detail_tabs .nav-link:not(.active)::after {
+    content: "";
+    display: block;
+    position: absolute;
+    left: 50%;
+    right: 50%;
+    bottom: 0;
+    height: 3px;
+    background: transparent;
+    border-radius: 2px 2px 0 0;
+    transform: scaleX(0);
+    opacity: 0;
+    transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+}
+.detail_tabs .nav-item:not(.active):hover, .detail_tabs .nav-link:not(.active):hover {
+    background: #eaf2fb;
+    color: #007bff;
+}
+.detail_tabs .nav-link {
+    border: none !important;
+    background: none !important;
+    color: inherit !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    padding: 0;
+}
+.detail_tabs > div:not(:last-child), .detail_tabs .nav-item:not(:last-child) {
+    border-right: 1px solid #e3e8ee;
 }
 .detail_tabs + .tab-content{
     height: 96%;
@@ -204,4 +282,299 @@ div.signature_accordion div.accordion-item h2 button> div >div:first-child{
     font-size: larger;
     /* background-image: radial-gradient(closest-side at 50% 25%, red 50%,blue); */
     /* background-image: linear-gradient(to top, transparent 39%,red 40%,red); */
+}
+
+html, body {
+    height: 100vh;
+    width: 100vw;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+#main_container {
+    height: 100%;
+    width: 100vw;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+#overview_col, #detail_col {
+    min-height: 200px;
+    display: flex;
+    flex-direction: column;
+}
+
+.overview, .detail_graph {
+    flex: 1;
+    min-height: 0;
+    width: 100%;
+    height: 100%;
+}
+
+#move_in_ov {
+    flex: 0.95 1 0;
+    min-height: 200px;
+    display: flex;
+    flex-direction: row;
+}
+
+#second_row {
+    flex: 1.05 1 0;
+    min-height: 120px;
+    max-height: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+#second_row_div {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto !important;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+/* Add responsive breakpoints */
+@media (max-height: 768px) {
+    #overview_col, #detail_col {
+        min-height: 150px;
+    }
+    #second_row {
+        min-height: 150px;
+    }
+}
+
+@media (max-width: 768px) {
+    #overview_col, #detail_col {
+        width: 100% !important;
+    }
+}
+
+/* Ensure plots remain visible */
+.js-plotly-plot {
+    min-height: 200px;
+    flex: 1;
+}
+
+/* Ensure Cytoscape graphs remain visible */
+.cytoscape-container {
+    min-height: 200px;
+    flex: 1;
+}
+
+/* Boxplot container styles */
+#box_plots_container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 10px;
+    width: 100%;
+    min-height: 0;  /* Allows container to shrink */
+    flex: 1 1 auto; /* Allows container to grow and shrink */
+}
+
+/* Close button styles */
+.close-button {
+    position: absolute;
+    right: 5px;
+    top: 5px;
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    color: gray;
+    padding: 0 5px;
+    z-index: 10;
+    transition: color 0.2s;
+}
+
+.close-button:hover {
+    color: black;
+}
+
+/* Boxplot wrapper styles */
+.boxplot-wrapper {
+    position: relative;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    margin: 5px;
+    padding: 5px;
+    background-color: white;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    flex: 0 0 auto;  /* Prevents boxplot from shrinking */
+    height: 220px;   /* Fixed height including margins */
+}
+
+/* Ensure boxplots maintain their height */
+.boxplot-wrapper .js-plotly-plot {
+    height: 200px !important;
+    min-height: 200px !important;
+    max-height: 200px !important;
+}
+
+/* Remove the dynamic height calculation from JavaScript */
+#second_row_div[style*="minHeight"] {
+    min-height: 0 !important;
+}
+
+.legend-item {
+  transition: background 0.15s, border 0.15s;
+}
+.legend-item:hover {
+  background: #f0f0f0 !important;
+  border: 1.5px solid #888 !important;
+}
+.legend-item.active {
+  background: #d1eaff !important;
+  border: 1.5px solid #007bff !important;
+}
+
+.legend-action-item {
+  transition: background 0.15s, border 0.15s;
+}
+.legend-action-item:hover {
+  background: #f0f0f0 !important;
+  border: 1.5px solid #888 !important;
+}
+
+.header-delimiter {
+    margin-left: 14px;
+    margin-right: 12px;
+    color: #b0b4c1;
+    font-size: 1.3rem;
+    font-weight: 400;
+    user-select: none;
+}
+
+.about-link {
+    background: none !important;
+    border: none !important;
+    box-shadow: none !important;
+    color: #1a237e !important;
+    font-size: 1.08rem;
+    font-weight: 500;
+    padding: 0 !important;
+    margin-left: 0 !important;
+    text-decoration: none !important;
+    transition: color 0.18s;
+}
+.about-link:hover, .about-link:focus {
+    color: #0d133d !important;
+    text-decoration: underline;
+    background: none !important;
+    border: none !important;
+}
+
+.main-link {
+    display: inline-block;
+    padding: 0 8px;
+    background: none;
+    color: #222 !important;
+    border: none;
+    border-radius: 0;
+    font-weight: 500;
+    text-decoration: none;
+    transition: color 0.15s;
+    margin-right: 0;
+    margin-top: 0;
+    font-size: 1rem;
+    box-shadow: none;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    white-space: nowrap;
+}
+.main-link:hover, .main-link:focus {
+    color: #0056b3 !important;
+    text-decoration: underline;
+    background: none;
+    border: none;
+}
+
+.hidden {
+    display: none !important;
+}
+
+.left-nudge {
+    margin-left: -24px !important;
+    margin-right: auto !important;
+}
+
+/* --- Help icon for menu tab tooltips (more discreet) --- */
+.help-tooltip-icon {
+  display: inline-block;
+  color: #6c8ebf;
+  background: none;
+  border-radius: 50%;
+  width: 15px;
+  height: 15px;
+  text-align: center;
+  font-weight: 400;
+  cursor: pointer;
+  border: 1px solid #b3c6e0;
+  font-size: 11px;
+  line-height: 13px;
+  vertical-align: middle;
+  margin-left: 2px;
+  transition: color 0.15s, border 0.15s, text-decoration 0.15s;
+}
+.help-tooltip-icon:hover {
+  color: #3a5a8c;
+  border: 1.2px solid #3a5a8c;
+  text-decoration: underline;
+  background: none;
+}
+
+/* Optional: style the tooltip popup for help */
+.dash-bootstrap .tooltip-inner {
+  font-size: 13px;
+  padding: 6px 12px;
+}
+
+/* --- Logo title left alignment and style --- */
+.logo-title {
+    font-family: 'Segoe UI', 'Arial', sans-serif;
+    font-weight: 700;
+    font-size: 2.1rem;
+    color: #1a237e;
+    letter-spacing: 0.04em;
+    margin: 5px 0 10px 0;
+    padding: 0 18px 0 0;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    line-height: 1.1;
+}
+
+#title.logo-title {
+    text-align: left !important;
+}
+
+/* Ensure header row spacing */
+.dash-bootstrap .row {
+    align-items: center;
+}
+
+/* Optionally, tweak the nav links for better header alignment */
+.about-link, .main-link {
+    margin-left: 12px !important;
+    margin-right: 0 !important;
+    font-size: 1.08rem;
+    font-weight: 500;
+    vertical-align: middle;
+}
+
+.logo-link {
+    text-decoration: none !important;
+    color: inherit !important;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+}
+
+.logo-link:hover .logo-title {
+    text-decoration: underline;
+    color: #0d133d;
 }

@@ -1,0 +1,213 @@
+.visible_plot > .js-plotly-plot {
+    visibility: visible;
+}
+.hidden_plot > .js-plotly-plot {
+    visibility: hidden;
+}
+#title{
+    text-align: center;
+}
+.overview{
+    width:100%;
+    /* ,"height": '400px'} */
+}
+.detail_graph{
+    width:100%;
+    pointer-events: auto;
+}
+.highlight_edge{
+    line-color:"red";
+}
+
+#overview_col > * ,#detail_col > * {
+    cursor:auto
+}
+#main_container > div:nth-child(2){
+    flex-grow: 1;
+    flex-shrink: 1;
+    min-height: 0;
+}
+#_pages_content{
+    height: 100%;
+}
+#overview_col span .dcc-tooltip-bounding-box{
+    z-index:0;
+    pointer-events: none;
+} 
+#detail_col span .dcc-tooltip-bounding-box{
+    z-index:0;
+    pointer-events: none;
+} 
+#detail_col span .dcc-tooltip-bounding-box > span,#detail_col span .dcc-tooltip-bounding-box > span *{
+    z-index:4;
+    pointer-events: auto;
+}
+#overview_col span .dcc-tooltip-bounding-box > span,#overview_col span .dcc-tooltip-bounding-box > span *{
+    z-index:4;
+    pointer-events: auto;
+}
+#detail_graph_tooltip ,#mono_graph_tooltip ,#overview_graph_tooltip{
+    opacity: 0;
+}
+#detail_graph_tooltip.pouet ,#mono_graph_tooltip.pouet ,#overview_graph_tooltip.pouet{
+    animation: appear 1s ease-in forwards;
+}
+@keyframes appear {
+    0%{
+        opacity: 0;
+        display: none;
+    }
+    100%{
+        opacity: 1;
+        display: inline-block;
+    }
+    
+}
+#detail_graph_tooltip img {
+    max-height:40vh;
+    max-width:40vh;
+}
+#detail_graph_tooltip p,#mono_graph_tooltip p {
+    text-wrap: pretty;
+}
+#detail_graph_tooltip,#mono_graph_tooltip, #overview_graph_tooltip{
+    font-size:smaller;
+    max-width: 250px;
+    max-height: 200px;
+    overflow: auto;
+}
+#activation_boxplot g.boxlayer path.box.nothighlight{
+stroke-dasharray: "5,5"
+}
+
+#activation_boxplot svg.main-svg g.statg path{
+    stroke-width: 3px;
+    stroke: black;
+    fill: none;
+}
+#detail_tabs-parent{
+    width: 100%;
+}
+.detail_tabs{
+    flex-grow: 1;
+    display: flex;
+    flex-direction: row;
+    height: fit-content;
+}
+.detail_tabs > div{
+    flex-grow: 1;
+    height: fit-content;
+}
+.detail_tabs + .tab-content{
+    height: 96%;
+    /* width: 100%; */
+    pointer-events: none;
+}
+.detail_tabs + .tab-content > div,.detail_tabs + .tab-content > div>div{
+    height: 100%;
+    width: 100%;
+}
+#detail_tabs-parent .tab-content{
+    flex-grow: 1;
+}
+div:has(> .legend_canvas){
+    position: relative;
+    pointer-events:none;
+}
+.legend_canvas {
+    pointer-events:none;
+
+    position: absolute;
+    top:0;
+    height:100%;
+    width:97%;
+}
+.legend_canvas canvas{
+    pointer-events:none;
+
+    height:100%;
+    width:100%;
+    position: absolute;
+    z-index: 0;
+}
+
+#activation_boxplot svg g.layer-above g.shapelayer > g{
+    opacity: 1;
+}
+
+/* #activation_boxplot svg g.layer-above g.shapelayer > g.hovered{
+    opacity: 1;
+} */
+
+#activation_boxplot svg.main-svg g.cartesianlayer > g.subplot.masked{
+    opacity:0.2;
+}
+div.carousel-caption >h5,div.carousel-caption >p{
+    color: black;
+    background-color: rgba(255, 255, 255, 0.75);
+    
+}
+.menu_all_none_btn_group{
+    width:100%;
+    justify-content: flex-end;
+}
+.menu_all_none_btn_group > div{
+    flex-grow: 1;
+
+}
+.menu_all_none_btn_group >button.btn{
+    flex-grow: 0;
+}
+button.btn-signature{
+    --bs-btn-color: #000;
+    --bs-btn-bg: #f8f9fa;
+    --bs-btn-border-color: #f8f9fa;
+    --bs-btn-hover-color: #000;
+    --bs-btn-hover-bg: #d3d4d5;
+    --bs-btn-hover-border-color: #c6c7c8;
+    --bs-btn-focus-shadow-rgb: 211,212,213;
+    --bs-btn-active-color: #fff;
+    --bs-btn-active-bg: #0a58ca;
+    --bs-btn-active-border-color: #0a53be;
+    --bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+    --bs-btn-disabled-color: #000;
+    --bs-btn-disabled-bg: #f8f9fa;
+    --bs-btn-disabled-border-color: #f8f9fa;
+}
+button.btn-signature::before{
+    content: "\2610"
+}
+button.btn-signature.active::before{
+    content: "\2611";
+
+}
+button.btn-signature:disabled::before{
+    content: "\2612";
+    color: red;
+}
+/* div.signature_accordion div.accordion-item{
+    counter-reset: nb_active;
+}
+div.signature_accordion div.accordion-item::after {
+    content:counter(nb_active);   
+}
+div.signature_accordion div.accordion-item button.btn-signature.active{ 
+    counter-increment: nb_active;
+} */
+
+div.signature_accordion div.accordion-item h2 button> div {
+    display: flex;
+}
+div.signature_accordion div.accordion-item h2 button> div >div:first-child{
+    color: red;
+    font-weight: bold;
+    font-size: larger;
+    /* background-image: radial-gradient(closest-side at 50% 25%, red 50%,blue); */
+    /* background-image: linear-gradient(to top, transparent 39%,red 40%,red); */
+}
+.overview_tooltip {
+    background-color: white;
+    border: 1px solid black;
+    padding: 5px;
+    z-index: 1000;
+}

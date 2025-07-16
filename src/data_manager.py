@@ -18,7 +18,11 @@ class DataManager(object):
             cls._instance.signatures = pd.read_csv(signature_file,dtype=pd.StringDtype())
             cls._instance.signatures["Signature"] = cls._instance.signatures["Signature"].str.split(";").astype(pd.ArrowDtype(pa.list_(pa.string())))
             if "Merge" not in cls._instance.signatures["Filter"].unique():
-                merged = cls._instance.signatures.groupby(["Cancer","Comparison"]).agg(Filter=pd.NamedAgg(column="Filter",aggfunc=lambda x: "Merge"),Signature=pd.NamedAgg(column="Signature",aggfunc=lambda x:set([g for sign in x for g in sign])),gProfiler=pd.NamedAgg(column="gProfiler",aggfunc=lambda x: "??"))
+                merged = cls._instance.signatures.groupby(["Cancer","Comparison"]).agg(
+                    Filter=pd.NamedAgg(column="Filter",aggfunc=lambda x: "Merge"),
+                    Signature=pd.NamedAgg(column="Signature",aggfunc=lambda x:set([g for sign in x for g in sign])),
+                    gProfiler=pd.NamedAgg(column="gProfiler",aggfunc=lambda x: "??")
+                )
                 cls._instance.signatures=pd.concat([cls._instance.signatures,merged.reset_index()])
             cls._instance.signatures["id"] = cls._instance.signatures["Cancer"]+"_"+cls._instance.signatures["Comparison"]+"_"+cls._instance.signatures["Filter"]
             # cls._instance.signatures["Comparison"] = cls._instance.signatures["Comparison"].str.split("_").astype(pd.ArrowDtype(pa.list_(pa.string()))).list[0::2]
@@ -45,9 +49,9 @@ class DataManager(object):
     def get_instance():
         if DataManager._instance is None:
             if ("THE_BIOM_SIGNATURES" in os.environ and "THE_BIOM_EXPRESSIONS" in os.environ and "THE_BIOM_PATHWAYS" in os.environ):
-                signatures = os.environ["THE_BIOM_SIGNATURES"]
-                expressions = os.environ["THE_BIOM_EXPRESSIONS"]
-                pathways = os.environ["THE_BIOM_PATHWAYS"]
+                signatures = os.environ["THE_BIOM_SIGNATURES"].strip()
+                expressions = os.environ["THE_BIOM_EXPRESSIONS"].strip()
+                pathways = os.environ["THE_BIOM_PATHWAYS"].strip()
             else:
                 signatures =os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),"data","signatures","THe_Biom_DEV_dataset.csv")
                 expressions = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),"data","activations","fake_data.csv")
@@ -85,10 +89,35 @@ class DataManager(object):
         return genes.to_dict("index")
     def get_pathway_label(self,pathway):
         return self.pathways[self.pathways["PathwayStId"]==pathway]["PathwayDisplayName"].iloc[0]
+    
     def get_symbol(self,gene):
         if isinstance(gene,str):
             return self.symbols.loc[gene]["GeneSymbolID"]
         return self.symbols.loc[list(gene)]["GeneSymbolID"]
+
+    def get_intersection_gprofiler_link(self, signature1, signature2, common_genes):
+        """Generate a gProfiler link for the intersection of two signatures.
+        
+        Args:
+            signature1 (str): First signature ID
+            signature2 (str): Second signature ID
+            common_genes (list): List of genes in the intersection
+            
+        Returns:
+            str: gProfiler link for the intersection
+        """
+        # Get the cancer type from either signature (they should be the same)
+        cancer = signature1.split("_")[0]
+        
+        # Create a description for the intersection
+        stage1 = signature1.split("_")[1].split("vs")[1]
+        stage2 = signature2.split("_")[1].split("vs")[1]
+        description = f"{cancer}_Intersection_{stage1}_vs_{stage2}"
+        
+        # Create the gProfiler link with the common genes
+        genes_str = ";".join(common_genes)
+        return f"https://biit.cs.ut.ee/gprofiler/gost?organism=hsapiens&query={genes_str}&description={description}"
+
     def get_signatures_intersections(self,disease_filter=[],comparisons_filter=[],selected_filter="Merge"):
         exploded = self.exploded[self.exploded["Filter"]==selected_filter]
         if(len(disease_filter)>0):
@@ -96,12 +125,6 @@ class DataManager(object):
         if(len(comparisons_filter)>0):
             exploded = exploded[exploded["Comparison"].isin(comparisons_filter)]
         
-        # grouped_by_gene = exploded.groupby("Signature").agg(lambda a:a.to_list() if len(a) >1 else a)
-        # grouped_by_gene["id"] = grouped_by_gene["id"].astype(pd.ArrowDtype(pa.list_(pa.string())))
-        # nbsign = exploded.groupby("Signature").agg(lambda x: x.size)
-        # grouped_by_gene = grouped_by_gene[nbsign>1]
-
-        # exploded["id"] = exploded["id"].transform(lambda a:[a])
         grouped_by_gene = exploded.filter(["EnsemblID","id"]).groupby("EnsemblID").agg(lambda a:a.values)
         grouped_by_gene["id"] = grouped_by_gene["id"].astype(pd.ArrowDtype(pa.list_(pa.string())))
         pathways = self.pathways.filter(["EnsemblID","PathwayStId"])
@@ -134,15 +157,33 @@ class DataManager(object):
         grouped_by_gene = grouped_by_gene.reset_index()[grouped_by_gene["id"].list.len()>1]
         
         intersections = dict()
+        intersection_links = dict()  # New dictionary to store gProfiler links for intersections
+        
         for item in grouped_by_gene.itertuples():
-            genes  = sorted(item.id)
+            genes = sorted(item.id)
             for src in range(len(genes)-1):
                 for tgt in range(src+1,len(genes)):
-                    if (genes[src],genes[tgt]) in intersections:
-                        intersections[(genes[src],genes[tgt])].append(item.EnsemblID)
+                    key = (genes[src],genes[tgt])
+                    if key in intersections:
+                        intersections[key].append(item.EnsemblID)
                     else:
-                        intersections[(genes[src],genes[tgt])]= [item.EnsemblID]
-        return intersections,self.signatures[self.signatures["Filter"]==selected_filter].to_dict('records'),pathways_edges
+                        intersections[key] = [item.EnsemblID]
+                        # Generate gProfiler link for this intersection
+                        intersection_links[key] = self.get_intersection_gprofiler_link(
+                            genes[src], 
+                            genes[tgt], 
+                            [item.EnsemblID]  # This will be updated as more genes are added
+                        )
+        
+        # Update intersection links with complete gene lists
+        for key, genes in intersections.items():
+            intersection_links[key] = self.get_intersection_gprofiler_link(
+                key[0], 
+                key[1], 
+                genes
+            )
+            
+        return intersections, self.signatures[self.signatures["Filter"]==selected_filter].to_dict('records'), pathways_edges, intersection_links
     def get_disease_comp_from_genes(self,gene_filter=[],selected_filter="Merge"):
         exploded = self.exploded[self.exploded["Filter"]==selected_filter]
         id_filter = exploded[exploded["EnsemblID"].isin(gene_filter)]["id"].unique().tolist()
@@ -232,7 +273,7 @@ class DataManager(object):
             activations = activations[self.activation_data["Stage"].isin([c.split("vs")[1]  for c in comparisons])]
         activations = activations[genes+["Cancer",'Stage',"box_category"]]
         return activations
-    
+
     def get_pathways(self,genes,filter=None):
         if(len(genes)==0):
             filtered = self.exploded[self.exploded["Filter"]==filter]

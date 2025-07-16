@@ -51,7 +51,7 @@ def get_S_rev(y_bg,Y_txt):
 def Ys(r,g,b):
     return f_clamp(((r)**2.4)*0.2126729+((g)**2.4)*0.7151522+((b)**2.4)*0.0721750)
 def f_clamp(y,b_thr=0.022,b_exp=1.414):
-    print(y)
+    #print(y)
     if y>b_thr:
         return y
     return y+(b_thr-y)*b_exp
