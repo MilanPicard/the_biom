@@ -25,12 +25,12 @@ Below are platform-specific instructions to get the application running.
     cd the_biom
     ```
 
-3.  **Create and activate a virtual environment**. This will create an isolated space for the project's dependencies.
+3.  **Create and activate a virtual environment**. This will create an isolated space for the project's dependencies. On Windows, the `py` launcher is the recommended way to ensure the correct Python version is used.
     ```cmd
-    python -m venv .venv
+    py -3.10 -m venv .venv
     .venv\Scripts\activate
     ```
-    After running the second command, you should see `(.venv)` at the beginning of your command prompt line.
+    After running the second command, you should see `(.venv)` at the beginning of your command prompt line. If the first command fails, ensure you have Python 3.10 installed and that it's available in your system's PATH.
 
 4.  **Install the required Python packages**:
     ```cmd
