@@ -1,3 +1,4 @@
+# NOTE: The code expects the 'Disease' column in the signatures CSV to be renamed to 'Cancer' for internal consistency.
 import json
 import os
 import time
@@ -16,6 +17,9 @@ class DataManager(object):
             cls._instance.signature_file = signature_file
             cls._instance.expression_file = expression_file
             cls._instance.signatures = pd.read_csv(signature_file,dtype=pd.StringDtype())
+            # Rename 'Disease' column to 'Cancer' for compatibility
+            if 'Disease' in cls._instance.signatures.columns:
+                cls._instance.signatures = cls._instance.signatures.rename(columns={'Disease': 'Cancer'})
             cls._instance.signatures["Signature"] = cls._instance.signatures["Signature"].str.split(";").astype(pd.ArrowDtype(pa.list_(pa.string())))
             if "Merge" not in cls._instance.signatures["Filter"].unique():
                 merged = cls._instance.signatures.groupby(["Cancer","Comparison"]).agg(
@@ -324,9 +328,81 @@ class DataManager(object):
         })
         return p 
     def get_disease_cmap(self):
-        unique_diseases = self.signatures["Cancer"].unique()
-        colormap = cm.get_cmap("tab10",len(unique_diseases))
-        return dict([(unique_diseases[i],colormap(i)) for i in range(len(unique_diseases))])
+        # Stable color mapping:
+        # - Keep fixed colors for the original six cancers in their historical order
+        #   UCEC, BRCA, LIHC, LUAD, KIRC, HNSC mapped to tab10 indices 0..5
+        # - Assign additional cancers the next available distinct colors without
+        #   changing the colors of already-mapped cancers
+        present_diseases = list(self.signatures["Cancer"].unique())
+
+        fixed_order = ["UCEC", "BRCA", "LIHC", "LUAD", "KIRC", "HNSC"]
+        tab10 = cm.get_cmap("tab10")
+
+        # Build a pool of candidate colors (RGBA), starting with tab10 then others
+        candidate_colors = []
+        # tab10 first (10 colors)
+        candidate_colors.extend([tab10(i) for i in range(10)])
+
+        # Extend the pool with other qualitative palettes to cover many cancers
+        extra_maps = [
+            cm.get_cmap("tab20"),
+            cm.get_cmap("tab20b"),
+            cm.get_cmap("tab20c"),
+            cm.get_cmap("Set3"),
+            cm.get_cmap("Dark2"),
+            cm.get_cmap("Accent"),
+            cm.get_cmap("Paired"),
+        ]
+        for m in extra_maps:
+            colors = getattr(m, "colors", None)
+            if colors is None:
+                # Sample all entries if the colormap is continuous
+                colors = [m(i) for i in range(m.N)]
+            for c in colors:
+                # Ensure RGBA tuples
+                if len(c) == 3:
+                    candidate_colors.append((c[0], c[1], c[2], 1.0))
+                else:
+                    candidate_colors.append((c[0], c[1], c[2], c[3]))
+
+        # Deduplicate while preserving order
+        seen = set()
+        deduped_colors = []
+        for c in candidate_colors:
+            key = tuple(round(x, 6) for x in c)  # robust float comparison
+            if key not in seen:
+                seen.add(key)
+                deduped_colors.append(c)
+
+        # Assign fixed colors for the original six cancers when present.
+        # IMPORTANT: Use a colormap sized to the number of base diseases present
+        # so their colors exactly match the previous behavior when only those are shown.
+        cmap = {}
+        used = set()
+        base_present = [d for d in fixed_order if d in present_diseases]
+        if len(base_present) > 0:
+            base_cmap = cm.get_cmap("tab10", len(base_present))
+            for i, disease in enumerate(base_present):
+                color = base_cmap(i)
+                cmap[disease] = color
+                used.add(tuple(round(x, 6) for x in color))
+
+        # Assign remaining diseases from the pool without reusing colors
+        color_index = 0
+        for disease in present_diseases:
+            if disease in cmap:
+                continue
+            # Find the next unused color
+            while color_index < len(deduped_colors):
+                candidate = deduped_colors[color_index]
+                color_index += 1
+                key = tuple(round(x, 6) for x in candidate)
+                if key not in used:
+                    cmap[disease] = candidate
+                    used.add(key)
+                    break
+
+        return cmap
     # def get_stage_cmap(self):
     #     unique_stages = self.signatures["Comparison"].explode().unique()
     #     colormap = cm.get_cmap("tab10",len(unique_stages))
@@ -341,5 +417,19 @@ class DataManager(object):
     def get_comparisons_from_genes(self,genes):
         exploded = self.exploded[self.exploded["EnsemblID"].isin(genes)]
         return exploded["Comparison"].unique().tolist()
+
+    def get_pathway_signatures(self, pathway_id, selected_filter="Merge"):
+        """Get all signatures associated with genes in a specific pathway"""
+        pathway_genes = self.pathways[self.pathways["PathwayStId"] == pathway_id]["EnsemblID"].tolist()
+        if not pathway_genes:
+            return []
+        
+        # Get signatures that contain any of these genes
+        pathway_signatures = self.exploded[
+            (self.exploded["Filter"] == selected_filter) & 
+            (self.exploded["EnsemblID"].isin(pathway_genes))
+        ]["id"].unique().tolist()
+        
+        return pathway_signatures
 
 

@@ -171,7 +171,10 @@ stroke-dasharray: "5,5"
     color: inherit !important;
     border-radius: 0 !important;
     box-shadow: none !important;
-    padding: 0;
+    padding: 0.7rem 0.5rem 0.6rem 0.5rem;
+    display: block;
+    width: 100%;
+    height: 100%;
 }
 .detail_tabs > div:not(:last-child), .detail_tabs .nav-item:not(:last-child) {
     border-right: 1px solid #e3e8ee;
@@ -179,7 +182,7 @@ stroke-dasharray: "5,5"
 .detail_tabs + .tab-content{
     height: 96%;
     /* width: 100%; */
-    pointer-events: none;
+    pointer-events: auto;
 }
 .detail_tabs + .tab-content > div,.detail_tabs + .tab-content > div>div{
     height: 100%;
@@ -577,4 +580,33 @@ html, body {
 .logo-link:hover .logo-title {
     text-decoration: underline;
     color: #0d133d;
+}
+
+/* Remove the horizontal line (border) above the body of dbc.Toast */
+.toast .toast-header {
+    border-bottom: none !important;
+    margin-bottom: 0 !important;
+    min-height: 0 !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+}
+.toast .toast-header:empty {
+    display: none !important;
+}
+.toast .toast-body {
+    padding-top: 0.5rem !important;
+    margin-top: 0 !important;
+}
+.toast {
+    padding-top: 0 !important;
+    position: relative;
+}
+/* Move the close (cross) button to the true upper right corner, tighter fit */
+.toast .btn-close {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    z-index: 10;
+    margin: 0 !important;
+    padding: 0.15rem !important;
 }

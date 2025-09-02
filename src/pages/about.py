@@ -34,8 +34,25 @@ def layout(**kwargs):
                     ], className="mb-5", style={"boxShadow": "0 2px 8px rgba(0,0,0,0.05)", "padding": "1rem", "background": "#fff"})
                     for step in tutorial_steps
                 ],
-                html.P("""Nature Communications: doi:10.1038/s41467-025-02400-0""", 
-                    style={"fontSize": "1rem", "marginTop": "1rem"}),
+                html.Div([
+                    html.H3("Source Code", style={"fontSize": "1.25rem", "marginTop": "2rem", "marginBottom": "0.5rem"}),
+                    html.P([
+                        "You can find the source code and contribute to the project on ",
+                        html.A("MilanPicard/the_biom", href="https://github.com/MilanPicard/the_biom", target="_blank", style={"color": "#0366d6", "textDecoration": "underline"}),
+                        "."
+                    ], style={"fontSize": "1rem", "marginBottom": "1rem"})
+                ]),
+                html.Div([
+                    html.H3("References", style={"fontSize": "1.25rem", "marginTop": "2rem", "marginBottom": "0.5rem"}),
+                    html.Ul([
+                        html.Li([
+                            "THe Biom: a database of cancers novel transcriptomic biomarkers identified by robust feature selection"
+                        ]),
+                        html.Li([
+                            "Claude, E., Leclercq, M., Thébault, P., Droit, A., & Uricaru, R. (2024). Optimizing hybrid ensemble feature selection strategies for transcriptomic biomarker discovery in complex diseases. NAR Genomics and Bioinformatics, 6(3), lqae079."
+                        ])
+                    ], style={"fontSize": "1rem", "marginBottom": "1rem"})
+                ]),
                 html.Footer(
                     dbc.Container([
                     dbc.Row(html.Hr()),

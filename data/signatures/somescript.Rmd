@@ -1,0 +1,144 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+
+Study from :
+Rahiminejad S, Maurya MR, Mukund K, Subramaniam S. Modular and mechanistic changes across stages of colorectal cancer. BMC Cancer. 2022 Apr 21;22(1):436. doi: 10.1186/s12885-022-09479-3. PMID: 35448980; PMCID: PMC9022252.
+page 19, rename Colorectal.xlsx
+
+```{r}
+setwd("Etudes/These/10 Projet 2/the_biom/data/signatures/")
+library(tidyverse)
+library(DiscoNet)
+colorectal_file = xlsx::read.xlsx("Colorectal.xlsx", 1, startRow = 5)
+stage_vec = colorectal_file$NA. %>% na.omit %>% unique %>% .[cumsum(!is.na(colorectal_file[,1]))]
+colorectal_file$NA. = stage_vec
+
+colorectal_file = colorectal_file %>% filter(!is.na(Gene.symbol)) %>% select(NA., Gene.symbol)
+
+
+library(org.Hs.eg.db)
+colo_signature = list(colorectal_file$Gene.symbol[colorectal_file$NA. == "Stage I"], colorectal_file$Gene.symbol[colorectal_file$NA. == "Stage II"], colorectal_file$Gene.symbol[colorectal_file$NA. == "Stage III"], colorectal_file$Gene.symbol[colorectal_file$NA. == "Stage IV"])
+colo_signature = lapply(colo_signature, function(x) str_remove(x, "\"NA\""))
+colo_signature = lapply(colo_signature, function(x) unlist(mapIds(org.Hs.eg.db, x, "ENSEMBL", "SYMBOL")) %>% na.omit %>% as.vector)y
+colo_signature = sapply(colo_signature, function(x) paste(x, collapse = ";"))
+
+
+df = data.frame(Cancer = rep("Colorectal", 4), 
+                Comparison = c("NormalvsStageI","NormalvsStageII","NormalvsStageIII","NormalvsStageIV"), 
+                Filter = rep("Merge", 4), 
+                Signature = colo_signature, 
+                gProfiler = c("","","",""))
+
+write_csv(df, file = "Colorectal_signature_good_format.csv")
+```
+
+
+from this article, supp 1
+Athira, K., Gopakumar, G. Breast cancer stage prediction: a computational approach guided by transcriptome analysis. Mol Genet Genomics 297, 1467–1479 (2022). https://doi.org/10.1007/s00438-022-01932-z
+```{r}
+BreastCancer = list(genes_stage1 <- c(
+  "DPT","BLZF1","CDC73","CFH","CFHR1","NID1","CUL2","HBB","HBG1","HBG2",
+  "C1S","MFAP5","LARP4","TMBIM4","PHLDA1","NAP1L1","LUM","DCN","GTF2H3","DLEU2","COL4A1",
+  "FBN1","CA12","FAH","HBA2","HBA1","ABAT","ZNF267","CCL18","KRT19","KRT14","COL1A1",
+  "COL3A1","COL5A2","FN1","MYL9","COL6A2","IGLC2","IGLC3","B3GALNT1","TBL1XR1","ADIPOQ","DHRS2",
+  "MMP1","VCAN","DNALI1","SRSF10","IGHA2","IGHA1","FABP7","HBS1L","NDC80","ASPN",
+  "PMAIP1","COMP","ADH1B","GRIA2","C7","NNT","LAMP1","GAS6","SGK3",
+  "IGFBP7","EIF4E","TAF9B","TTF2","COL11A1","CLCA2","DLEU2L","LIN7C","NUP160","FADS1","FABP4","GAS1",
+  "SPARC","STC2","PLA2G7","TFAP2B","LSM5","INHBA","KRIT1","RBM48","COL1A2","NDUFA5","NAT1","LPL"
+), genes_stage2 <- c(
+  "S100A7A","S100A7","ASPM","ELF5","FADS1","FOXM1","KRT6B","CRABP1","TOP2A","SOX11","SOX10","RARRES1","PROM1","PITX1","GABRP",
+  "CRISP3","PBK","TMSB15A","VGLL1","GPSM2"
+), genes_stage3 <- c(
+  "CHI3L1","SNAP23","CEACAM6","CD52"
+)
+)
+
+
+BreastCancer = lapply(BreastCancer, function(x) unlist(mapIds(org.Hs.eg.db, x, "ENSEMBL", "SYMBOL")) %>% na.omit %>% as.vector)
+BreastCancer = sapply(BreastCancer, function(x) paste(x, collapse = ";"))
+
+
+df = data.frame(Cancer = rep("Breast", 3), 
+                Comparison = c("NormalvsStageI","NormalvsStageII","NormalvsStageIII"), 
+                Filter = rep("Merge", 3), 
+                Signature = BreastCancer, 
+                gProfiler = c("noLink","noLink","noLink"))
+
+write_csv(df, file = "Breast_signature_good_format.csv")
+
+```
+
+
+Hamzeh, Osama, et al. "A hierarchical machine learning model to discover gleason grade-specific biomarkers in prostate cancer." Diagnostics 9.4 (2019): 219.
+```{r}
+ProstateCancer = list(group1 <- c("UBE2V2", "MTMR3", "C15orf54"),
+                      group2 <- c("GPR137", "C8orf58", "FANCG", "LIG4", "GDE1", "MSR1", "TUFT1", "SYNE1", "ELFN2", "TSPO", "COX6C", "C1orf186", "KCNJ15", "TOR2A", "CCDC116"),
+                      group3 <- c("RCOR3", "MARVELD3", "PIAS3", "NUDT16", "TAF6L", "TCP11L1", "MTERF4"),
+                      group4 <- c("EPB41L1"))
+
+ProstateCancer = lapply(ProstateCancer, function(x) unlist(mapIds(org.Hs.eg.db, x, "ENSEMBL", "SYMBOL")) %>% na.omit %>% as.vector)
+ProstateCancer = sapply(ProstateCancer, function(x) paste(x, collapse = ";"))
+
+
+df = data.frame(Cancer = rep("Prostate", 4), 
+                Comparison = c("NormalvsStageI","NormalvsStageII","NormalvsStageIII","NormalvsStageIV"), 
+                Filter = rep("Merge", 4), 
+                Signature = ProstateCancer, 
+                gProfiler = c("noLink","noLink","noLink","noLink"))
+
+write_csv(df, file = "Prostate_signature_good_format.csv")
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

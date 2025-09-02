@@ -20,5 +20,24 @@ def layout(**kwargs):
                     html.A("Download CSV (22 KB)", href="/download/data/signatures/ALLSIGNATURES_2024-07-08-14-21-18.csv", download="ALLSIGNATURES.csv", target="_blank", style={"marginLeft": "0.5rem"})
                 ]),
             ], flush=True, style={"marginBottom": "1.5rem"}),
+            html.Div([
+                html.H3("Source Code", style={"fontSize": "1.25rem", "marginTop": "2rem", "marginBottom": "0.5rem"}),
+                html.P([
+                    "You can find the source code and contribute to the project on ",
+                    html.A("MilanPicard/the_biom", href="https://github.com/MilanPicard/the_biom", target="_blank", style={"color": "#0366d6", "textDecoration": "underline"}),
+                    "."
+                ], style={"fontSize": "1rem", "marginBottom": "1rem"})
+            ]),
+            html.Div([
+                html.H3("References", style={"fontSize": "1.25rem", "marginTop": "2rem", "marginBottom": "0.5rem"}),
+                html.Ul([
+                    html.Li([
+                        "THe Biom: a database of cancers novel transcriptomic biomarkers identified by robust feature selection"
+                    ]),
+                    html.Li([
+                        "Claude, E., Leclercq, M., Thébault, P., Droit, A., & Uricaru, R. (2024). Optimizing hybrid ensemble feature selection strategies for transcriptomic biomarker discovery in complex diseases. NAR Genomics and Bioinformatics, 6(3), lqae079."
+                    ])
+                ], style={"fontSize": "1rem", "marginBottom": "1rem"})
+            ]),
         ])
     ] 

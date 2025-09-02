@@ -7,6 +7,8 @@ import logging
 from dash import Output, Input, State
 from dash import dcc
 from flask import send_from_directory
+import controller  # Ensure all callbacks are registered
+controller.Controller.declare_callback()  # Register all Dash callbacks at top level
 logging.getLogger('werkzeug').setLevel(logging.ERROR)
 
 if "THE_BIOM_MODE" in os.environ and os.environ["THE_BIOM_MODE"]=="PROD":
@@ -227,7 +229,6 @@ if __name__ == '__main__':
         expressions = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),"data","activations","fake_data.csv")
         pathways = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),"data","pathways","fake_pathways")
     dm = data_manager.DataManager(signatures,expressions,pathways)
-    controller.Controller.declare_callback(background_callback_manager!=None)
     ctrl = controller.Controller(dm)
 
     # app.run(debug=False,host="172.17.11.246")

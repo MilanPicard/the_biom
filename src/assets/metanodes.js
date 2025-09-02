@@ -511,17 +511,17 @@ function tapMultiSignPathway(pathway_id){
         });
     }
 }
+
 async function draw_offscreen(graph_id,filename,legend_canvas){
     const cy = document.getElementById(graph_id)['_cyreg']["cy"];
 
-    let scale=Math.max(Math.ceil(3000/cy.width()),Math.ceil(3000/cy.height()));
+    let scale=Math.max(Math.ceil(1000/cy.width()),Math.ceil(1000/cy.height()));
     let blob_promise = cy.png({full:true,scale:scale,output:"blob-promise"});
     let oc = new OffscreenCanvas(cy.width()*scale,cy.height()*scale);
     
     let outCtx = oc.getContext("2d");
     
     let {x1,x2,y1,y2,w,h} = cy.elements().renderedBoundingBox()
-
     
     let promise = blob_promise.then((blob)=> createImageBitmap(blob));
     if( legend_canvas!==undefined){
@@ -535,8 +535,9 @@ async function draw_offscreen(graph_id,filename,legend_canvas){
         })
     }
     await promise.then(imageBitMap => {
+        outCtx.scale(10, 10);
+        outCtx.imageSmoothingEnabled = false;
         outCtx.drawImage(imageBitMap,0,0,imageBitMap.width,imageBitMap.height,oc.width/2-w*scale/2,oc.height/2-h*scale/2,w*scale,h*scale);
-
         oc.convertToBlob({"type":"image/png"}).then((blob) => {
             let img =URL.createObjectURL(blob);
 
@@ -549,6 +550,8 @@ async function draw_offscreen(graph_id,filename,legend_canvas){
     })
 
 }
+
+
 function set_min_height_box_plot(box_plots_to_style){
     // Remove dynamic height calculation as it's now handled by CSS
     return dash_clientside.no_update;
@@ -571,9 +574,10 @@ function select_new_signatures(selected_genes_store){
             selection = selection.add(cy.$("#"+s));
             console.log(s);
         }
-        if(cur_selection.length==0 && selected_genes_store["covered_signatures"].length==1){
-            selection.eq(0).trigger('tap');
-        }
+        // Removed the problematic trigger('tap') call that was causing gene selection interference
+        // if(cur_selection.length==0 && selected_genes_store["covered_signatures"].length==1){
+        //     selection.eq(0).trigger('tap');
+        // }
         selection.select();
         console.log(selection);
     }
@@ -969,7 +973,108 @@ function download_canvas_image(canvas,filename,legend_canvas){
     
 }
 function download_plotly_image(plot,filename){
-    Plotly.downloadImage(plot,{height:plot.clientHeight,width:plot.clientWidth,format:"png",filename:filename})
+    if (!plot) {
+        console.error("Plot element not found");
+        return;
+    }
+    
+    try {
+        // Get the actual plotly instance
+        const plotlyInstance = plot._fullLayout ? plot : plot.querySelector('.js-plotly-plot');
+        
+        if (plotlyInstance && plotlyInstance._fullLayout) {
+            // Remove .png extension if already present to avoid double extension
+            const cleanFilename = filename.endsWith('.png') ? filename.slice(0, -4) : filename;
+            Plotly.downloadImage(plotlyInstance,{
+                height: plotlyInstance.clientHeight || 600,
+                width: plotlyInstance.clientWidth || 800,
+                format: "png",
+                filename: cleanFilename
+            });
+        } else {
+            console.error("Plotly instance not found or not properly initialized");
+        }
+    } catch (error) {
+        console.error("Error downloading plotly image:", error);
+    }
+}
+
+function download_all_boxplots(plots, baseFilename) {
+    if (!plots || plots.length === 0) {
+        console.error("No plots found to download");
+        return;
+    }
+    
+    try {
+        // Create a canvas to combine all plots
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Calculate total height needed for all plots
+        let totalHeight = 0;
+        let maxWidth = 0;
+        const plotImages = [];
+        
+        // First, convert each plot to an image
+        const promises = Array.from(plots).map((plot, index) => {
+            return new Promise((resolve) => {
+                const plotlyInstance = plot._fullLayout ? plot : plot.querySelector('.js-plotly-plot');
+                if (plotlyInstance && plotlyInstance._fullLayout) {
+                    Plotly.toImage(plotlyInstance, {
+                        format: 'png',
+                        height: plotlyInstance.clientHeight || 200,
+                        width: plotlyInstance.clientWidth || 800
+                    }).then((dataUrl) => {
+                        const img = new Image();
+                        img.onload = () => {
+                            plotImages.push({img, index});
+                            totalHeight += img.height;
+                            maxWidth = Math.max(maxWidth, img.width);
+                            resolve();
+                        };
+                        img.src = dataUrl;
+                    }).catch(() => resolve());
+                } else {
+                    resolve();
+                }
+            });
+        });
+        
+        // Wait for all images to load, then combine them
+        Promise.all(promises).then(() => {
+            if (plotImages.length === 0) {
+                console.error("No valid plots found");
+                return;
+            }
+            
+            // Sort by original index to maintain order
+            plotImages.sort((a, b) => a.index - b.index);
+            
+            // Set canvas dimensions
+            canvas.width = maxWidth;
+            canvas.height = totalHeight;
+            
+            // Draw all plots vertically
+            let currentY = 0;
+            plotImages.forEach(({img}) => {
+                ctx.drawImage(img, 0, currentY);
+                currentY += img.height;
+            });
+            
+            // Download the combined image
+            canvas.toBlob((blob) => {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = baseFilename + '.png';
+                a.click();
+                URL.revokeObjectURL(url);
+            }, 'image/png');
+        });
+        
+    } catch (error) {
+        console.error("Error downloading all boxplots:", error);
+    }
 }
 function stat_shape_x(plot,traceIdI,  boxIdI, traceIdJ, boxIdJ) {
     let parentG = document.querySelector("#activation_boxplot svg.main-svg g.plot g.boxlayer.mlayer");

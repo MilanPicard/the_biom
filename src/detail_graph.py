@@ -111,39 +111,43 @@ def update_cur_elements(existing_elements,updated,stylesheet_detail,sizes,update
         del existing_elements[i]
         del updated_elements[i]    
 
-def add_path_ways(existing_elements,stylesheet_detail,updated_elements,all_pathway,dm,legend):
+def add_path_ways(existing_elements,stylesheet_detail,updated_elements,dm,legend,show_pathways=True,selected_signatures=None):
+    if not show_pathways:
+        # Do not add any pathway nodes or edges
+        return existing_elements, stylesheet_detail, None
+    # Decide whether to keep all pathways or only those linking multiple signatures
     pathways_nodes = dict()
     protein_nodes = dict()
     pathways_stylesheets = dict()
     pathways_edges = []
     gene_sign = dict([(elem['data']['id'],set(elem['data']["Signatures"])) for elem in existing_elements if "source" not in elem["data"]])
+    # Determine if this is mono view based on the number of signatures being displayed
+    if selected_signatures is not None:
+        all_pathway = len(selected_signatures) <= 1
+    else:
+        # Fallback: If only one signature is present among the current genes, show all pathways (mono view)
+        unique_signatures = set()
+        for signs in gene_sign.values():
+            unique_signatures.update(signs)
+        all_pathway = len(unique_signatures) <= 1
     pathways = dm.get_pathways(gene_sign.keys())
     pathway_shape = "triangle"
     multi_pathway_color = "red"
     mono_pathway_color = "gray"
     for p in pathways.itertuples():
-            children = []
-            children.append(html.H6(p.PathwayDisplayName))
-            children.append(html.A("PathwayReactomeLink",href=p.PathwayReactomeLink,target="_blank"))
-            pathways_nodes[p.Index]={"data":{"id":p.Index,"label":"","weight":len(p.EnsemblID),"tooltip_content":children,"is_pathways":True,"ReactomeLink":p.PathwayReactomeLink,"name":p.PathwayDisplayName},"selectable":True,"classes":"pathway"}
-            pathways_stylesheets[p.Index] = {
-                        "selector":f"node#{p.Index}",
-                        "style":{
-                            "shape":pathway_shape,
-                            # "background-opacity":0.25,
-                            # "font-size":5,
-                            # "backgroundColor":mono_pathway_color,
-
-                            "z-index":-0,
-                            # "text-halign":"left",
-                            # "text-valign":"center",
-                            # "border-width":1,
-                            # "text-wrap":"wrap",
-                            # "label":p.Index,
-                            "width":size_triangle(len(p.EnsemblID)),
-                            "height":size_triangle(len(p.EnsemblID))
-                            }
+        children = []
+        children.append(html.H6(p.PathwayDisplayName))
+        children.append(html.A("PathwayReactomeLink",href=p.PathwayReactomeLink,target="_blank"))
+        pathways_nodes[p.Index]={"data":{"id":p.Index,"label":"","weight":len(p.EnsemblID),"tooltip_content":children,"is_pathways":True,"ReactomeLink":p.PathwayReactomeLink,"name":p.PathwayDisplayName},"selectable":True,"classes":"pathway"}
+        pathways_stylesheets[p.Index] = {
+                    "selector":f"node#{p.Index}",
+                    "style":{
+                        "shape":pathway_shape,
+                        "z-index":-0,
+                        "width":size_triangle(len(p.EnsemblID)),
+                        "height":size_triangle(len(p.EnsemblID))
                         }
+                    }
     for p in pathways.itertuples():
         highlight = np.zeros(len(p.EnsemblID),dtype=bool)
         i=0
@@ -155,28 +159,14 @@ def add_path_ways(existing_elements,stylesheet_detail,updated_elements,all_pathw
                     continue
                 sign_i = gene_sign[p.EnsemblID[i]]
                 sign_j = gene_sign[p.EnsemblID[j]]
-                # if(not sign_i.issubset(sign_j) and not sign_j.issubset(sign_i)):
                 if(len(sign_i.symmetric_difference(sign_j))!=0):
                     highlight[i]=True
                     highlight[j]=True
                 j+=1
             i+=1
-                
-
         for i in range(len(p.EnsemblID)):
             edge_id = "_".join([p.EnsemblID[i],p.Index])
             pathways_edges.append({"data":{"id":edge_id,"source":p.EnsemblID[i],"target":p.Index,"is_pathway_edge":True,"highlight":1 if highlight[i] else 0},"classes":"pathway"})
-            # if highlight[i]:
-            #     stylesheet_detail.append({
-            #                 "selector":f"edge#{edge_id}",
-            #                 "style":{
-            #                     "lineColor":"blue",
-            #                     "width":4
-            #                     }
-            #                 })
-            #     pathways_stylesheets[p.Index]["style"]["background-color"]=multi_pathway_color
-            #     pathways_stylesheets[p.Index]["style"]["border-color"]="black"
-            #     pathways_stylesheets[p.Index]["style"]["border-width"]=2
     legend["pathway"]={}
     if not all_pathway:
         kept_pathways = set()
@@ -185,13 +175,13 @@ def add_path_ways(existing_elements,stylesheet_detail,updated_elements,all_pathw
                 kept_pathways.add(e["data"]["target"])
         pathways_edges = [e for e in pathways_edges if e["data"]["target"] in kept_pathways]
         pathways_nodes = {k:v for k,v in pathways_nodes.items() if k in kept_pathways}
-    
         legend["pathway"]["pathways linking multiple signatures"]={"shape":pathway_shape,"color":multi_pathway_color}
         pathways = pathways.loc[pathways.index.isin(kept_pathways)]
     else:
         legend["pathway"]["pathways"]={"shape":pathway_shape,"color":mono_pathway_color}
-
-    return existing_elements + list(pathways_nodes.values())  + list(protein_nodes.values())+ pathways_edges,stylesheet_detail + list(pathways_stylesheets.values()), pathways#+[{"selector":f"edge[highlight=1]","style":{"lineColor":"red"}}]
+        # In mono view, keep all pathways and their connections
+        # pathways data is already complete, no filtering needed
+    return existing_elements + list(pathways_nodes.values())  + list(protein_nodes.values())+ pathways_edges,stylesheet_detail + list(pathways_stylesheets.values()), pathways
 
 
 def get_genes_hull_points(existing_elements,pos,updated_elements):
@@ -420,7 +410,7 @@ def color_selected_node(stylesheet_detail,selected_genes):
         })
     return stylesheet_detail
 
-def display_detail_graph(selectedDiseases,selected_signatures,selected_genes,existing_elements,detail_pos_store,AR,selected_filter,comparison_filter,all_pathway=False,highlight_gene_ids=None):
+def display_detail_graph(selectedDiseases,selected_signatures,selected_genes,existing_elements,detail_pos_store,AR,selected_filter,comparison_filter,show_pathways=True,highlight_gene_ids=None):
     global last_green_genes
     updated_elements = Patch()
     legend_data = {}
@@ -429,6 +419,11 @@ def display_detail_graph(selectedDiseases,selected_signatures,selected_genes,exi
     mono_pathway_color = "gray"
     multi_pathway_color = "red"
     
+    # Determine if we are showing common pathways (red) or all (gray)
+    show_common_pathways = show_pathways  # In current logic, show_pathways means common pathways
+
+    # In mono-signature mode, pathways (triangles) should be gray; when multiple signatures, shared pathways are red with blue edges
+    is_mono_signature_mode = len(selected_signatures) <= 1
     stylesheet_detail = [{
         "selector":"node",
         "style":{
@@ -437,7 +432,7 @@ def display_detail_graph(selectedDiseases,selected_signatures,selected_genes,exi
             "label":"data(label)",
             "backgroundColor":"black",
             "zIndex":2
-            }
+        }
     },
     {
         "selector":"node.testFlash",
@@ -445,37 +440,36 @@ def display_detail_graph(selectedDiseases,selected_signatures,selected_genes,exi
             "borderColor":"yellow",
             "borderWidth":"4",
             "background-color":"black"
-            }
+        }
     },
     {
         "selector":"edge.testFlash",
         "style":{
             "lineStyle":"dotted",
-            }
-
-    }
-    ,{
+        }
+    },
+    {
         "selector":"node.pathway",
         "style":{
-            "backgroundColor":mono_pathway_color if all_pathway else multi_pathway_color,
-            "borderColor":mono_pathway_color if all_pathway else "black",
+            "backgroundColor": mono_pathway_color if is_mono_signature_mode else multi_pathway_color,
+            "borderColor": mono_pathway_color if is_mono_signature_mode else "black",
             "borderWidth":2,
         }
-    }
-    ,{
+    },
+    {
         "selector":"edge.pathway",
         "style":{
-            "lineColor":mono_pathway_color if all_pathway else "blue",
-            "width":1 if all_pathway else 4,
+            "lineColor": mono_pathway_color if is_mono_signature_mode else "blue",
+            "width": 1 if is_mono_signature_mode else 4,
         }
-    }
-    ,{
+    },
+    {
         "selector":"edge.pathway.tapped",
         "style":{
             "lineColor":"red", 
         }
     },
-    {"selector":".edge-hover","style":{"width":8,"line-color":"black","transition-property":"width, line-color","transition-duration":"0.2s"}},
+    {"selector": ".edge-hover", "style": {"width": 8, "line-color": "black", "transition-property": "width, line-color", "transition-duration": "0.2s"}},
     ]
     stylesheet_detail = color_selected_node(stylesheet_detail,selected_genes)
     color_by_diseases = True # TODO
@@ -540,7 +534,7 @@ def display_detail_graph(selectedDiseases,selected_signatures,selected_genes,exi
     # existing_elements= existing_elements +edges
     # for e in edges:
     #    updated_elements.append(e)
-    all_nodes_and_edges,stylesheet_detail,pathways = add_path_ways(all_nodes,stylesheet_detail,updated_elements,all_pathway,DataManager._instance,legend_data)
+    all_nodes_and_edges,stylesheet_detail,pathways = add_path_ways(all_nodes,stylesheet_detail,updated_elements,dm=DataManager._instance,legend=legend_data,show_pathways=show_pathways,selected_signatures=selected_signatures)
     pos,hull = euler_layout.euler_layout(data,all_nodes_and_edges,data.filter(["EnsemblID","id"]).groupby("EnsemblID").agg(lambda a: len(a))["id"].max())
     exportable_data = get_exportable_data(items, pathways)
 
@@ -608,6 +602,8 @@ def display_detail_graph(selectedDiseases,selected_signatures,selected_genes,exi
     multi_sign_gene_color = "limegreen"
     mono_sign_gene_color = "black"
     for n in all_nodes:
+        if "weight" not in n["data"]:
+            continue  # Skip nodes without weight (e.g., if pathways are hidden)
         if n["data"]["id"] not in selected_genes:
             stylesheet_detail.append({
                 "selector":"node#"+n["data"]["id"],
@@ -629,8 +625,8 @@ def display_detail_graph(selectedDiseases,selected_signatures,selected_genes,exi
                     "border-width":2
                 }
             })
-    legend_data["genes"]={"genes":mono_sign_gene_color}
-    if not all_pathway:
+    legend_data["genes"] = {"genes": mono_sign_gene_color, "genes in multiple signatures": multi_sign_gene_color}
+    if not show_pathways:
         legend_data["genes"]["genes in multiple signatures"]=multi_sign_gene_color
     # print( existing_elements,stylesheet_detail,{"name":"preset",'positions': {
     #         node['data']['id']: node['position']
@@ -643,6 +639,9 @@ def display_detail_graph(selectedDiseases,selected_signatures,selected_genes,exi
         "animate":False},existing_nodes,legend_data,exportable_data#dict([(i["data"]["id"],i) for i in existing_elements if "source" not in i["data"] ])
 
 def get_exportable_data(items, pathways):
+    if pathways is None:
+        # No pathways to export
+        return {}
     exportable_data = {"gene_groups":{},"pathways":{}}
     zones = {}
     for g in items.itertuples():

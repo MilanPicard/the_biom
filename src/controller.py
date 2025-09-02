@@ -24,6 +24,12 @@ import cProfile,pstats,io
 from dash.dependencies import ALL
 from detail_graph import get_multi_signature_genes, get_last_green_genes, update_node_highlight_styles, legend_highlight_stylesheet
 
+# Feature flag to enable/disable the toast for large pathway selection
+ENABLE_PATHWAY_TOAST = False
+
+# Configuration for pathway-signature relationship
+PATHWAY_SIGNATURE_COVERAGE_THRESHOLD = 0.5  # 50% of required signatures must be available
+
 class Controller(object):
     _instance = None
     def __new__(cls,dm):
@@ -43,66 +49,140 @@ class Controller(object):
         @callback(
                 Output('selected_genes_store','data'),
                 Output('pathway_to_highlight', 'data'),
+                Output('pathway_signature_toast_store', 'data'),
+                Output('pending_pathway_store', 'data'),
+                Output('previous_selection_store', 'data'),
+                Output('pathways_menu_select', 'value'),
+                Output('revert_in_progress_store', 'data'),
+                Output('block_ui_store', 'data'),
                 Input("genes_menu_select","value"),
                 Input({"type":"selected_gene_button","gene":ALL},"n_clicks"),
-                Input("detail_graph","selectedNodeData"),
                 Input("detail_graph","tapNodeData"),
+                Input("detail_graph","selectedNodeData"),
                 Input("filters_dropdown","value"),
                 Input("pathways_menu_select","value"),
                 Input({"type":"selected_pathway_button","pathway":ALL},"n_clicks"),
                 Input("mono_graph","selectedNodeData"),
                 Input("mono_graph","tapNodeData"),
                 Input({"type": "close_boxplot", "gene": ALL}, "n_clicks"),
+                Input('pending_pathway_store', 'data'),
+                Input('previous_selection_store', 'data'),
+                Input('revert_in_progress_store', 'data'),
+                Input('block_ui_store', 'data'),
+                Input('proceed_yes_store', 'data'),
                 State('selected_genes_store','data'),
+                State('pending_pathway_store', 'data'),
+                State('previous_selection_store', 'data'),
+                State('pathways_menu_select', 'value'),
+                State('revert_in_progress_store', 'data'),
+                State('block_ui_store', 'data'),
+                State('proceed_yes_store', 'data'),
                 prevent_initial_call=True
         )
-        def add_remove_gene(menu_select,button,fromGraph,multip_tap,selected_filter,menu_pathway,pathway_button,fromMonoGraph,monotap,close_clicks,current):
-            # Initialize current if None
-            if current is None:
-                current = {"selected": [], "from_pathways": {"ids": [], "genes": []}, "covered_signatures": []}
-            highlight_pathway_id = None
+        def add_remove_gene(menu_select,button,multip_tap,fromGraph,selected_filter,menu_pathway,pathway_button,fromMonoGraph,monotap,close_clicks,pending_pathway_input,previous_selection_input,revert_in_progress,block_ui,proceed_yes_pathway,current,pending_pathway_state,previous_selection_state,current_dropdown_value,revert_in_progress_state,block_ui_state,proceed_yes_state):
+            import copy
+            # Prevent interference from signature selection
+            if (ctx.triggered_id == "detail_graph" and 
+                "detail_graph.selectedNodeData" in ctx.triggered_prop_ids and 
+                fromGraph is not None and 
+                len(fromGraph) > 0):
+                # Check if this is triggered by signature selection (nodes with "_" in ID are signatures)
+                signature_nodes = [node for node in fromGraph if "_" in node.get("id", "")]
+                if len(signature_nodes) > 0:
+                    raise dash.exceptions.PreventUpdate()
             
+            if revert_in_progress or revert_in_progress_state:
+                return dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, False, False
+            if current is None:
+                current = {"selected": [], "from_pathways": {"ids": [], "genes": [], "signatures": []}, "covered_signatures": [], "pathway_signature_map": {}}
+            highlight_pathway_id = None
+            toast_data = {}
+            # Handle Yes button for large pathway ONLY if triggered by proceed_yes_store
+            if proceed_yes_pathway and ctx.triggered_id == "proceed_yes_store":
+                if proceed_yes_pathway not in current["from_pathways"]["ids"]:
+                    to_add = DataManager.get_instance().get_genes(selected_filter, pathway=proceed_yes_pathway)
+                    pathway_gene_ids = list(to_add.keys()) if isinstance(to_add, dict) else list(to_add)
+                    if pathway_gene_ids:
+                        # Get signatures associated with this pathway
+                        pathway_signatures = DataManager.get_instance().get_pathway_signatures(
+                            proceed_yes_pathway, selected_filter
+                        )
+                        
+                        gene_inter = DataManager.get_instance().get_genes_intersections([], [], [], pathway_gene_ids, selected_filter)[1]
+                        current["from_pathways"]["ids"].append(proceed_yes_pathway)
+                        current["from_pathways"]["genes"].append(to_add)
+                        if "signatures" not in current["from_pathways"]:
+                            current["from_pathways"]["signatures"] = []
+                        current["from_pathways"]["signatures"].append(pathway_signatures)
+                        
+                        # Update pathway signature map
+                        if "pathway_signature_map" not in current:
+                            current["pathway_signature_map"] = {}
+                        current["pathway_signature_map"][proceed_yes_pathway] = pathway_signatures
+                        
+                        if gene_inter is not None:
+                            current["covered_signatures"] = gene_inter["id"].explode().unique().tolist()
+                        else:
+                            current["covered_signatures"] = []
+                        highlight_pathway_id = proceed_yes_pathway
+                # Always reset proceed_yes_store to None after handling
+                return current, highlight_pathway_id, {}, None, dash.no_update, current_dropdown_value, False, False
+            if pending_pathway_input == 'REVERT' and previous_selection_input:
+                return (
+                    copy.deepcopy(previous_selection_input.get('selected_genes_store', {"selected": [], "from_pathways": {"ids": [], "genes": [], "signatures": []}, "covered_signatures": [], "pathway_signature_map": {}})),
+                    None,
+                    {},
+                    None,
+                    None,
+                    previous_selection_input.get('pathways_menu_select', 'None'),
+                    False,
+                    False
+                )
+            previous_state = {
+                'selected_genes_store': copy.deepcopy(current),
+                'pathways_menu_select': current_dropdown_value
+            }
             # Handle gene removal first
             if ctx.triggered and isinstance(ctx.triggered_id, dict):
                 if ctx.triggered_id["type"] == "close_boxplot":
-                    # Remove gene from selection when boxplot is closed
-                    gene_to_remove = ctx.triggered_id["gene"]
-                    if gene_to_remove in current["selected"]:
-                        current["selected"].remove(gene_to_remove)
-                        # If this was the last gene, clear covered signatures
-                        if len(current["selected"]) == 0:
-                            current["covered_signatures"] = []
-                    return current, None
+                    # Check if a close boxplot button was actually clicked
+                    if close_clicks and any(click is not None for click in close_clicks):
+                        gene_to_remove = ctx.triggered_id["gene"]
+                        if gene_to_remove in current["selected"]:
+                            current["selected"].remove(gene_to_remove)
+                            if len(current["selected"]) == 0:
+                                current["covered_signatures"] = []
+                        return current, None, {}, None, previous_state, current_dropdown_value, False, False
+                    else:
+                        raise dash.exceptions.PreventUpdate()
                 elif ctx.triggered_id["type"] == "selected_gene_button":
-                    # Remove gene from selection when menu button is clicked
                     if ctx.triggered_id["gene"] in current["selected"]:
                         current["selected"].remove(ctx.triggered_id["gene"])
-                        # If this was the last gene, clear covered signatures
                         if len(current["selected"]) == 0:
                             current["covered_signatures"] = []
-                    return current, None
+                    return current, None, {}, None, previous_state, current_dropdown_value, False, False
                 elif ctx.triggered_id["type"] == "selected_pathway_button":
-                    # Remove pathway and its genes
                     try:
                         index = current["from_pathways"]["ids"].index(ctx.triggered_id["pathway"])
                         current["from_pathways"]["ids"].remove(ctx.triggered_id["pathway"])
                         del current["from_pathways"]["genes"][index]
-                        # If no genes and no pathways left, clear covered_signatures
+                        if "signatures" in current["from_pathways"] and len(current["from_pathways"]["signatures"]) > index:
+                            del current["from_pathways"]["signatures"][index]
+                        if "pathway_signature_map" in current and ctx.triggered_id["pathway"] in current["pathway_signature_map"]:
+                            del current["pathway_signature_map"][ctx.triggered_id["pathway"]]
                         if len(current["selected"]) == 0 and len(current["from_pathways"]["ids"]) == 0:
                             current["covered_signatures"] = []
                     except ValueError:
                         pass
-                    return current, None
-
-            # Handle filter change
+                    return current, None, {}, None, previous_state, current_dropdown_value, False, False
             if ctx.triggered_id == "filters_dropdown":
                 current["selected"] = []
                 current["from_pathways"]["ids"] = []
                 current["from_pathways"]["genes"] = []
+                current["from_pathways"]["signatures"] = []
                 current["covered_signatures"] = []
-                return current, None
-
-            # Handle gene addition
+                current["pathway_signature_map"] = {}
+                return current, None, {}, None, previous_state, current_dropdown_value, False, False
             added = []
             match ctx.triggered_id:
                 case "genes_menu_select":
@@ -122,7 +202,8 @@ class Controller(object):
                             added = [gene["id"]]
                         else:
                             raise dash.exceptions.PreventUpdate()
-                    elif fromGraph is not None and len(fromGraph) > 0:
+                    elif "detail_graph.selectedNodeData" in ctx.triggered_prop_ids and fromGraph is not None and len(fromGraph) > 0:
+                        # Handle gene selection from detail graph (signature selection is already prevented above)
                         added_any = False
                         for gene in fromGraph:
                             if (not "is_pathways" in gene or not gene["is_pathways"]) and gene["id"].startswith("ENSG") and gene["id"] not in current["selected"]:
@@ -142,33 +223,68 @@ class Controller(object):
                     else:
                         raise dash.exceptions.PreventUpdate()
                 case "pathways_menu_select":
-                    if menu_pathway is not None and menu_pathway != "None" and menu_pathway not in current["from_pathways"]["ids"]:
-                        current["from_pathways"]["ids"].append(menu_pathway)
-                        to_add = DataManager.get_instance().get_genes(selected_filter, pathway=menu_pathway)
-                        current["from_pathways"]["genes"].append(to_add)
-                        added = to_add
-                        # --- Update covered_signatures for pathway selection ---
-                        pathway_gene_ids = list(to_add.keys()) if isinstance(to_add, dict) else list(to_add)
-                        if pathway_gene_ids:
-                            gene_inter = DataManager.get_instance().get_genes_intersections([], [], [], pathway_gene_ids, selected_filter)[1]
-                            if gene_inter is not None:
-                                current["covered_signatures"] = gene_inter["id"].explode().unique().tolist()
-                            else:
+                    if menu_pathway is not None and menu_pathway != "None":
+                        if menu_pathway in current["from_pathways"]["ids"]:
+                            index = current["from_pathways"]["ids"].index(menu_pathway)
+                            current["from_pathways"]["ids"].remove(menu_pathway)
+                            del current["from_pathways"]["genes"][index]
+                            if len(current["selected"]) == 0 and len(current["from_pathways"]["ids"]) == 0:
                                 current["covered_signatures"] = []
-                        # --- END ---
-                        highlight_pathway_id = menu_pathway
+                            return current, None, {}, None, previous_state, current_dropdown_value, False, False
+                        else:
+                            to_add = DataManager.get_instance().get_genes(selected_filter, pathway=menu_pathway)
+                            pathway_gene_ids = list(to_add.keys()) if isinstance(to_add, dict) else list(to_add)
+                            if pathway_gene_ids:
+                                gene_inter = DataManager.get_instance().get_genes_intersections([], [], [], pathway_gene_ids, selected_filter)[1]
+                                n_signatures = len(gene_inter["id"].explode().unique().tolist()) if gene_inter is not None else 0
+                                if ENABLE_PATHWAY_TOAST and n_signatures >= 5:
+                                    toast_data = {
+                                        "is_open": True,
+                                        "message": [
+                                            "This action will take about 1 minute, do you want to proceed?",
+                                            html.Div([
+                                                dbc.Button("Yes", id="proceed_yes_btn", color="primary", style={"marginRight": "1rem", "minWidth": "80px"}),
+                                                dbc.Button("No", id="proceed_no_btn", color="secondary", style={"minWidth": "80px"})
+                                            ], style={"marginTop": "1.2rem", "display": "flex", "justifyContent": "center", "gap": "0.5rem"})
+                                        ]
+                                    }
+                                    return (
+                                        dash.no_update, dash.no_update, toast_data, menu_pathway, previous_state, current_dropdown_value, False, False
+                                    )
+                                else:
+                                    # Proceed as if user clicked Yes (add pathway immediately)
+                                    if menu_pathway not in current["from_pathways"]["ids"]:
+                                        # Get signatures associated with this pathway
+                                        pathway_signatures = DataManager.get_instance().get_pathway_signatures(
+                                            menu_pathway, selected_filter
+                                        )
+                                        
+                                        current["from_pathways"]["ids"].append(menu_pathway)
+                                        current["from_pathways"]["genes"].append(to_add)
+                                        if "signatures" not in current["from_pathways"]:
+                                            current["from_pathways"]["signatures"] = []
+                                        current["from_pathways"]["signatures"].append(pathway_signatures)
+                                        
+                                        # Update pathway signature map
+                                        if "pathway_signature_map" not in current:
+                                            current["pathway_signature_map"] = {}
+                                        current["pathway_signature_map"][menu_pathway] = pathway_signatures
+                                        
+                                        if gene_inter is not None:
+                                            current["covered_signatures"] = gene_inter["id"].explode().unique().tolist()
+                                        else:
+                                            current["covered_signatures"] = []
+                                        highlight_pathway_id = menu_pathway
+                                    return current, highlight_pathway_id, {}, None, previous_state, current_dropdown_value, False, False
                     else:
                         raise dash.exceptions.PreventUpdate()
-
-            # Update covered signatures only for menu selection
             if ctx.triggered_id == "genes_menu_select" and len(added) > 0:
                 gene_inter = DataManager.get_instance().get_genes_intersections([], [], [], added, selected_filter)[1]
                 if gene_inter is not None:
                     current["covered_signatures"] = gene_inter["id"].explode().unique().tolist()
                 else:
                     current["covered_signatures"] = []
-
-            return current, highlight_pathway_id
+            return current, highlight_pathway_id, toast_data, None, previous_state, current_dropdown_value, False, False
         @callback(
             Output("selected_genes_div","children"),
             Input("selected_genes_store","data"),
@@ -270,6 +386,7 @@ class Controller(object):
                 Input('selected_genes_store','data'),
                 Input("fake_graph_size","data"),
                 Input("filters_dropdown","value"),
+                Input("show_pathways_store", "data"),
                 State('detail_graph','elements'),
                 State("detail_graph_pos","data"),            
                 State('detail_graph','stylesheet'),
@@ -283,7 +400,7 @@ class Controller(object):
                 )
         def display_detail_graph(
             overview_nodes,
-            menu_genes,fake_graph_size,selected_filter,existing_elements,detail_pos_store,current_stylesheets,legend_active_data):
+            menu_genes,fake_graph_size,selected_filter,show_pathways,existing_elements,detail_pos_store,current_stylesheets,legend_active_data):
             selected = [n["id"] for n in overview_nodes] if overview_nodes is not None else []
             if (ctx.triggered_id == "selected_genes_store"
                 and menu_genes is not None
@@ -310,7 +427,7 @@ class Controller(object):
                     if item_dict.get('category') == 'genes' and item_dict.get('name') == 'genes in multiple signatures':
                         highlight_gene_ids = get_last_green_genes()
             if len(diseases)!=0 or len(signatures)!=0:
-                r = detail_graph.display_detail_graph([],signatures,genes_set,existing_elements,detail_pos_store if detail_pos_store is not None else dict(),1 if fake_graph_size is None or "AR" not in fake_graph_size else fake_graph_size["AR"],selected_filter,comparisons,highlight_gene_ids=highlight_gene_ids)
+                r = detail_graph.display_detail_graph([],signatures,genes_set,existing_elements,detail_pos_store if detail_pos_store is not None else dict(),1 if fake_graph_size is None or "AR" not in fake_graph_size else fake_graph_size["AR"],selected_filter,comparisons,show_pathways=show_pathways,highlight_gene_ids=highlight_gene_ids)
                 return r
             else:
                 return existing_elements,[],{"name":"preset"},{},dash.no_update,dash.no_update
@@ -373,7 +490,7 @@ class Controller(object):
             for p in menu_genes["from_pathways"]["genes"]:
                 genes_set.update(p)
             genes_set = menu_genes["selected"] + sorted(list(genes_set.difference(menu_genes["selected"])))
-            r = detail_graph.display_detail_graph([d],[s],list(genes_set),existing_elements,detail_pos_store if detail_pos_store is not None else dict(),1 if fake_graph_size is None or "AR" not in fake_graph_size else fake_graph_size["AR"],selected_filter,[c],all_pathway=True)
+            r = detail_graph.display_detail_graph([d],[s],list(genes_set),existing_elements,detail_pos_store if detail_pos_store is not None else dict(),1 if fake_graph_size is None or "AR" not in fake_graph_size else fake_graph_size["AR"],selected_filter,[c],show_pathways=True)
             return *r,s
 
         # @callback(Output("data_gene_detail_selected","value"),
@@ -401,6 +518,8 @@ class Controller(object):
             menu_selected, selected_boxcategories,
             selected_filter, close_clicks, overview_selected_nodes,
             overview_elements, overview_stylesheets):
+            ctx = dash.callback_context
+            
             # Extract selected cancer(s) from overview graph selection
             selected_cancers = []
             if overview_selected_nodes:
@@ -408,26 +527,16 @@ class Controller(object):
                     if "Cancer" in node:
                         selected_cancers.append(node["Cancer"])
             selected_cancers = list(set(selected_cancers))
-            
-            #print("\n=== Boxplot Update Debug ===")
-            #print(f"Triggered by: {dash.callback_context.triggered_id}")
-            #print(f"Menu selected genes: {menu_selected['selected'] if menu_selected and 'selected' in menu_selected else []}")
-            #print(f"Selected box categories: {selected_boxcategories}")
-            #print(f"Selected filter: {selected_filter}")
-            
+                    
             # Initialize box_categories at the start
             box_categories = []
             
             # Handle close button clicks
-            ctx = dash.callback_context
             if ctx.triggered and "close_boxplot" in str(ctx.triggered_id):
                 gene_to_remove = ctx.triggered_id["gene"]
-                #print(f"Removing boxplot for gene: {gene_to_remove}")
                 if menu_selected is not None and "selected" in menu_selected:
                     items = [g for g in menu_selected["selected"] if g != gene_to_remove]
-                    #print(f"Remaining genes after removal: {items}")
                     if not items:
-                        #print("No genes left after removal")
                         return [], overview_stylesheets, {"categories":[],"genes":[]}, {"stats":[]}
                 else:
                     return [], overview_stylesheets, {"categories":[],"genes":[]}, {"stats":[]}
@@ -436,15 +545,12 @@ class Controller(object):
             items = []
             if menu_selected is not None and "selected" in menu_selected:
                 items = menu_selected["selected"].copy()
-                #print(f"Initial items from menu selection: {items}")
                 if "from_pathways" in menu_selected and "genes" in menu_selected["from_pathways"]:
                     genes_set = set()
                     for p in menu_selected["from_pathways"]["genes"]:
                         genes_set.update(p)
                     pathway_genes = sorted(list(genes_set.difference(menu_selected["selected"])))
                     items.extend(pathway_genes)
-                    #print(f"Added pathway genes: {pathway_genes}")
-                    #print(f"Total items after adding pathway genes: {items}")
             
             stylesheets = overview_stylesheets if overview_stylesheets is not None else ov.get_default_stylesheet(DataManager.get_instance())
             stylesheets = [s for s in stylesheets if not(s["selector"].startswith("edge#"))]
@@ -452,25 +558,19 @@ class Controller(object):
             if len(items) > 0:
                 gene_items = [item for item in items if isinstance(item, str) and item.startswith("ENSG")]
                 signature_items = [item for item in items if isinstance(item, str) and "_" in item]
-                #print(f"Filtered gene items: {gene_items}")
-                #print(f"Filtered signature items: {signature_items}")
                 
                 diseases_detail, comparisons, signatures, genes_set = get_detail_subset(
                     None, [], signature_items, menu_selected, selected_filter
                 )
-                #print(f"Detail subset - Diseases: {diseases_detail}, Comparisons: {comparisons}, Signatures: {signatures}")
                 
                 if gene_items:
                     gene_diseases = DataManager.get_instance().get_diseases_from_genes(gene_items)
                     diseases_detail.extend(gene_diseases)
                     diseases_detail = list(set(diseases_detail))
-                    #print(f"Added gene diseases: {gene_diseases}")
-                    #print(f"Final diseases list: {diseases_detail}")
                 
                 box_categories_tohighlight = dict({i: set() for i in items})
                 gene_inter = DataManager.get_instance().get_genes_intersections(diseases_detail,comparisons,signatures,genes_set,selected_filter)[1]
                 if gene_inter is None:
-                    #print("No gene intersections found")
                     return [], stylesheets, {"categories":[],"genes":[]}, {"stats":[]}
 
                 diseases = []
@@ -482,13 +582,10 @@ class Controller(object):
                                     disease = e.split("_")[0]
                                     if disease not in diseases:
                                         diseases.append(disease)
-                    #print(f"Diseases from overview elements: {diseases}")
 
                 # Get color maps for diseases and comparisons
                 disease_cmap = DataManager.get_instance().get_disease_cmap()
                 comparison_cmap = DataManager.get_instance().get_comparison_cmap()
-                #print(f"Available disease colors: {list(disease_cmap.keys())}")
-                #print(f"Available comparison colors: {list(comparison_cmap.keys())}")
 
                 # Create a div for each gene's boxplot
                 boxplot_divs = []
@@ -496,7 +593,6 @@ class Controller(object):
                     if not isinstance(gene, str) or not gene.startswith("ENSG"):
                         continue
                         
-                    #print(f"\nProcessing boxplot for gene: {gene}")
                     selected_patient_and_genes = DataManager.get_instance().get_activations(
                         [gene],
                         selected_cancers if selected_cancers else diseases if len(selected_boxcategories["diseases"])==0 else selected_boxcategories["diseases"],
@@ -504,11 +600,9 @@ class Controller(object):
                     ).sort_values(["box_category"])
                     
                     if selected_patient_and_genes.empty:
-                        #print(f"No data found for gene {gene}")
                         continue
                         
                     current_box_categories = sorted(pd.unique(selected_patient_and_genes["box_category"]).tolist())
-                    #print(f"Box categories for {gene}: {current_box_categories}")
                     box_categories = list(set(box_categories + current_box_categories))
                     symbol = " ".join(DataManager.get_instance().get_symbol(gene))
                     selected_patient_and_genes = selected_patient_and_genes.rename(columns={gene: symbol})
@@ -540,7 +634,6 @@ class Controller(object):
                             fillcolor=rgba_color,
                             line=dict(color=line_color)
                         ))
-                        #print(f"Added box for {category} with color {color}")
                     
                     fig.update_layout(
                         title=symbol,
@@ -564,13 +657,9 @@ class Controller(object):
                     ], style={"width": "100%", "marginBottom": "10px"})
                     
                     boxplot_divs.append(boxplot_div)
-                    #print(f"Created boxplot div for {gene}")
                 
-                #print(f"\nFinal boxplot count: {len(boxplot_divs)}")
-                #print(f"Final box categories: {box_categories}")
                 return boxplot_divs, stylesheets, {"categories": box_categories, "genes": items}, {"stats": []}
             
-            #print("No items to display boxplots for")
             return [], stylesheets, {"categories":[],"genes":[]}, {"stats":[]}
 
         @callback(
@@ -951,17 +1040,24 @@ class Controller(object):
             function export_images(n_clicks,elem){
                 switch(elem){
                     case "overview":
-                        download_canvas_image(document.querySelector("#overview_graph canvas:nth-of-type(3)"),"overview.png");
+                        download_canvas_image(document.querySelector("#overview_graph canvas:nth-of-type(3)"),"TheBiom_overview.png");
                         break;
                     case "mono_graph":
-                        download_canvas_image(document.querySelector("#mono_graph canvas:nth-of-type(3)"),"mono_signature.png",document.getElementById("mono_canvas"));
+                        download_canvas_image(document.querySelector("#mono_graph canvas:nth-of-type(3)"),"TheBiom_mono_signature.png",document.getElementById("mono_canvas"));
                         break;
                     case "detail_graph":
-                        download_canvas_image(document.querySelector("#detail_graph canvas:nth-of-type(3)"),"multi_signature.png",document.getElementById("multi_canvas"));
+                        download_canvas_image(document.querySelector("#detail_graph canvas:nth-of-type(3)"),"TheBiom_multi_signature.png",document.getElementById("multi_canvas"));
                         break;
                     case "box":
-                        const plot = document.querySelector("#activation_boxplot div.js-plotly-plot");
-                        download_plotly_image(plot,"boxplot.png");
+                        const boxplotContainer = document.querySelector("#box_plots_container");
+                        if (boxplotContainer && boxplotContainer.children.length > 0) {
+                            // Get all plotly plots in the container
+                            const plots = boxplotContainer.querySelectorAll(".js-plotly-plot");
+                            if (plots.length > 0) {
+                                // Export all boxplots as a combined image
+                                download_all_boxplots(plots, "TheBiom_expression_boxplots");
+                            }
+                        }
                         break;
                 }
                 return dash_clientside.no_update;
@@ -1960,7 +2056,7 @@ class Controller(object):
         def remove_all_boxplots(n_clicks, current):
             if n_clicks:
                 # Clear all selected genes and pathway genes, as if all boxplots were closed
-                return {"selected": [], "from_pathways": {"ids": [], "genes": []}, "covered_signatures": []}
+                return {"selected": [], "from_pathways": {"ids": [], "genes": [], "signatures": []}, "covered_signatures": [], "pathway_signature_map": {}}
             raise dash.exceptions.PreventUpdate()
 
         @callback(
@@ -2010,3 +2106,91 @@ class Controller(object):
                     )
                 ]
             return None
+
+        # @callback(
+        #     Output('pathway_signature_warning_store', 'data'),
+        #     Input('overview_graph', 'selectedNodeData'),
+        #     State('selected_genes_store', 'data'),
+        #     State('filters_dropdown', 'value'),
+        #     prevent_initial_call=True
+        # )
+        # def validate_pathway_signature_consistency(selected_signatures, current_store, selected_filter):
+        #     """
+        #     When signatures are manually deselected, check if pathways still have sufficient signature coverage.
+        #     Instead of removing pathways automatically, provide warnings to the user.
+        #     """
+        #     if not current_store or not current_store.get('pathway_signature_map'):
+        #         return dash.no_update
+            
+        #     # Extract signature IDs from the node data
+        #     current_signatures = set()
+        #     if selected_signatures:
+        #         for node in selected_signatures:
+        #             if isinstance(node, dict) and 'id' in node:
+        #                 current_signatures.add(node['id'])
+            
+        #     pathway_map = current_store['pathway_signature_map']
+        #     pathways_with_insufficient_coverage = []
+            
+        #     # Check each pathway's signature requirements
+        #     for pathway_id, required_signatures in pathway_map.items():
+        #         required_set = set(required_signatures)
+        #         available_signatures = current_signatures.intersection(required_set)
+                
+        #         # If less than threshold of required signatures are available, flag the pathway
+        #         coverage_ratio = len(available_signatures) / len(required_set) if len(required_set) > 0 else 0
+        #         if coverage_ratio < PATHWAY_SIGNATURE_COVERAGE_THRESHOLD:
+        #             pathways_with_insufficient_coverage.append({
+        #             'pathway_id': pathway_id,
+        #             'coverage_ratio': coverage_ratio,
+        #             'available_signatures': len(available_signatures),
+        #             'required_signatures': len(required_set)
+        #             })
+            
+        #     # Return warning data if there are pathways with insufficient coverage
+        #     if pathways_with_insufficient_coverage:
+        #         warning_data = {
+        #             'show_warning': True,
+        #             'pathways': pathways_with_insufficient_coverage,
+        #             'message': f"Some pathways may have insufficient signature coverage after recent signature deselection."
+        #         }
+        #         return warning_data
+            
+        #     return {'show_warning': False}
+        
+
+        
+        # @callback(
+        #     Output('pathway_signature_warning_alert', 'children'),
+        #     Output('pathway_signature_warning_alert', 'is_open'),
+        #     Input('pathway_signature_warning_store', 'data'),
+        #     prevent_initial_call=True
+        # )
+        # def display_pathway_signature_warning(warning_data):
+        #     """
+        #     Display a warning alert when pathways have insufficient signature coverage.
+        #     """
+        #     if not warning_data or not warning_data.get('show_warning'):
+        #         return [], False
+            
+        #     pathways = warning_data.get('pathways', [])
+        #     if not pathways:
+        #         return [], False
+            
+        #     # Create warning message
+        #     pathway_names = []
+        #     for pathway_info in pathways:
+        #         pathway_id = pathway_info['pathway_id']
+        #         coverage_pct = pathway_info['coverage_ratio'] * 100
+        #         pathway_names.append(f"{pathway_id} ({coverage_pct:.1f}% coverage)")
+            
+        #     warning_message = f"Warning: The following pathways may have insufficient signature coverage: {', '.join(pathway_names)}. Consider reselecting the required signatures or removing these pathways manually."
+            
+        #     alert = dbc.Alert([
+        #         html.H6("Pathway Signature Coverage Warning", className="alert-heading"),
+        #         html.P(warning_message),
+        #         html.Hr(),
+        #         html.P("You can manually remove pathways from the Pathways section if needed.", className="mb-0")
+        #     ], color="warning", dismissable=True)
+            
+        #     return alert, True

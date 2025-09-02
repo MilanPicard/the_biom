@@ -59,7 +59,7 @@ def menu(diseases,comparisons,diseases_cmap,comparisons_cmap,genes,filters,pathw
                 tab_title_with_help("Genes", help_text="Select and explore by genes"),
                 dcc.Dropdown(options= [{"label":"None","value":"None"}]+[{"label":f"{' '.join(j['GeneSymbolID'])}","title" : f"{j['counts']} signatures","value":i} for i,j in genes.items()],value="None",id="genes_menu_select"),
                 html.Div(id="selected_genes_div",style={"minHeight":"2em","borderStyle":"ridge"}),
-                dcc.Store(id="selected_genes_store",data={"selected":[],"from_pathways":{"ids":[],"genes":[]}})
+                dcc.Store(id="selected_genes_store",data={"selected":[],"from_pathways":{"ids":[],"genes":[],"signatures":[]},"covered_signatures":[],"pathway_signature_map":{}})
             ], title="Genes", item_id="gene_accordion"),
             dbc.AccordionItem([
                 tab_title_with_help("Pathways", help_text="Select and explore by biological pathways"),
@@ -68,9 +68,9 @@ def menu(diseases,comparisons,diseases_cmap,comparisons_cmap,genes,filters,pathw
             ], title="Pathways", item_id="pathway_accordion"),
             dbc.AccordionItem([
                 tab_title_with_help("Exports", help_text="Exports figures from the main page."),
-                dcc.Dropdown(options= [{"label":"Overview","value":"overview"} ,{"label":"mono","value":"mono_graph"} ,{"label":"multi","value":"detail_graph"},{"label":"box","value":"box"}  ],value="None",id="exportImage",optionHeight=70),
+                dcc.Dropdown(options= [{"label":"Overview","value":"overview"} ,{"label":"mono","value":"mono_graph"} ,{"label":"multi","value":"detail_graph"},{"label":"Boxplot","value":"box"}  ],value="None",id="exportImage",optionHeight=70),
                 html.Button("Export Image",id="export_image_btn"),
-                html.Button("Export Json",id="export_json_btn")
+                # html.Button("Export Json",id="export_json_btn")
             ], title="Exports", item_id="exports_accordion")
         ],
         start_collapsed=False,
@@ -80,6 +80,7 @@ def menu(diseases,comparisons,diseases_cmap,comparisons_cmap,genes,filters,pathw
         ),
         dcc.Store(id="selected_genes"),
         dcc.Store(id="selected_signatures",data={}),
+        dcc.Store(id="pathway_signature_warning_store",data={"show_warning": False}),
     ]
 def diseases_buttons(diseases,diseases_cmap):
     colors_str = dict([(d,f"rgba({','.join([str(i*255) for i in diseases_cmap[d][:3]])},{diseases_cmap[d][3]})") for d in diseases])
