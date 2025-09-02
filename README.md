@@ -1,5 +1,4 @@
 # THe Biom
-new version
 Welcome to the development project repository of **THe Biom** (**T**CGA **H**EFS **Biom**arkers).
 
 ## Project Description
@@ -9,45 +8,7 @@ Welcome to the development project repository of **THe Biom** (**T**CGA **H**EFS
 ## Prerequisites
 Before you begin, ensure you have the following installed on your system:
 - [Git](https://git-scm.com/downloads/)
-- Python 3.10 (This project requires this specific version. See instructions below if you need to install it.)
-
-### How to Install Python 3.10
-It's common to have multiple versions of Python installed on one machine. These instructions will help you install Python 3.10 without affecting your existing installations.
-
-**On Windows:**
-
-1.  **Download the installer:** Go to the [official Python 3.10.11 download page](https://www.python.org/downloads/release/python-31011/) and download the "Windows installer (64-bit)".
-2.  **Run the installer:**
-    *   Enable the checkbox for **"Add python.exe to PATH"**.
-    *   Choose **"Install Now"**.
-3.  **Verify the installation:** The `py` launcher, which is included, lets you use multiple versions. You can open a new Command Prompt and use `py -3.10` to specifically run Python 3.10. Our instructions below use this command.
-
-**On macOS and Linux:**
-
-The recommended way to manage multiple Python versions is with `pyenv`.
-
-1.  **Install `pyenv`:**
-    *   **For macOS** (using [Homebrew](https://brew.sh/)):
-        ```bash
-        brew update
-        brew install pyenv
-        ```
-    *   **For Linux** (using the automatic installer):
-        ```bash
-        curl https://pyenv.run | bash
-        ```
-        After installation, you must add a few lines to your shell's startup file (e.g., `~/.bashrc`, `~/.zshrc`). The installer will provide the exact lines to add.
-
-2.  **Install Python 3.10.11:**
-    ```bash
-    pyenv install 3.10.11
-    ```
-
-3.  **Set the Python version for this project:** Navigate into the cloned `the_biom` directory and run:
-    ```bash
-    pyenv local 3.10.11
-    ```
-    This creates a `.python-version` file, and `pyenv` will now automatically use Python 3.10 in this directory.
+- Python 3.10 (This project requires this specific version. See instructions at the end of the document if you need to install it.)
 
 ## Installation and Running the App
 
@@ -123,3 +84,41 @@ Once the application is running, open your web browser and navigate to the addre
 - Detailed gene expression and pathway enrichment views
 - Export figures and data for publication or further analysis
 - Download main datasets directly from the app
+
+### How to Install Python 3.10
+It's common to have multiple versions of Python installed on one machine. These instructions will help you install Python 3.10 without affecting your existing installations.
+
+**On Windows:**
+
+1.  **Download the installer:** Go to the [official Python 3.10.11 download page](https://www.python.org/downloads/release/python-31011/) and download the "Windows installer (64-bit)".
+2.  **Run the installer:**
+    *   Enable the checkbox for **"Add python.exe to PATH"**.
+    *   Choose **"Install Now"**.
+3.  **Verify the installation:** The `py` launcher, which is included, lets you use multiple versions. You can open a new Command Prompt and use `py -3.10` to specifically run Python 3.10. Our instructions below use this command.
+
+**On macOS and Linux:**
+
+The recommended way to manage multiple Python versions is with `pyenv`.
+
+1.  **Install `pyenv`:**
+    *   **For macOS** (using [Homebrew](https://brew.sh/)):
+        ```bash
+        brew update
+        brew install pyenv
+        ```
+    *   **For Linux** (using the automatic installer):
+        ```bash
+        curl https://pyenv.run | bash
+        ```
+        After installation, you must add a few lines to your shell's startup file (e.g., `~/.bashrc`, `~/.zshrc`). The installer will provide the exact lines to add.
+
+2.  **Install Python 3.10.11:**
+    ```bash
+    pyenv install 3.10.11
+    ```
+
+3.  **Set the Python version for this project:** Navigate into the cloned `the_biom` directory and run:
+    ```bash
+    pyenv local 3.10.11
+    ```
+    This creates a `.python-version` file, and `pyenv` will now automatically use Python 3.10 in this directory.
