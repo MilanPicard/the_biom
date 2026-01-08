@@ -1,67 +1,87 @@
-.visible_plot > .js-plotly-plot {
+.visible_plot>.js-plotly-plot {
     visibility: visible;
 }
-.hidden_plot > .js-plotly-plot {
+
+.hidden_plot>.js-plotly-plot {
     visibility: hidden;
 }
-#title{
+
+#title {
     text-align: center;
 }
-.overview{
-    width:100%;
+
+.overview {
+    width: 100%;
     /* ,"height": '400px'} */
 }
-.detail_graph{
-    width:100%;
+
+.detail_graph {
+    width: 100%;
     pointer-events: auto;
 }
-.highlight_edge{
-    line-color:"red";
+
+.highlight_edge {
+    line-color: "red";
 }
 
-#overview_col > * ,#detail_col > * {
-    cursor:auto
+#overview_col>*,
+#detail_col>* {
+    cursor: auto
 }
-#main_container > div:nth-child(2){
+
+#main_container>div:nth-child(2) {
     flex-grow: 1;
     flex-shrink: 1;
     min-height: 0;
 }
-#_pages_content{
+
+#_pages_content {
     height: 100%;
     overflow-y: auto;
 }
 
-#_pages_content > div {
+#_pages_content>div {
     min-height: 100%;
 }
 
-#overview_col span .dcc-tooltip-bounding-box{
-    z-index:0;
+#overview_col span .dcc-tooltip-bounding-box {
+    z-index: 0;
     pointer-events: none;
-} 
-#detail_col span .dcc-tooltip-bounding-box{
-    z-index:0;
+}
+
+#detail_col span .dcc-tooltip-bounding-box {
+    z-index: 0;
     pointer-events: none;
-} 
-#detail_col span .dcc-tooltip-bounding-box > span,#detail_col span .dcc-tooltip-bounding-box > span *{
-    z-index:4;
+}
+
+#detail_col span .dcc-tooltip-bounding-box>span,
+#detail_col span .dcc-tooltip-bounding-box>span * {
+    z-index: 4;
     pointer-events: auto;
 }
-#overview_col span .dcc-tooltip-bounding-box > span,#overview_col span .dcc-tooltip-bounding-box > span *{
-    z-index:4;
+
+#overview_col span .dcc-tooltip-bounding-box>span,
+#overview_col span .dcc-tooltip-bounding-box>span * {
+    z-index: 4;
     pointer-events: auto;
 }
-#detail_graph_tooltip ,#mono_graph_tooltip ,#overview_graph_tooltip{
+
+#detail_graph_tooltip,
+#mono_graph_tooltip,
+#overview_graph_tooltip {
     opacity: 0;
     /* Remove animation for instant appearance */
     /* animation: none !important; */
 }
-#detail_graph_tooltip.pouet ,#mono_graph_tooltip.pouet ,#overview_graph_tooltip.pouet{
+
+#detail_graph_tooltip.pouet,
+#mono_graph_tooltip.pouet,
+#overview_graph_tooltip.pouet {
     opacity: 1;
     /* Remove animation for instant appearance */
     /* animation: none !important; */
 }
+
 /* Removed fade-in animation */
 /* @keyframes appear {
     from {
@@ -72,42 +92,52 @@
     }
 } */
 #detail_graph_tooltip img {
-    max-height:40vh;
-    max-width:40vh;
+    max-height: 40vh;
+    max-width: 40vh;
 }
-#detail_graph_tooltip p,#mono_graph_tooltip p {
+
+#detail_graph_tooltip p,
+#mono_graph_tooltip p {
     text-wrap: pretty;
 }
-#detail_graph_tooltip,#mono_graph_tooltip, #overview_graph_tooltip{
-    font-size:smaller;
+
+#detail_graph_tooltip,
+#mono_graph_tooltip,
+#overview_graph_tooltip {
+    font-size: smaller;
     max-width: 250px;
     max-height: 200px;
     overflow: auto;
 }
-#activation_boxplot g.boxlayer path.box.nothighlight{
-stroke-dasharray: "5,5"
+
+#activation_boxplot g.boxlayer path.box.nothighlight {
+    stroke-dasharray: "5,5"
 }
 
-#activation_boxplot svg.main-svg g.statg path{
+#activation_boxplot svg.main-svg g.statg path {
     stroke-width: 3px;
     stroke: black;
     fill: none;
 }
-#detail_tabs-parent{
+
+#detail_tabs-parent {
     width: 100%;
 }
-.detail_tabs{
+
+.detail_tabs {
     display: flex;
     flex-direction: row;
     border-radius: 8px 8px 0 0;
     overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
     background: #f8fafd;
     border-bottom: 2px solid #e3e8ee;
     margin-bottom: 0;
     padding: 0;
 }
-.detail_tabs > div, .detail_tabs .nav-item {
+
+.detail_tabs>div,
+.detail_tabs .nav-item {
     flex: 1 1 0;
     text-align: center;
     font-weight: 500;
@@ -119,21 +149,25 @@ stroke-dasharray: "5,5"
     margin: 0;
     padding: 0.7rem 0.5rem 0.6rem 0.5rem;
     cursor: pointer;
-    transition: background 0.18s, color 0.18s, box-shadow 0.18s, border-bottom 0.25s cubic-bezier(0.4,0,0.2,1), font-size 0.18s, font-weight 0.18s;
+    transition: background 0.18s, color 0.18s, box-shadow 0.18s, border-bottom 0.25s cubic-bezier(0.4, 0, 0.2, 1), font-size 0.18s, font-weight 0.18s;
     box-shadow: none;
     position: relative;
     z-index: 1;
 }
-.detail_tabs .nav-item.active, .detail_tabs .nav-link.active {
+
+.detail_tabs .nav-item.active,
+.detail_tabs .nav-link.active {
     background: #fff;
     color: #0056b3;
     border-bottom: 3px solid #007bff;
     font-weight: 700;
     font-size: 1.13rem;
     z-index: 2;
-    box-shadow: 0 2px 8px rgba(0,123,255,0.04);
+    box-shadow: 0 2px 8px rgba(0, 123, 255, 0.04);
 }
-.detail_tabs .nav-item.active::after, .detail_tabs .nav-link.active::after {
+
+.detail_tabs .nav-item.active::after,
+.detail_tabs .nav-link.active::after {
     content: "";
     display: block;
     position: absolute;
@@ -145,9 +179,11 @@ stroke-dasharray: "5,5"
     border-radius: 2px 2px 0 0;
     transform: scaleX(1);
     opacity: 1;
-    transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
-.detail_tabs .nav-item:not(.active)::after, .detail_tabs .nav-link:not(.active)::after {
+
+.detail_tabs .nav-item:not(.active)::after,
+.detail_tabs .nav-link:not(.active)::after {
     content: "";
     display: block;
     position: absolute;
@@ -159,12 +195,15 @@ stroke-dasharray: "5,5"
     border-radius: 2px 2px 0 0;
     transform: scaleX(0);
     opacity: 0;
-    transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
-.detail_tabs .nav-item:not(.active):hover, .detail_tabs .nav-link:not(.active):hover {
+
+.detail_tabs .nav-item:not(.active):hover,
+.detail_tabs .nav-link:not(.active):hover {
     background: #eaf2fb;
     color: #007bff;
 }
+
 .detail_tabs .nav-link {
     border: none !important;
     background: none !important;
@@ -176,43 +215,52 @@ stroke-dasharray: "5,5"
     width: 100%;
     height: 100%;
 }
-.detail_tabs > div:not(:last-child), .detail_tabs .nav-item:not(:last-child) {
+
+.detail_tabs>div:not(:last-child),
+.detail_tabs .nav-item:not(:last-child) {
     border-right: 1px solid #e3e8ee;
 }
-.detail_tabs + .tab-content{
+
+.detail_tabs+.tab-content {
     height: 96%;
     /* width: 100%; */
     pointer-events: auto;
 }
-.detail_tabs + .tab-content > div,.detail_tabs + .tab-content > div>div{
+
+.detail_tabs+.tab-content>div,
+.detail_tabs+.tab-content>div>div {
     height: 100%;
     width: 100%;
 }
-#detail_tabs-parent .tab-content{
+
+#detail_tabs-parent .tab-content {
     flex-grow: 1;
 }
-div:has(> .legend_canvas){
+
+div:has(> .legend_canvas) {
     position: relative;
-    pointer-events:none;
+    pointer-events: none;
 }
+
 .legend_canvas {
-    pointer-events:none;
+    pointer-events: none;
 
     position: absolute;
-    top:0;
-    height:100%;
-    width:97%;
+    top: 0;
+    height: 100%;
+    width: 97%;
 }
-.legend_canvas canvas{
-    pointer-events:none;
 
-    height:100%;
-    width:100%;
+.legend_canvas canvas {
+    pointer-events: none;
+
+    height: 100%;
+    width: 100%;
     position: absolute;
     z-index: 0;
 }
 
-#activation_boxplot svg g.layer-above g.shapelayer > g{
+#activation_boxplot svg g.layer-above g.shapelayer>g {
     opacity: 1;
 }
 
@@ -220,33 +268,39 @@ div:has(> .legend_canvas){
     opacity: 1;
 } */
 
-#activation_boxplot svg.main-svg g.cartesianlayer > g.subplot.masked{
-    opacity:0.2;
+#activation_boxplot svg.main-svg g.cartesianlayer>g.subplot.masked {
+    opacity: 0.2;
 }
-div.carousel-caption >h5,div.carousel-caption >p{
+
+div.carousel-caption>h5,
+div.carousel-caption>p {
     color: black;
     background-color: rgba(255, 255, 255, 0.75);
-    
+
 }
-.menu_all_none_btn_group{
-    width:100%;
+
+.menu_all_none_btn_group {
+    width: 100%;
     justify-content: flex-end;
 }
-.menu_all_none_btn_group > div{
+
+.menu_all_none_btn_group>div {
     flex-grow: 1;
 
 }
-.menu_all_none_btn_group >button.btn{
+
+.menu_all_none_btn_group>button.btn {
     flex-grow: 0;
 }
-button.btn-signature{
+
+button.btn-signature {
     --bs-btn-color: #000;
     --bs-btn-bg: #f8f9fa;
     --bs-btn-border-color: #f8f9fa;
     --bs-btn-hover-color: #000;
     --bs-btn-hover-bg: #d3d4d5;
     --bs-btn-hover-border-color: #c6c7c8;
-    --bs-btn-focus-shadow-rgb: 211,212,213;
+    --bs-btn-focus-shadow-rgb: 211, 212, 213;
     --bs-btn-active-color: #fff;
     --bs-btn-active-bg: #0a58ca;
     --bs-btn-active-border-color: #0a53be;
@@ -255,17 +309,21 @@ button.btn-signature{
     --bs-btn-disabled-bg: #f8f9fa;
     --bs-btn-disabled-border-color: #f8f9fa;
 }
-button.btn-signature::before{
+
+button.btn-signature::before {
     content: "\2610"
 }
-button.btn-signature.active::before{
+
+button.btn-signature.active::before {
     content: "\2611";
 
 }
-button.btn-signature:disabled::before{
+
+button.btn-signature:disabled::before {
     content: "\2612";
     color: red;
 }
+
 /* div.signature_accordion div.accordion-item{
     counter-reset: nb_active;
 }
@@ -276,10 +334,11 @@ div.signature_accordion div.accordion-item button.btn-signature.active{
     counter-increment: nb_active;
 } */
 
-div.signature_accordion div.accordion-item h2 button> div {
+div.signature_accordion div.accordion-item h2 button>div {
     display: flex;
 }
-div.signature_accordion div.accordion-item h2 button> div >div:first-child{
+
+div.signature_accordion div.accordion-item h2 button>div>div:first-child {
     color: red;
     font-weight: bold;
     font-size: larger;
@@ -287,7 +346,8 @@ div.signature_accordion div.accordion-item h2 button> div >div:first-child{
     /* background-image: linear-gradient(to top, transparent 39%,red 40%,red); */
 }
 
-html, body {
+html,
+body {
     height: 100vh;
     width: 100vw;
     margin: 0;
@@ -303,13 +363,15 @@ html, body {
     overflow: hidden;
 }
 
-#overview_col, #detail_col {
+#overview_col,
+#detail_col {
     min-height: 200px;
     display: flex;
     flex-direction: column;
 }
 
-.overview, .detail_graph {
+.overview,
+.detail_graph {
     flex: 1;
     min-height: 0;
     width: 100%;
@@ -343,16 +405,21 @@ html, body {
 
 /* Add responsive breakpoints */
 @media (max-height: 768px) {
-    #overview_col, #detail_col {
+
+    #overview_col,
+    #detail_col {
         min-height: 150px;
     }
+
     #second_row {
         min-height: 150px;
     }
 }
 
 @media (max-width: 768px) {
-    #overview_col, #detail_col {
+
+    #overview_col,
+    #detail_col {
         width: 100% !important;
     }
 }
@@ -376,8 +443,10 @@ html, body {
     gap: 10px;
     padding: 10px;
     width: 100%;
-    min-height: 0;  /* Allows container to shrink */
-    flex: 1 1 auto; /* Allows container to grow and shrink */
+    min-height: 0;
+    /* Allows container to shrink */
+    flex: 1 1 auto;
+    /* Allows container to grow and shrink */
 }
 
 /* Close button styles */
@@ -407,9 +476,11 @@ html, body {
     margin: 5px;
     padding: 5px;
     background-color: white;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-    flex: 0 0 auto;  /* Prevents boxplot from shrinking */
-    height: 220px;   /* Fixed height including margins */
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    flex: 0 0 auto;
+    /* Prevents boxplot from shrinking */
+    height: 220px;
+    /* Fixed height including margins */
 }
 
 /* Ensure boxplots maintain their height */
@@ -425,23 +496,26 @@ html, body {
 }
 
 .legend-item {
-  transition: background 0.15s, border 0.15s;
+    transition: background 0.15s, border 0.15s;
 }
+
 .legend-item:hover {
-  background: #f0f0f0 !important;
-  border: 1.5px solid #888 !important;
+    background: #f0f0f0 !important;
+    border: 1.5px solid #888 !important;
 }
+
 .legend-item.active {
-  background: #d1eaff !important;
-  border: 1.5px solid #007bff !important;
+    background: #d1eaff !important;
+    border: 1.5px solid #007bff !important;
 }
 
 .legend-action-item {
-  transition: background 0.15s, border 0.15s;
+    transition: background 0.15s, border 0.15s;
 }
+
 .legend-action-item:hover {
-  background: #f0f0f0 !important;
-  border: 1.5px solid #888 !important;
+    background: #f0f0f0 !important;
+    border: 1.5px solid #888 !important;
 }
 
 .header-delimiter {
@@ -465,7 +539,9 @@ html, body {
     text-decoration: none !important;
     transition: color 0.18s;
 }
-.about-link:hover, .about-link:focus {
+
+.about-link:hover,
+.about-link:focus {
     color: #0d133d !important;
     text-decoration: underline;
     background: none !important;
@@ -489,7 +565,9 @@ html, body {
     font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     white-space: nowrap;
 }
-.main-link:hover, .main-link:focus {
+
+.main-link:hover,
+.main-link:focus {
     color: #0056b3 !important;
     text-decoration: underline;
     background: none;
@@ -507,33 +585,34 @@ html, body {
 
 /* --- Help icon for menu tab tooltips (more discreet) --- */
 .help-tooltip-icon {
-  display: inline-block;
-  color: #6c8ebf;
-  background: none;
-  border-radius: 50%;
-  width: 15px;
-  height: 15px;
-  text-align: center;
-  font-weight: 400;
-  cursor: pointer;
-  border: 1px solid #b3c6e0;
-  font-size: 11px;
-  line-height: 13px;
-  vertical-align: middle;
-  margin-left: 2px;
-  transition: color 0.15s, border 0.15s, text-decoration 0.15s;
+    display: inline-block;
+    color: #6c8ebf;
+    background: none;
+    border-radius: 50%;
+    width: 15px;
+    height: 15px;
+    text-align: center;
+    font-weight: 400;
+    cursor: pointer;
+    border: 1px solid #b3c6e0;
+    font-size: 11px;
+    line-height: 13px;
+    vertical-align: middle;
+    margin-left: 2px;
+    transition: color 0.15s, border 0.15s, text-decoration 0.15s;
 }
+
 .help-tooltip-icon:hover {
-  color: #3a5a8c;
-  border: 1.2px solid #3a5a8c;
-  text-decoration: underline;
-  background: none;
+    color: #3a5a8c;
+    border: 1.2px solid #3a5a8c;
+    text-decoration: underline;
+    background: none;
 }
 
 /* Optional: style the tooltip popup for help */
 .dash-bootstrap .tooltip-inner {
-  font-size: 13px;
-  padding: 6px 12px;
+    font-size: 13px;
+    padding: 6px 12px;
 }
 
 /* --- Logo title left alignment and style --- */
@@ -561,7 +640,8 @@ html, body {
 }
 
 /* Optionally, tweak the nav links for better header alignment */
-.about-link, .main-link {
+.about-link,
+.main-link {
     margin-left: 12px !important;
     margin-right: 0 !important;
     font-size: 1.08rem;
@@ -590,17 +670,21 @@ html, body {
     padding-top: 0 !important;
     padding-bottom: 0 !important;
 }
+
 .toast .toast-header:empty {
     display: none !important;
 }
+
 .toast .toast-body {
     padding-top: 0.5rem !important;
     margin-top: 0 !important;
 }
+
 .toast {
     padding-top: 0 !important;
     position: relative;
 }
+
 /* Move the close (cross) button to the true upper right corner, tighter fit */
 .toast .btn-close {
     position: absolute;
@@ -609,4 +693,15 @@ html, body {
     z-index: 10;
     margin: 0 !important;
     padding: 0.15rem !important;
+}
+
+/* Upload button hover effect */
+.upload-hover:hover {
+    background-color: #e7f3ff !important;
+    border-color: #0056b3 !important;
+    cursor: pointer;
+}
+
+.upload-hover:hover a {
+    color: #0056b3 !important;
 }

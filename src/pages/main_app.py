@@ -140,6 +140,45 @@ def layout():
                                         dcc.Store(id="legend_active_store"),
                                         # Add a store to track pathway visibility
                                         dcc.Store(id="show_pathways_store", data=False),
+                                        html.Div(
+                                            [
+                                                html.Span("●", style={"marginRight": "8px", "fontSize": "0.9rem"}),
+                                                "Rendering..."
+                                            ],
+                                            id="rendering_indicator",
+                                            style={
+                                                "position": "absolute",
+                                                "top": "10px",
+                                                "left": "50%",
+                                                "transform": "translateX(-50%)",
+                                                "zIndex": 1000,
+                                                "backgroundColor": "#fff",
+                                                "color": "#0056b3",
+                                                "padding": "8px 16px",
+                                                "borderRadius": "6px",
+                                                "fontWeight": "500",
+                                                "fontSize": "0.95rem",
+                                                "display": "none",
+                                                "pointerEvents": "none",
+                                                "boxShadow": "0 2px 8px rgba(0,123,255,0.15)",
+                                                "border": "1px solid #e3e8ee"
+                                            }
+                                        ),
+                                        html.Div(
+                                            "Click on a signature in the overview graph for a detailled view",
+                                            id="detail_graph_placeholder",
+                                            style={
+                                                "position": "absolute",
+                                                "top": "50%",
+                                                "left": "50%",
+                                                "transform": "translate(-50%, -50%)",
+                                                "textAlign": "center",
+                                                "color": "#888",
+                                                "fontSize": "1.2rem",
+                                                "pointerEvents": "none",
+                                                "zIndex": 0
+                                            }
+                                        )
                                     ]
                                 )
                             ]),
@@ -157,6 +196,10 @@ def layout():
                              dcc.Store(id="copy_toast_store",data={}),
                              dcc.Store(id="pathway_signature_toast_store",data={}),
                              dcc.Store(id="pending_pathway_store", data=None),
+                             dcc.Store(id="fast_detail_graph_data", data=None),
+                             dcc.Store(id="fast_detail_graph_done", data=None),
+                             dcc.Store(id="fast_mono_graph_data", data=None),
+                             dcc.Store(id="fast_mono_graph_done", data=None),
                              dcc.Store(id="previous_selection_store", data=None),
                              dcc.Store(id="proceed_yes_store", data=None),
                              dbc.Toast(
@@ -200,6 +243,16 @@ def layout():
                                  style={"position": "fixed", "bottom": 20, "right": 20, "zIndex": 9999},
                                  children=""
                              ),
+                             dbc.Toast(
+                                 id="upload_toast",
+                                 header="Signature Upload",
+                                 is_open=False,
+                                 duration=4000,
+                                 icon="success",
+                                 style={"position": "fixed", "bottom": 80, "right": 20, "zIndex": 9999},
+                                 children=""
+                             ),
+                             dcc.Store(id="upload_toast_store", data={}),
                              dbc.Alert(
                                  id="pathway_signature_warning_alert",
                                  is_open=False,
@@ -300,6 +353,19 @@ def update_copy_toast(toast_data, is_open):
     return False, ""
 
 @callback(
+    Output("upload_toast", "is_open"),
+    Output("upload_toast", "children"),
+    Output("upload_toast", "color"),
+    Input("upload_toast_store", "data"),
+    prevent_initial_call=True
+)
+def update_upload_toast(toast_data):
+    if toast_data and toast_data.get("is_open"):
+        color = toast_data.get("color", "success")
+        return True, toast_data.get("message", ""), color
+    return False, "", "success"
+
+@callback(
     Output("pathway_signature_toast", "is_open"),
     Output("pathway_signature_toast", "children"),
     Output("pending_pathway_store", "data", allow_duplicate=True),
@@ -371,12 +437,13 @@ import dash
 
 @callback(
     Output("show_pathways_btn_container", "style"),
-    Input("detail_graph", "elements"),
+    Input("fast_detail_graph_data", "data"),
     State("show_pathways_btn_container", "style"),
     prevent_initial_call=False
 )
-def toggle_show_pathways_btn(elements, style):
+def toggle_show_pathways_btn(data, style):
     # Show the button only if the detailed graph has elements (i.e., is active and showing something)
+    elements = data.get("elements") if data else None
     if elements and len(elements) > 0:
         style = dict(style) if style else {}
         style["display"] = "block"
@@ -402,3 +469,25 @@ def toggle_pathways(n_clicks, current):
         raise dash.exceptions.PreventUpdate
     new_state = not current
     return new_state, ("Hide pathways" if new_state else "Show pathways")
+
+@callback(
+    Output("detail_graph_placeholder", "style"),
+    Input("fast_detail_graph_data", "data"),
+    prevent_initial_call=False
+)
+def toggle_detail_graph_placeholder(data):
+    elements = data.get("elements") if data else None
+    if elements and len(elements) > 0:
+        return {"display": "none"}
+    else:
+        return {
+            "position": "absolute",
+            "top": "50%",
+            "left": "50%",
+            "transform": "translate(-50%, -50%)",
+            "textAlign": "center",
+            "color": "#888",
+            "fontSize": "1.2rem",
+            "pointerEvents": "none",
+            "zIndex": 0
+        }

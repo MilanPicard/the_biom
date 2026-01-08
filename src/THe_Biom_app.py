@@ -4,7 +4,7 @@ import sys
 import dash_bootstrap_components as dbc
 import data_manager
 import logging
-from dash import Output, Input, State
+from dash import Output, Input, State, ALL
 from dash import dcc
 from flask import send_from_directory
 import controller  # Ensure all callbacks are registered
@@ -38,24 +38,41 @@ mouse_move_event = {"event":"mousemove","props":["buttons","offsetX","offsetY","
 # Client-side callback for clipboard functionality
 app.clientside_callback(
     """
-    function(n_clicks, text_to_copy) {
-        console.log('Clientside callback triggered:', {n_clicks: n_clicks, text_to_copy: text_to_copy});
+    function(n_clicks_list, text_to_copy) {
+        // console.log('Clientside callback triggered:', {n_clicks_list: n_clicks_list, text_to_copy: text_to_copy});
         
-        // Only proceed if we have a click and text_to_copy
-        if (!n_clicks || n_clicks === 0) {
-            console.log('No click detected, returning');
+        var triggered = dash_clientside.callback_context.triggered;
+        var should_proceed = false;
+        
+        // Check if triggered by store update
+        triggered.forEach(function(t) {
+            if (t.prop_id === 'clipboard_text_store.data') {
+                should_proceed = true;
+            }
+            // Check if triggered by copy button
+            if (t.prop_id.includes('"action":"copy"')) {
+                should_proceed = true;
+            }
+        });
+        
+        if (!should_proceed) {
+            return window.dash_clientside.no_update;
+        }
+        
+        // Only proceed if we have text_to_copy
+        if (!text_to_copy) {
             return window.dash_clientside.no_update;
         }
         
         // Ensure we have a valid text_to_copy (even if it's just a space)
         var textToCopy = text_to_copy || " ";
-        console.log('Text to copy:', textToCopy, 'Length:', textToCopy.length);
+        // console.log('Text to copy:', textToCopy, 'Length:', textToCopy.length);
         
         // Use the modern Clipboard API
         if (navigator.clipboard && window.isSecureContext) {
-            console.log('Using modern Clipboard API');
+            // console.log('Using modern Clipboard API');
             navigator.clipboard.writeText(textToCopy).then(function() {
-                console.log('Text copied to clipboard successfully:', textToCopy);
+                // console.log('Text copied to clipboard successfully:', textToCopy);
             }).catch(function(err) {
                 console.error('Failed to copy text: ', err);
                 // Fallback to older method
@@ -63,7 +80,7 @@ app.clientside_callback(
             });
         } else {
             // Fallback for older browsers or non-secure contexts
-            console.log('Using fallback clipboard method');
+            // console.log('Using fallback clipboard method');
             fallbackCopyTextToClipboard(textToCopy);
         }
         
@@ -71,7 +88,7 @@ app.clientside_callback(
     }
     
     function fallbackCopyTextToClipboard(text) {
-        console.log('Using fallback copy method for text:', text);
+        // console.log('Using fallback copy method for text:', text);
         var textArea = document.createElement("textarea");
         textArea.value = text;
         textArea.style.top = "0";
@@ -83,7 +100,7 @@ app.clientside_callback(
         try {
             var successful = document.execCommand('copy');
             if (successful) {
-                console.log('Text copied to clipboard using fallback method:', text);
+                // console.log('Text copied to clipboard using fallback method:', text);
             } else {
                 console.error('Fallback copy command failed');
             }
@@ -94,7 +111,7 @@ app.clientside_callback(
     }
     """,
     Output('dummy_div', 'children'),
-    Input({"type": "legend-action", "action": "copy"}, 'n_clicks'),
+    Input({"type": "legend-action", "action": ALL}, 'n_clicks'),
     Input('clipboard_text_store', 'data'),
     prevent_initial_call=True
 )
@@ -102,24 +119,35 @@ app.clientside_callback(
 # Client-side callback for gProfiler functionality
 app.clientside_callback(
     """
-    function(n_clicks, gprofiler_url) {
-        // Store the last processed n_clicks to prevent duplicate calls
-        if (!window.lastGProfilerClicks) {
-            window.lastGProfilerClicks = 0;
-        }
+    function(n_clicks_list, gprofiler_url) {
+        var triggered = dash_clientside.callback_context.triggered;
+        var should_proceed = false;
         
-        if (n_clicks && n_clicks > window.lastGProfilerClicks && gprofiler_url) {
-            window.lastGProfilerClicks = n_clicks;
-            
+        // Check if triggered by store update
+        triggered.forEach(function(t) {
+            if (t.prop_id === 'gprofiler_url_store.data') {
+                should_proceed = true;
+            }
+            // Check if triggered by gprofiler button
+            if (t.prop_id.includes('"action":"gprofiler"')) {
+                should_proceed = true;
+            }
+        });
+        
+        if (!should_proceed) {
+            return window.dash_clientside.no_update;
+        }
+
+        if (gprofiler_url) {
             // Open gProfiler URL in new tab
             window.open(gprofiler_url, '_blank');
-            console.log('Opening gProfiler URL:', gprofiler_url);
+            // console.log('Opening gProfiler URL:', gprofiler_url);
         }
         return window.dash_clientside.no_update;
     }
     """,
     Output('dummy_div', 'children', allow_duplicate=True),
-    Input({"type": "legend-action", "action": "gprofiler"}, 'n_clicks'),
+    Input({"type": "legend-action", "action": ALL}, 'n_clicks'),
     Input('gprofiler_url_store', 'data'),
     prevent_initial_call=True
 )

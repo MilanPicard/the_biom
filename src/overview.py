@@ -98,9 +98,9 @@ def get_elements(dm,**dm_kwargs):
     fake_edges = []
     fake_nodes = []
     for c,l in cancers.items():
-        fake_nodes.append({'data':{"id":str(c),"label":"","fake":True},"group":"nodes","style":{"width":0,"height":0}})
+        fake_nodes.append({'data':{"id":str(c),"label":"","fake":True},"group":"nodes","classes":"fake"})
         for i in range(len(l)):
-            fake_edges.append({"data":{"source":l[i],"target":c,"fake":True,"type":"fake"},"group":"edges","style":{"width":0}})
+            fake_edges.append({"data":{"source":l[i],"target":c,"fake":True,"type":"fake"},"group":"edges","classes":"fake"})
     
     edges = []
     for k, v in intersections.items():
@@ -116,9 +116,10 @@ def get_elements(dm,**dm_kwargs):
             "target": k[1],
             "elems": v,
             "symbols": tooltip_string,
-            "type": "signature"
+            "type": "signature",
+            "width": 5 + len(v)
         }
-        edges.append({"data": edge_data, "group": "edges", "classes": "", "style": {"width": 5 + len(v)}})
+        edges.append({"data": edge_data, "group": "edges", "classes": ""})
 
     # DEBUG: Print the first edge's data to check the tooltip string
     if edges:
@@ -142,6 +143,7 @@ def get_default_stylesheet(dm,color_by_diseases=True):
     
     s= [
         {"selector":"node","style":{"label":"data(label)","text-wrap":"wrap","background-opacity":0.25,"width":50,"height":50,}},
+        {"selector":"node.node-hover","style":{"background-opacity":0.6,"border-width":2,"border-color":"#333","border-opacity":0.8}},
         {"selector":"node.highlight","style":{"background-opacity":1}},
         {"selector":"node:selected","style":{"background-opacity":1,"border-color":"black"}},
         {"selector":"node.half_highlight","style":{"background-opacity":0.5}},
@@ -158,11 +160,25 @@ def get_default_stylesheet(dm,color_by_diseases=True):
             }
     },
     {
-        "selector":"edge.testFlash",
-        "style":{
-            "lineStyle":"dotted",
+            "selector":"edge.testFlash",
+            "style":{
+                "lineStyle":"dotted",
+                }
+        },
+        {
+            "selector":".fake",
+            "style":{
+                "width":0,
+                "height":0,
+                "display":"none"
             }
-    }
+        },
+        {
+            "selector":"edge[width]",
+            "style":{
+                "width":"data(width)"
+            }
+        }
             ]
     for d in cm:
         color_str = f"rgba({','.join([str(i*255) for i in cm[d][:3]])},{cm[d][3]})"

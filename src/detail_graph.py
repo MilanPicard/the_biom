@@ -11,6 +11,7 @@ from dash_svg import Svg, G, Path, Circle,Rect
 import euler_layout
 from urllib.parse import quote
 import urllib.parse
+import copy
 # Module-level variable to store the last green genes
 last_green_genes = []
 
@@ -138,16 +139,17 @@ def add_path_ways(existing_elements,stylesheet_detail,updated_elements,dm,legend
         children = []
         children.append(html.H6(p.PathwayDisplayName))
         children.append(html.A("PathwayReactomeLink",href=p.PathwayReactomeLink,target="_blank"))
-        pathways_nodes[p.Index]={"data":{"id":p.Index,"label":"","weight":len(p.EnsemblID),"tooltip_content":children,"is_pathways":True,"ReactomeLink":p.PathwayReactomeLink,"name":p.PathwayDisplayName},"selectable":True,"classes":"pathway"}
-        pathways_stylesheets[p.Index] = {
-                    "selector":f"node#{p.Index}",
-                    "style":{
-                        "shape":pathway_shape,
-                        "z-index":-0,
-                        "width":size_triangle(len(p.EnsemblID)),
-                        "height":size_triangle(len(p.EnsemblID))
-                        }
-                    }
+        # Optimization: Move size to data
+        pathways_nodes[p.Index]={"data":{"id":p.Index,"label":"","weight":len(p.EnsemblID),"tooltip_content":children,"is_pathways":True,"ReactomeLink":p.PathwayReactomeLink,"name":p.PathwayDisplayName, "width": size_triangle(len(p.EnsemblID)), "height": size_triangle(len(p.EnsemblID))},"selectable":True,"classes":"pathway"}
+        # pathways_stylesheets[p.Index] = {
+        #             "selector":f"node#{p.Index}",
+        #             "style":{
+        #                 "shape":pathway_shape,
+        #                 "z-index":-0,
+        #                 "width":size_triangle(len(p.EnsemblID)),
+        #                 "height":size_triangle(len(p.EnsemblID))
+        #                 }
+        #             }
     for p in pathways.itertuples():
         highlight = np.zeros(len(p.EnsemblID),dtype=bool)
         i=0
@@ -243,6 +245,19 @@ def add_signature_metanodes(gene_hull_points,existing_elements,stylesheet_detail
     
     index = dict([(elem["selector"],i) for i,elem in enumerate(stylesheet_detail)])
 
+    # Pre-calculate signature to gene mapping to avoid O(N*S) loop
+    signature_gene_map = {}
+    if not style_only:
+        for elem in existing_elements:
+            if "source" not in elem["data"] and not elem["data"].get("is_pathways", False):
+                gene_id = elem["data"]["id"]
+                if gene_id.startswith("ENSG"):
+                    signatures = elem["data"].get("Signatures", [])
+                    for sig in signatures:
+                        if sig not in signature_gene_map:
+                            signature_gene_map[sig] = []
+                        signature_gene_map[sig].append(gene_id)
+
     for i in gene_hull_points:
         sign_pos = np.array(gene_hull_points[i])
         # anchor_pos = np.array(genes_anchor_points[i])
@@ -287,14 +302,17 @@ def add_signature_metanodes(gene_hull_points,existing_elements,stylesheet_detail
             # Get genes for this signature from the data
             signature_genes = []
             try:
-                # Extract genes that belong to this signature
-                for elem in existing_elements:
-                    if "source" not in elem["data"] and not elem["data"].get("is_pathways", False):
-                        if i in elem["data"].get("Signatures", []):
-                            gene_id = elem["data"]["id"]
-                            # Use Ensembl ID directly (gProfiler expects Ensembl IDs)
-                            if gene_id.startswith("ENSG"):  # Ensure it's an Ensembl ID
-                                signature_genes.append(gene_id)
+                # Use pre-calculated mapping if available
+                if i in signature_gene_map:
+                    signature_genes = signature_gene_map[i]
+                else:
+                    # Fallback (should not be needed if map is correct)
+                    for elem in existing_elements:
+                        if "source" not in elem["data"] and not elem["data"].get("is_pathways", False):
+                            if i in elem["data"].get("Signatures", []):
+                                gene_id = elem["data"]["id"]
+                                if gene_id.startswith("ENSG"):
+                                    signature_genes.append(gene_id)
                 
                 # Generate dynamic gProfiler URL
                 gprofiler_url = generate_gprofiler_url(i, signature_genes)
@@ -412,7 +430,9 @@ def color_selected_node(stylesheet_detail,selected_genes):
 
 def display_detail_graph(selectedDiseases,selected_signatures,selected_genes,existing_elements,detail_pos_store,AR,selected_filter,comparison_filter,show_pathways=True,highlight_gene_ids=None):
     global last_green_genes
-    updated_elements = Patch()
+    # updated_elements = Patch()
+    # Use a deep copy of existing elements instead of Patch, to return the full list for dcc.Store
+    updated_elements = copy.deepcopy(existing_elements)
     legend_data = {}
     edges = []
     nodes = []
@@ -454,6 +474,9 @@ def display_detail_graph(selectedDiseases,selected_signatures,selected_genes,exi
             "backgroundColor": mono_pathway_color if is_mono_signature_mode else multi_pathway_color,
             "borderColor": mono_pathway_color if is_mono_signature_mode else "black",
             "borderWidth":2,
+            "width": "data(width)",
+            "height": "data(height)",
+            "shape": "triangle"
         }
     },
     {
@@ -471,7 +494,7 @@ def display_detail_graph(selectedDiseases,selected_signatures,selected_genes,exi
     },
     {"selector": ".edge-hover", "style": {"width": 8, "line-color": "black", "transition-property": "width, line-color", "transition-duration": "0.2s"}},
     ]
-    stylesheet_detail = color_selected_node(stylesheet_detail,selected_genes)
+    # stylesheet_detail = color_selected_node(stylesheet_detail,selected_genes)
     color_by_diseases = True # TODO
     cm = DataManager._instance.get_disease_cmap()# if color_by_diseases else DataManager.get_instance().get_stage_cmap()
 
@@ -494,6 +517,12 @@ def display_detail_graph(selectedDiseases,selected_signatures,selected_genes,exi
     updated = set()
     # update_cur_elements(existing_elements,updated,stylesheet_detail,sizes,updated_elements)
     symbols = DataManager._instance.get_symbol([g.gene for g in items.itertuples() if g.gene not in updated])
+    
+    # Pre-calculate color scheme
+    color_scheme = get_color_scheme(selected_genes)
+    multi_sign_gene_color = "limegreen"
+    mono_sign_gene_color = "black"
+    
     all_nodes = []
     for g in items.itertuples():
         node_classes = []
@@ -503,11 +532,29 @@ def display_detail_graph(selectedDiseases,selected_signatures,selected_genes,exi
         # Add highlight class if needed
         if highlight_gene_ids is not None and g.gene in highlight_gene_ids:
             node_classes.append('legend-highlight')
+            
+        # Calculate dimensions and color
+        weight = size(g.size)
+        width = weight
+        height = weight
+        
+        if g.gene in selected_genes:
+             index = selected_genes.index(g.gene)
+             color = color_scheme[index%len(color_scheme)]
+        else:
+            if weight > 20: 
+                 color = multi_sign_gene_color
+            else:
+                 color = mono_sign_gene_color
+                 
         all_nodes.append({
             'data': {
                 'id': g.gene,
                 'label': "",
-                'weight': size(g.size),
+                'weight': weight,
+                'width': width,
+                'height': height,
+                'color': color,
                 'Signatures': g.id,
                 'tooltip_content': [
                     html.H6(symbols[g.gene]),
@@ -587,8 +634,8 @@ def display_detail_graph(selectedDiseases,selected_signatures,selected_genes,exi
             if(n["data"]["id"] in existing_nodes):
                 existing = existing_nodes[n["data"]["id"]]
                 for field in existing:
-                    # updated_elements[i][field]=existing[field]
-                    update_elem(updated_elements[i][field],existing[field])
+                    updated_elements[i][field]=existing[field]
+                    # update_elem(updated_elements[i][field],existing[field])
                 updated_elements[i]["selected"]=False
                 del to_append[n["data"]["id"]]
             else:
@@ -599,32 +646,21 @@ def display_detail_graph(selectedDiseases,selected_signatures,selected_genes,exi
         updated_elements.append(n)
     for n in existing_edges.values():
         updated_elements.append(n)
-    multi_sign_gene_color = "limegreen"
-    mono_sign_gene_color = "black"
-    for n in all_nodes:
-        if "weight" not in n["data"]:
-            continue  # Skip nodes without weight (e.g., if pathways are hidden)
-        if n["data"]["id"] not in selected_genes:
-            stylesheet_detail.append({
-                "selector":"node#"+n["data"]["id"],
-                "style":{
-                    "height":n["data"]["weight"],
-                    "width":n["data"]["weight"],
-                    "background-color":multi_sign_gene_color if n["data"]["weight"]>20 else mono_sign_gene_color,
-                    "border-color":"black",
-                    "border-width":2
-                }
-            })
-        else:
-            stylesheet_detail.append({
-                "selector":"node#"+n["data"]["id"],
-                "style":{
-                    "height":n["data"]["weight"],
-                    "width":n["data"]["weight"],
-                    "border-color":"black",
-                    "border-width":2
-                }
-            })
+    
+    # Optimization: Move style properties to data attributes to avoid massive stylesheet
+    # Logic moved to node creation loop above
+
+    # Add generic style rule for nodes using data mappers
+    stylesheet_detail.append({
+        "selector": "node[weight][!is_pathways]",  # Only apply to gene nodes (which have weight) and exclude pathways
+        "style": {
+            "width": "data(width)",
+            "height": "data(height)",
+            "background-color": "data(color)",
+            "border-color": "black",
+            "border-width": 2
+        }
+    })
     legend_data["genes"] = {"genes": mono_sign_gene_color, "genes in multiple signatures": multi_sign_gene_color}
     if not show_pathways:
         legend_data["genes"]["genes in multiple signatures"]=multi_sign_gene_color
@@ -706,6 +742,11 @@ def generate_gprofiler_url(signature_id, genes):
         return ""
     
     # Use Ensembl IDs directly (space-separated as expected by gProfiler)
+    # Limit to max 300 genes to avoid URL length issues and browser freezing
+    max_genes = 300
+    if len(genes) > max_genes:
+        genes = genes[:max_genes]
+        
     genes_param = " ".join(genes)
     
     # Create gProfiler URL with comprehensive parameters

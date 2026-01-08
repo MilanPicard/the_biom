@@ -71,7 +71,52 @@ def menu(diseases,comparisons,diseases_cmap,comparisons_cmap,genes,filters,pathw
                 dcc.Dropdown(options= [{"label":"Overview","value":"overview"} ,{"label":"mono","value":"mono_graph"} ,{"label":"multi","value":"detail_graph"},{"label":"Boxplot","value":"box"}  ],value="None",id="exportImage",optionHeight=70),
                 html.Button("Export Image",id="export_image_btn"),
                 # html.Button("Export Json",id="export_json_btn")
-            ], title="Exports", item_id="exports_accordion")
+            ], title="Exports", item_id="exports_accordion"),
+            dbc.AccordionItem([
+                tab_title_with_help("Import Signatures", help_text="Upload your own gene signatures (CSV format: Cancer,Comparison,Signature)"),
+                dcc.Upload(
+                    id="upload_signatures",
+                    children=html.A(
+                        "Select CSV File",
+                        style={
+                            "cursor": "pointer",
+                            "color": "#007bff",
+                            "textDecoration": "none",
+                            "fontWeight": "500"
+                        }
+                    ),
+                    style={
+                        "width": "100%",
+                        "height": "50px",
+                        "lineHeight": "50px",
+                        "borderWidth": "2px",
+                        "borderStyle": "solid",
+                        "borderColor": "#007bff",
+                        "borderRadius": "5px",
+                        "textAlign": "center",
+                        "margin": "10px 0",
+                        "backgroundColor": "#f8f9fa",
+                        "transition": "all 0.2s ease"
+                    },
+                    style_active={
+                        "borderColor": "#0056b3",
+                        "backgroundColor": "#e7f3ff"
+                    },
+                    style_reject={
+                        "borderColor": "#dc3545",
+                        "backgroundColor": "#ffe6e6"
+                    },
+                    multiple=False,
+                    className="upload-hover"
+                ),
+                html.Div(id="upload_status", style={"marginTop": "10px", "fontSize": "0.9em"}),
+                html.Button(
+                    "Clear Uploaded Signatures",
+                    id="clear_uploaded_btn",
+                    className="btn btn-warning btn-sm",
+                    style={"marginTop": "10px", "display": "none"}
+                )
+            ], title="Import Signatures", item_id="import_accordion")
         ],
         start_collapsed=False,
         always_open=True,
@@ -81,6 +126,7 @@ def menu(diseases,comparisons,diseases_cmap,comparisons_cmap,genes,filters,pathw
         dcc.Store(id="selected_genes"),
         dcc.Store(id="selected_signatures",data={}),
         dcc.Store(id="pathway_signature_warning_store",data={"show_warning": False}),
+        dcc.Store(id="uploaded_signatures_store", data={"uploaded": False, "count": 0, "filename": ""}),
     ]
 def diseases_buttons(diseases,diseases_cmap):
     colors_str = dict([(d,f"rgba({','.join([str(i*255) for i in diseases_cmap[d][:3]])},{diseases_cmap[d][3]})") for d in diseases])

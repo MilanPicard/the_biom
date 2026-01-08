@@ -46,6 +46,10 @@ class DataManager(object):
             cls._instance.pathway_labels = cls._instance.pathways.filter(["PathwayStId","PathwayDisplayName"]).groupby("PathwayStId").agg(lambda a: a.iloc[0])["PathwayDisplayName"]
             cls._instance.symbols = symbols.set_index("EnsemblID").filter(["GeneSymbolID"])
 
+            # Store original signatures for reset capability
+            cls._instance.original_signatures = cls._instance.signatures.copy()
+            cls._instance.has_uploaded = False
+
             # with open(pathway_file,"rt") as f:               
                 # cls._instance.pathways= json.load(f)
         return cls._instance
@@ -431,5 +435,84 @@ class DataManager(object):
         ]["id"].unique().tolist()
         
         return pathway_signatures
+
+    def add_uploaded_signatures(self, uploaded_df):
+        """
+        Add uploaded signatures to the existing signature data.
+        
+        Args:
+            uploaded_df: DataFrame with columns [Cancer, Comparison, Signature, Filter, gProfiler]
+        """
+        # Store original signatures on first upload
+        if not self.has_uploaded:
+            self.original_signatures = self.signatures.copy()
+        
+        # Process uploaded signatures similar to how original signatures are processed
+        uploaded_df["Signature"] = uploaded_df["Signature"].str.split(";").astype(pd.ArrowDtype(pa.list_(pa.string())))
+        uploaded_df["id"] = uploaded_df["Cancer"] + "_" + uploaded_df["Comparison"] + "_" + uploaded_df["Filter"]
+        
+        # Concatenate with existing signatures
+        self.signatures = pd.concat([self.signatures, uploaded_df], ignore_index=True)
+        
+        # Regenerate exploded DataFrame
+        self.exploded = self.signatures.explode("Signature").rename(columns={"Signature": "EnsemblID"})
+        
+        # Recalculate gene counts and symbols
+        value_counts = pd.DataFrame({"counts": self.exploded["EnsemblID"].value_counts()})
+        symbols = self.pathways[self.pathways["GeneSymbolID"] != ""].filter(["EnsemblID", "GeneSymbolID"]).groupby("EnsemblID").agg(lambda a: a.iloc[0])
+        symbols = value_counts.join(symbols, how="left")
+        symbols.reset_index(inplace=True)
+        symbols["GeneSymbolID"] = symbols["GeneSymbolID"].fillna(symbols["EnsemblID"].transform(lambda a: [a]))
+        self.symbols = symbols.set_index("EnsemblID").filter(["GeneSymbolID"])
+        
+        # Clear cached color maps to force regeneration with new Cancer types
+        # This ensures uploaded signatures get proper colors in both overview and detail graphs
+        if hasattr(self, '_disease_cmap_cache'):
+            delattr(self, '_disease_cmap_cache')
+        if hasattr(self, '_comparison_cmap_cache'):
+            delattr(self, '_comparison_cmap_cache')
+        
+        # Mark that we have uploaded signatures
+        self.has_uploaded = True
+    
+    def clear_uploaded_signatures(self):
+        """
+        Clear all uploaded signatures and restore original state.
+        """
+        if not self.has_uploaded:
+            return
+        
+        # Restore original signatures
+        self.signatures = self.original_signatures.copy()
+        
+        # Regenerate exploded DataFrame
+        self.exploded = self.signatures.explode("Signature").rename(columns={"Signature": "EnsemblID"})
+        
+        # Recalculate gene counts and symbols
+        value_counts = pd.DataFrame({"counts": self.exploded["EnsemblID"].value_counts()})
+        symbols = self.pathways[self.pathways["GeneSymbolID"] != ""].filter(["EnsemblID", "GeneSymbolID"]).groupby("EnsemblID").agg(lambda a: a.iloc[0])
+        symbols = value_counts.join(symbols, how="left")
+        symbols.reset_index(inplace=True)
+        symbols["GeneSymbolID"] = symbols["GeneSymbolID"].fillna(symbols["EnsemblID"].transform(lambda a: [a]))
+        self.symbols = symbols.set_index("EnsemblID").filter(["GeneSymbolID"])
+        
+        # Clear cached color maps to restore original colors
+        if hasattr(self, '_disease_cmap_cache'):
+            delattr(self, '_disease_cmap_cache')
+        if hasattr(self, '_comparison_cmap_cache'):
+            delattr(self, '_comparison_cmap_cache')
+        
+        # Reset upload flag
+        self.has_uploaded = False
+    
+    def has_uploaded_signatures(self):
+        """
+        Check if uploaded signatures exist.
+        
+        Returns:
+            bool: True if uploaded signatures exist, False otherwise
+        """
+        return self.has_uploaded
+
 
 

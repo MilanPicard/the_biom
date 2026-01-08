@@ -356,13 +356,17 @@ class Controller(object):
                 Output('overview_graph','elements'),
                 Output('overview_graph_layout','data'),
                 Input("filters_dropdown","value"),
+                Input("uploaded_signatures_store", "data"),
                 State("overview_graph","elements")
                 )
         def update_overview(
                             selected_filter,
+                            uploaded_store,
                             cur_elems):
             overview_graph_layout = dash.no_update
-            if any(["Filter" in c["data"] and c["data"]["Filter"]!=selected_filter for c in cur_elems]):
+            # Refresh if filter changed or signatures uploaded/cleared
+            if (any(["Filter" in c["data"] and c["data"]["Filter"]!=selected_filter for c in cur_elems]) or
+                ctx.triggered_id == "uploaded_signatures_store"):
                 cur_elems = ov.get_elements(DataManager.get_instance(),selected_filter=selected_filter)
                 overview_graph_layout = {"rerun":True}
             return cur_elems,overview_graph_layout
@@ -376,7 +380,7 @@ class Controller(object):
             return ";".join([i["id"] for i in data])
 
 
-        @callback(Output('detail_graph','elements'),
+        @callback(Output('fast_detail_graph_data','data'),
                 Output('detail_graph','stylesheet'),
                 Output('detail_graph','layout'),
                 Output('detail_graph_pos','data'),
@@ -387,7 +391,7 @@ class Controller(object):
                 Input("fake_graph_size","data"),
                 Input("filters_dropdown","value"),
                 Input("show_pathways_store", "data"),
-                State('detail_graph','elements'),
+                State('fast_detail_graph_data','data'),
                 State("detail_graph_pos","data"),            
                 State('detail_graph','stylesheet'),
                 State('legend_active_store', 'data'),
@@ -400,7 +404,9 @@ class Controller(object):
                 )
         def display_detail_graph(
             overview_nodes,
-            menu_genes,fake_graph_size,selected_filter,show_pathways,existing_elements,detail_pos_store,current_stylesheets,legend_active_data):
+            menu_genes,fake_graph_size,selected_filter,show_pathways,fast_data,detail_pos_store,current_stylesheets,legend_active_data):
+            print(f"DEBUG: display_detail_graph triggered. Overview nodes: {len(overview_nodes) if overview_nodes else 0}")
+            existing_elements = fast_data.get('elements', []) if fast_data else []
             selected = [n["id"] for n in overview_nodes] if overview_nodes is not None else []
             if (ctx.triggered_id == "selected_genes_store"
                 and menu_genes is not None
@@ -416,7 +422,7 @@ class Controller(object):
                     return detail_graph.redraw(existing_elements,detail_pos_store,1 if fake_graph_size is None or "AR" not in fake_graph_size else fake_graph_size["AR"],current_stylesheets)
             if(all([
                   signatures is None or signatures ==""])):
-                return [],[],{"name":"preset"},{},dash.no_update,dash.no_update            
+                return {'elements': [], 'graphId': 'detail_graph'},[],{"name":"preset"},{},{},{}            
             diseases, comparisons, signatures, genes_set = get_detail_subset(None, [], signatures, menu_genes,selected_filter)
             # Determine highlight_gene_ids from legend state
             highlight_gene_ids = []
@@ -428,9 +434,12 @@ class Controller(object):
                         highlight_gene_ids = get_last_green_genes()
             if len(diseases)!=0 or len(signatures)!=0:
                 r = detail_graph.display_detail_graph([],signatures,genes_set,existing_elements,detail_pos_store if detail_pos_store is not None else dict(),1 if fake_graph_size is None or "AR" not in fake_graph_size else fake_graph_size["AR"],selected_filter,comparisons,show_pathways=show_pathways,highlight_gene_ids=highlight_gene_ids)
-                return r
+                # Wrap elements in the fast update structure
+                elements = r[0]
+                rest = r[1:]
+                return ({'elements': elements, 'graphId': 'detail_graph'}, *rest)
             else:
-                return existing_elements,[],{"name":"preset"},{},dash.no_update,dash.no_update
+                return {'elements': existing_elements, 'graphId': 'detail_graph'},[],{"name":"preset"},{},dash.no_update,dash.no_update
 
         def get_detail_subset(diseases, comparisons, signatures, menu_genes,selected_filter):
             if diseases is None:
@@ -459,7 +468,7 @@ class Controller(object):
                 signatures = list(filter(lambda a: len(a) > 0, signatures.split(";")))
             return diseases, comparisons, signatures, genes_set
         @callback(
-                Output('mono_graph','elements'),
+                Output('fast_mono_graph_data','data'),
                 Output('mono_graph','stylesheet'),
                 Output('mono_graph','layout'),
                 Output('mono_graph_pos','data'),
@@ -470,13 +479,14 @@ class Controller(object):
                 Input("fake_graph_size","data"),
                 Input("filters_dropdown","value"),
                 State('selected_genes_store','data'),
-                State('mono_graph','elements'),
+                State('fast_mono_graph_data','data'),
                 State("mono_graph_pos","data"),            
                 State('mono_graph','stylesheet'),
                     prevent_initial_call=True
                 )
         def display_mono_graph(tapNodeData,fake_graph_size,selected_filter,
-                               menu_genes,existing_elements,detail_pos_store,current_stylesheets):
+                               menu_genes,fast_data,detail_pos_store,current_stylesheets):
+            existing_elements = fast_data.get('elements', []) if fast_data else []
             d = None
             c = None
             s = None
@@ -491,7 +501,10 @@ class Controller(object):
                 genes_set.update(p)
             genes_set = menu_genes["selected"] + sorted(list(genes_set.difference(menu_genes["selected"])))
             r = detail_graph.display_detail_graph([d],[s],list(genes_set),existing_elements,detail_pos_store if detail_pos_store is not None else dict(),1 if fake_graph_size is None or "AR" not in fake_graph_size else fake_graph_size["AR"],selected_filter,[c],show_pathways=True)
-            return *r,s
+            # Wrap elements in the fast update structure
+            elements = r[0]
+            rest = r[1:]
+            return ({'elements': elements, 'graphId': 'mono_graph'}, *rest, s)
 
         # @callback(Output("data_gene_detail_selected","value"),
         #           Input("detail_graph","selectedNodeData"))
@@ -510,15 +523,20 @@ class Controller(object):
             Input("filters_dropdown","value"),
             Input({"type": "close_boxplot", "gene": ALL}, "n_clicks"),
             Input("overview_graph", "selectedNodeData"),  # Add this line
+            Input("uploaded_signatures_store", "data"),  # Add this to trigger stylesheet refresh
             State("overview_graph","elements"),
             State("overview_graph","stylesheet"),
             prevent_initial_call=False
         )
         def update_box_plot(
             menu_selected, selected_boxcategories,
-            selected_filter, close_clicks, overview_selected_nodes,
+            selected_filter, close_clicks, overview_selected_nodes, uploaded_store,
             overview_elements, overview_stylesheets):
             ctx = dash.callback_context
+            
+            # Regenerate stylesheet if signatures were uploaded/cleared
+            if ctx.triggered_id == "uploaded_signatures_store":
+                overview_stylesheets = ov.get_default_stylesheet(DataManager.get_instance())
             
             # Extract selected cancer(s) from overview graph selection
             selected_cancers = []
@@ -598,6 +616,39 @@ class Controller(object):
                         selected_cancers if selected_cancers else diseases if len(selected_boxcategories["diseases"])==0 else selected_boxcategories["diseases"],
                         selected_boxcategories["comparisons"]
                     ).sort_values(["box_category"])
+
+                    # Filter based on available/selected signatures
+                    allowed_box_categories = set()
+                    target_signatures = []
+                    
+                    # Check for selected signatures
+                    if overview_selected_nodes:
+                        target_signatures = [n["id"] for n in overview_selected_nodes if "Signature" in n]
+                        
+                    # If no signatures selected, use all available signatures in the graph
+                    if not target_signatures and overview_elements:
+                        for elem in overview_elements:
+                            if "data" in elem and "Signature" in elem["data"]:
+                                target_signatures.append(elem["data"]["id"])
+                                
+                    # Convert signatures to box categories
+                    for sig in target_signatures:
+                        # Signature ID format: Cancer_Comparison_Filter
+                        # Comparison format: Condition_vs_Stage
+                        if "_" in sig:
+                            parts = sig.split("_")
+                            if len(parts) >= 2:
+                                cancer = parts[0]
+                                comparison = parts[1]
+                                if "vs" in comparison:
+                                    try:
+                                        stage = comparison.split("vs")[1]
+                                        allowed_box_categories.add(f"{cancer}_{stage}")
+                                    except IndexError:
+                                        pass
+
+                    if not selected_patient_and_genes.empty and allowed_box_categories:
+                        selected_patient_and_genes = selected_patient_and_genes[selected_patient_and_genes["box_category"].isin(allowed_box_categories)]
                     
                     if selected_patient_and_genes.empty:
                         continue
@@ -660,7 +711,20 @@ class Controller(object):
                 
                 return boxplot_divs, stylesheets, {"categories": box_categories, "genes": items}, {"stats": []}
             
-            return [], stylesheets, {"categories":[],"genes":[]}, {"stats":[]}
+            # Return placeholder when no boxplots
+            placeholder = html.Div(
+                "Click on a gene on the detailed graph to see its expression across tissues",
+                style={
+                    "height": "100%",
+                    "display": "flex",
+                    "alignItems": "center",
+                    "justifyContent": "center",
+                    "color": "#888",
+                    "fontSize": "1.2rem",
+                    "textAlign": "center"
+                }
+            )
+            return placeholder, stylesheets, {"categories":[],"genes":[]}, {"stats":[]}
 
         @callback(
             Output("data_gene_menu_selected","value"),
@@ -1716,83 +1780,110 @@ class Controller(object):
         # Callback to handle copy to clipboard action
         @callback(
             Output('copy_toast_store', 'data'),
-            Input({"type": "legend-action", "action": "copy"}, 'n_clicks'),
-            State('clipboard_text_store', 'data'),
-            prevent_initial_call=True
-        )
-        def handle_copy_to_clipboard(n_clicks, current_clipboard_data):
-            if not n_clicks or n_clicks == 0:
-                return dash.no_update
-            
-            # Count the number of genes in the current clipboard data
-            if current_clipboard_data and isinstance(current_clipboard_data, str):
-                genes = [g for g in current_clipboard_data.split(';') if g.strip()]
-                n = len(genes)
-                if n > 0:
-                    #print(f"Copy button clicked - copying {n} genes to clipboard")
-                    return {"is_open": True, "message": f"Successfully copied {n} gene{'s' if n != 1 else ''}"}
-                else:
-                    #print("Copy button clicked - copying 0 genes to clipboard")
-                    return {"is_open": True, "message": "0 genes copied"}
-            
-            return {"is_open": True, "message": "0 genes copied"}
-
-        # Callback to handle view in gProfiler action
-        @callback(
             Output('gprofiler_url_store', 'data'),
-            Input({"type": "legend-action", "action": "gprofiler"}, 'n_clicks'),
+            Input({"type": "legend-action", "action": ALL}, 'n_clicks'),
+            State('clipboard_text_store', 'data'),
+            State('filters_dropdown', 'value'),
             Input('legend_active_store', 'data'),
             Input('detail_graph', 'elements'),
-            State('filters_dropdown', 'value'),
             prevent_initial_call=True
         )
-        def handle_view_in_gprofiler(n_clicks, active_data, graph_elements, selected_filter):
+        def handle_legend_action(n_clicks_list, current_clipboard_data, selected_filter, active_data, graph_elements):
+            if not ctx.triggered:
+                return dash.no_update, dash.no_update
+            
+            triggered_id = ctx.triggered_id
+            if not triggered_id or "action" not in triggered_id:
+                return dash.no_update, dash.no_update
+            
+            action = triggered_id["action"]
+            
+            # Find the index of the triggered input to check n_clicks
+            # n_clicks_list corresponds to the ALL input, but we need to know which one triggered
+            # However, since we use ctx.triggered_id, we know exactly which one it is.
+            # We just need to make sure it was a click (n_clicks > 0)
+            
+            # Since n_clicks_list is a list of n_clicks for all matching inputs, we can't easily map it 
+            # without knowing the order. But we don't strictly need the exact n_clicks value 
+            # if we trust ctx.triggered.
+            
+            # Let's check if the specific triggered component has n_clicks > 0
+            # We can iterate through ctx.triggered to find the value
+            n_clicks = 0
+            for t in ctx.triggered:
+                if t['prop_id'] == f'{str(triggered_id)}.n_clicks':
+                    n_clicks = t['value']
+                    break
+            
             if not n_clicks or n_clicks == 0:
-                return dash.no_update
-            # Get selected signatures from the current detail graph
-            selected_signatures = []
-            for elem in graph_elements:
-                if "source" not in elem.get("data", {}) and not elem.get("data", {}).get("is_pathways", False):
-                    signatures = elem.get("data", {}).get("Signatures", [])
-                    selected_signatures.extend(signatures)
-            selected_signatures = list(set(selected_signatures))
-            # Get the selected items and extract gene information
-            active_ids = active_data.get('active_ids', []) if active_data else []
-            if not active_ids:
-                return ""
-            # Extract genes from selected legend items
-            all_genes = set()
-            dm = DataManager._instance
-            for active_id in active_ids:
+                return dash.no_update, dash.no_update
+
+            if action == "copy":
+                # Count the number of genes in the current clipboard data
+                if current_clipboard_data and isinstance(current_clipboard_data, str):
+                    genes = [g for g in current_clipboard_data.split(';') if g.strip()]
+                    n = len(genes)
+                    if n > 0:
+                        return {"is_open": True, "message": f"Successfully copied {n} gene{'s' if n != 1 else ''}"}, dash.no_update
+                    else:
+                        return {"is_open": True, "message": "0 genes copied"}, dash.no_update
+                return {"is_open": True, "message": "0 genes copied"}, dash.no_update
+            
+            elif action == "gprofiler":
+                # Get selected signatures from the current detail graph
+                selected_signatures = []
+                if graph_elements:
+                    for elem in graph_elements:
+                        if "source" not in elem.get("data", {}) and not elem.get("data", {}).get("is_pathways", False):
+                            if elem.get("data", {}).get("is_metanode", False):
+                                selected_signatures.append(elem["data"]["id"])
+                
+                # Get all active legend items
+                active_ids = active_data.get('active_ids', []) if active_data else []
+                
+                all_genes = set()
+                
+                # If no legend items are selected, use all genes in the graph
+                if not active_ids:
+                    if graph_elements:
+                        for elem in graph_elements:
+                            if "source" not in elem.get("data", {}) and not elem.get("data", {}).get("is_pathways", False):
+                                if not elem.get("data", {}).get("is_metanode", False):
+                                    if "id" in elem["data"] and elem["data"]["id"].startswith("ENSG"):
+                                        all_genes.add(elem["data"]["id"])
+                else:
+                    # Collect genes for all active legend items
+                    for active_id in active_ids:
+                        try:
+                            import ast
+                            item_dict = ast.literal_eval(active_id)
+                            category = item_dict.get('category')
+                            name = item_dict.get('name')
+                            if category and name:
+                                genes = get_genes_for_legend_item(category, name, graph_elements, selected_filter, selected_signatures=selected_signatures)
+                                if genes:
+                                    all_genes.update(genes)
+                        except Exception as e:
+                            pass
+                
+                ensembl_ids = sorted(list(all_genes))
+                
+                if not ensembl_ids:
+                    return dash.no_update, ""
+                
+                # Generate gProfiler URL
                 try:
-                    import ast
-                    item_dict = ast.literal_eval(active_id)
-                    category = item_dict.get('category')
-                    name = item_dict.get('name')
-                    if category and name:
-                        genes = get_genes_for_legend_item(category, name, graph_elements, selected_filter, selected_signatures=selected_signatures)
-                        if genes:
-                            all_genes.update(genes)
+                    # Create a dummy signature ID for the combined list
+                    signature_id = "Combined_Selection"
+                    # Assuming detail_graph.generate_gprofiler_url is accessible or defined elsewhere
+                    # For this example, I'll use the original gprofiler URL generation logic
+                    genes_param = " ".join(ensembl_ids)
+                    gprofiler_url = f"https://biit.cs.ut.ee/gprofiler/gost?query={genes_param}&organism=hsapiens&sources=GO:BP,GO:MF,GO:CC,KEGG,REAC,WP&user_threshold=0.05&all_results=false&ordered=false&significant=true&no_iea=false&domain_scope=annotated&measure_underrepresentation=false&evcodes=false&as_ranges=false&background=0&domain_size_type=known&term_size_filter_min=3&term_size_filter_max=500&numeric_namespace=ENTREZGENE_ACC&pictograms=false&min_set_size=3&max_set_size=500"
+                    return dash.no_update, gprofiler_url
                 except Exception as e:
-                    #print(f"Error parsing legend item {active_id}: {e}")
-                    pass
-            if not all_genes:
-                return ""
-            # Generate gProfiler URL dynamically
-            try:
-                # Use Ensembl IDs directly (gProfiler expects Ensembl IDs)
-                ensembl_ids = []
-                for gene_id in sorted(all_genes):
-                    if gene_id.startswith("ENSG"):  # Ensure it's an Ensembl ID
-                        ensembl_ids.append(gene_id)
-                # Create gProfiler URL with Ensembl IDs (space-separated)
-                genes_param = " ".join(ensembl_ids)
-                gprofiler_url = f"https://biit.cs.ut.ee/gprofiler/gost?query={genes_param}&organism=hsapiens&sources=GO:BP,GO:MF,GO:CC,KEGG,REAC,WP&user_threshold=0.05&all_results=false&ordered=false&significant=true&no_iea=false&domain_scope=annotated&measure_underrepresentation=false&evcodes=false&as_ranges=false&background=0&domain_size_type=known&term_size_filter_min=3&term_size_filter_max=500&numeric_namespace=ENTREZGENE_ACC&pictograms=false&min_set_size=3&max_set_size=500"
-                #print(f"Generated gProfiler URL for {len(ensembl_ids)} Ensembl IDs")
-                return gprofiler_url
-            except Exception as e:
-                #print(f"Error generating gProfiler URL: {e}")
-                return ""
+                    return dash.no_update, ""
+            
+            return dash.no_update, dash.no_update
 
         # Separate callback for printing genes that triggers when active store changes
         @callback(
@@ -1855,6 +1946,28 @@ class Controller(object):
                 pass
             # Don't modify the active state
             return dash.no_update
+        
+        # Show rendering indicator when signatures are selected
+        clientside_callback(
+            ClientsideFunction(
+                namespace='clientside',
+                function_name='show_rendering_indicator'
+            ),
+            Output('rendering_indicator', 'style'),
+            Input('overview_graph', 'selectedNodeData'),
+            prevent_initial_call=True
+        )
+        
+        # Hide rendering indicator when detail graph rendering completes
+        clientside_callback(
+            ClientsideFunction(
+                namespace='clientside',
+                function_name='hide_rendering_indicator'
+            ),
+            Output('rendering_indicator', 'style', allow_duplicate=True),
+            Input('detail_graph', 'elements'),
+            prevent_initial_call=True
+        )
 
         def get_genes_for_legend_item(category, name, graph_elements, selected_filter, selected_signatures=None):
             """Get gene list for a specific legend item without printing"""
@@ -2194,3 +2307,138 @@ class Controller(object):
         #     ], color="warning", dismissable=True)
             
         #     return alert, True
+
+        # Callbacks for custom signature upload
+        @callback(
+            Output('uploaded_signatures_store', 'data'),
+            Output('upload_toast_store', 'data'),
+            Input('upload_signatures', 'contents'),
+            State('upload_signatures', 'filename'),
+            prevent_initial_call=True
+        )
+        def handle_signature_upload(contents, filename):
+            """Handle uploaded CSV file and add signatures to DataManager"""
+            if contents is None:
+                raise dash.exceptions.PreventUpdate()
+            
+            import custom_signature_handler
+            
+            # Parse the uploaded CSV
+            df, error = custom_signature_handler.parse_uploaded_csv(contents, filename)
+            
+            if error:
+                # Return error toast
+                return (
+                    dash.no_update,
+                    {"is_open": True, "message": f"✗ Invalid CSV: {error}", "color": "danger"}
+                )
+            
+            # Add signatures to DataManager
+            try:
+                DataManager.get_instance().add_uploaded_signatures(df)
+                count = len(df)
+                return (
+                    {"uploaded": True, "count": count, "filename": filename},
+                    {"is_open": True, "message": f"✓ Imported {count} signature(s) from {filename}", "color": "success"}
+                )
+            except Exception as e:
+                return (
+                    dash.no_update,
+                    {"is_open": True, "message": f"✗ Error: {str(e)}", "color": "danger"}
+                )
+        
+        @callback(
+            Output('uploaded_signatures_store', 'data', allow_duplicate=True),
+            Output('upload_toast_store', 'data', allow_duplicate=True),
+            Input('clear_uploaded_btn', 'n_clicks'),
+            prevent_initial_call=True
+        )
+        def handle_clear_uploaded(n_clicks):
+            """Clear uploaded signatures from DataManager"""
+            if n_clicks is None:
+                raise dash.exceptions.PreventUpdate()
+            
+            DataManager.get_instance().clear_uploaded_signatures()
+            
+            return (
+                {"uploaded": False, "count": 0, "filename": ""},
+                {"is_open": True, "message": "Uploaded signatures cleared", "color": "info"}
+            )
+        
+        @callback(
+            Output('upload_status', 'children'),
+            Input('uploaded_signatures_store', 'data')
+        )
+        def update_upload_status(store_data):
+            """Update the upload status display"""
+            if store_data and store_data.get('uploaded'):
+                count = store_data.get('count', 0)
+                filename = store_data.get('filename', '')
+                return html.Div([
+                    html.I(className="bi bi-check-circle-fill", style={"color": "green", "marginRight": "5px"}),
+                    f"Uploaded: {filename} ({count} signature{'s' if count != 1 else ''})"
+                ], style={"color": "green"})
+            return ""
+        
+        @callback(
+            Output('clear_uploaded_btn', 'style'),
+            Input('uploaded_signatures_store', 'data')
+        )
+        def toggle_clear_button(store_data):
+            """Show/hide clear button based on upload state"""
+            if store_data and store_data.get('uploaded'):
+                return {"marginTop": "10px", "display": "block"}
+            return {"marginTop": "10px", "display": "none"}
+
+        # Clientside callback for fast graph updates (bypassing React diff)
+        for store_id, done_id in [('fast_detail_graph_data', 'fast_detail_graph_done'), 
+                                  ('fast_mono_graph_data', 'fast_mono_graph_done')]:
+            clientside_callback(
+                """
+                function(fastData) {
+                    console.log("DEBUG: Clientside callback triggered for " + (fastData ? fastData.graphId : "unknown"), fastData);
+                    // Verification of data
+                    if (!fastData || !fastData.elements || !fastData.graphId) {
+                        console.warn("DEBUG: fastData missing or invalid");
+                        return window.dash_clientside.no_update;
+                    }
+                    
+                    const start = performance.now();
+                    const graphId = fastData.graphId;
+                    const elements = fastData.elements;
+                    
+                    console.log('[PERF] 🚀 FAST UPDATE START ' + graphId, { count: elements.length });
+                    
+                    // Retrieve Cytoscape instance via DOM
+                    const container = document.getElementById(graphId);
+                    if (!container || !container._cyreg || !container._cyreg.cy) {
+                        console.warn('[PERF] Graph not ready: ' + graphId);
+                        return window.dash_clientside.no_update;
+                    }
+                    
+                    const cy = container._cyreg.cy;
+                    const oldCount = cy.elements().length;
+                    
+                    // MAGIC: Batch remove all + add all (bypassing React diff)
+                    cy.batch(() => {
+                        cy.elements().remove();  // Remove all elements
+                        if (elements && elements.length > 0) {
+                            cy.add(elements);    // Add all new elements at once
+                        }
+                    });
+                    
+                    const elapsed = performance.now() - start;
+                    console.log('[PERF] 🚀 FAST UPDATE DONE ' + graphId, { 
+                        elapsed_ms: elapsed.toFixed(2), 
+                        old: oldCount,
+                        new: cy.elements().length 
+                    });
+                    
+                    // Return no_update because we already modified the graph directly
+                    return window.dash_clientside.no_update;
+                }
+                """,
+                Output(done_id, 'data'),
+                Input(store_id, 'data'),
+                prevent_initial_call=False
+            )
