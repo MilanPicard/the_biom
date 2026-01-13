@@ -1,3 +1,54 @@
+// Global mouse tracking for tooltip positioning
+var lastMouseX = 0;
+var lastMouseY = 0;
+document.addEventListener('mousemove', function (e) {
+    lastMouseX = e.clientX;
+    lastMouseY = e.clientY;
+});
+
+// ResizeObserver for robust graph resizing
+const graphObserver = new ResizeObserver(entries => {
+    entries.forEach(entry => {
+        const target = entry.target;
+        // Handle Cytoscape instances
+        if (target.id && document.getElementById(target.id) && document.getElementById(target.id)['_cyreg']) {
+            const cy = document.getElementById(target.id)['_cyreg']["cy"];
+            if (cy) {
+                // Use requestAnimationFrame to avoid "ResizeObserver loop limit exceeded"
+                // Only resize, do NOT fit - fitting resets user's zoom/pan which is disruptive
+                requestAnimationFrame(() => {
+                    cy.resize();
+                });
+            }
+        }
+        // Handle Plotly instances
+        if (target.classList && target.classList.contains('js-plotly-plot')) {
+            requestAnimationFrame(() => {
+                if (window.Plotly) {
+                    Plotly.Plots.resize(target);
+                }
+            });
+        }
+    });
+});
+
+// Observe graph containers when DOM is ready
+document.addEventListener('DOMContentLoaded', function () {
+    setTimeout(() => {
+        // Observe Cytoscape containers
+        ['overview_graph', 'detail_graph', 'mono_graph'].forEach(id => {
+            const elem = document.getElementById(id);
+            if (elem) {
+                graphObserver.observe(elem);
+            }
+        });
+        // Observe Plotly containers
+        document.querySelectorAll('.js-plotly-plot').forEach(elem => {
+            graphObserver.observe(elem);
+        });
+    }, 1000); // Delay to ensure elements are rendered
+});
+
 function draw_bounding_box(title, elems_pos) {
     var l = elems_pos[0]['x']
     var r = elems_pos[0]['x']
@@ -300,9 +351,20 @@ function tooltip(mouseoverNodeData, mouseoverEdgeData, selectedEdgeData, fake_gr
                     y = cy_elem[0].renderedPosition("y")
                     direction = (x / detail_graph.clientWidth > 0.5) ? "left" : "right";
                     if ("weight" in mouseoverNodeData) {
+                        // Gene dots: Use edge-touching positioning
                         width = mouseoverNodeData["weight"];
                         height = mouseoverNodeData["weight"];
+                        var rbb = cy_elem[0].renderedBoundingBox();
+                        if (direction === "right") {
+                            x = rbb.x2 + 2; // Right edge + 2px padding
+                        } else {
+                            x = rbb.x1 - 2; // Left edge - 2px padding
+                        }
+                        y = (rbb.y1 + rbb.y2) / 2; // Vertical center
+                        width = 0;
+                        height = 0;
                     } else {
+                        // Hulls/Metanodes: Use mouse-following positioning
                         var polygon = [];
                         var zeros = [];
                         var y_crosses = [];
@@ -322,8 +384,10 @@ function tooltip(mouseoverNodeData, mouseoverEdgeData, selectedEdgeData, fake_gr
                                 break;
                             }
                         }
-                        x += (polygon[0][0] / 2) * width * wratio;
-                        y += (polygon[0][1] / 2) * height * hratio;
+                        // Use mouse position for hulls with offset
+                        var rect = detail_graph.getBoundingClientRect();
+                        x = (lastMouseX - rect.left + 20);
+                        y = (lastMouseY - rect.top + 20);
                         direction = polygon[0][0] < 0.0 ? "left" : "right";
                         if (Math.abs(polygon[0][1]) * height > Math.abs(polygon[0][0]) * width) {
                             direction = polygon[0][1] < 0.0 ? "top" : "bottom";
@@ -331,12 +395,14 @@ function tooltip(mouseoverNodeData, mouseoverEdgeData, selectedEdgeData, fake_gr
                         width = 0
                         height = 0
                     }
+                    // Determine delay: faster for dots, slower for hulls
+                    var delay = ("weight" in mouseoverNodeData) ? 50 : 400;
                     setTimeout(() => {
                         const tooltipElement = document.getElementById(triggered_id + "_tooltip");
                         if (tooltipElement) {
                             tooltipElement.classList.add("pouet");
                         }
-                    }, 50);
+                    }, delay);
                     return [mouseoverNodeData["tooltip_content"], true, { "x0": x - width * wratio / 2, "y0": y - height * hratio / 2, "x1": x + width * wratio / 2, "y1": y + height * hratio / 2 }, direction, ""];
                 } else {
                     // Skip tooltip for nodes in overview graph

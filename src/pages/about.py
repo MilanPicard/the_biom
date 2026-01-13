@@ -19,6 +19,7 @@ def layout(**kwargs):
                     style={"fontSize": "1.5rem", "marginBottom": "1rem"}),
                 html.P([
                     html.Strong("THe_BIOM"),
+                    html.Span(" v2.0", style={"backgroundColor": "#0d6efd", "color": "white", "padding": "2px 8px", "borderRadius": "4px", "fontSize": "0.85rem", "marginLeft": "8px", "fontWeight": "bold"}),
                     " is an interactive web application designed for the analysis and visualization of cancer biomarkers in transcriptomic data. It provides a comprehensive platform for researchers to explore gene signatures across different cancer types and disease stages. The application features an intuitive interface with multiple visualization tools, including graphs of signature relationships, detailed gene expression, and pathway enrichment visualization. Users can filter and analyze data by specific diseases, cancer stages, genes, and molecular pathways, enabling in-depth investigation of potential biomarkers. The platform also offers statistical analysis capabilities and various export options for data sharing and publication purposes."
                 ], style={"fontSize": "1rem", "marginBottom": "1rem"}),
                 html.Hr(),

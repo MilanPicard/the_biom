@@ -149,11 +149,25 @@ def check_all_buttons(elems,elem_type:str,colors_str=None):
         "Select by Comparisons": "Select stages across all cancers"
     }
     help_text = help_texts.get(title, title)
+    
+    def format_label(d):
+        """Transform 'NormalvsStageI' to 'Stage I', 'NormalvsStageII' to 'Stage II', etc."""
+        if elem_type == "comparison" and "vs" in d:
+            # Extract the part after 'vs'
+            stage_part = d.split("vs")[-1]
+            # Convert StageI -> Stage I, StageII -> Stage II, etc.
+            import re
+            match = re.match(r'Stage([IVX]+)', stage_part)
+            if match:
+                return f"Stage {match.group(1)}"
+            return stage_part
+        return d
+    
     return dbc.AccordionItem([
         tab_title_with_help(title, help_text=help_text),
         *[
             dbc.ButtonGroup([
-                html.Div(d,style=({'color':colors_str[d]} if colors_str is not None else None)),
+                html.Div(format_label(d),style=({'color':colors_str[d]} if colors_str is not None else None)),
                 dbc.Button("All",id={"type":f"check_{elem_type}s",elem_type:d},outline=True,color="primary"),
                 dbc.Button("None",id={"type":f"uncheck_{elem_type}s",elem_type:d},outline=True,color="primary",disabled=True)
             ],size="sm",class_name="menu_all_none_btn_group") for d in elems

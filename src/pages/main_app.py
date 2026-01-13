@@ -129,7 +129,7 @@ def layout():
                                             id="show_pathways_btn_container",
                                             style={
                                                 "position": "absolute",
-                                                "bottom": "-14px",
+                                                "top": "5px",
                                                 "right": "5px",
                                                 "zIndex": 300,
                                                 "pointerEvents": "auto"
@@ -268,7 +268,7 @@ def layout():
                              ],style={"display":"flex","flexDirection":"row","width":"100%","height":"96%"})
                              ],width=6,id="detail_col",style={"borderWidth":"1px","borderStyle":"solid","borderColor":"black","borderRadius":"5px"}),
                 ],
-                events=[click_event,mouse_move_event,mouse_up_event,mouse_down_event],useCapture=True,logging=False,id="move_in_ov",style={"flex": "0.95 1 0","minHeight": "200px","display": "flex","flexDirection": "row"},className="g-0 row"),
+                events=[click_event,mouse_move_event,mouse_up_event,mouse_down_event],useCapture=True,logging=False,id="move_in_ov",style={"flex": "0.95 1 0","minHeight": "200px","display": "flex","flexDirection": "row","overflow": "hidden"},className="g-0 row"),
                 dbc.Row([
                     html.Div(
                         dbp.detail_box_plot(),
@@ -301,7 +301,6 @@ def layout():
                 "display": "flex",
                 "flexDirection": "column",
                 "height": "100%",
-                "maxWidth": 'calc(100vw - 170px)',
                 "overflow": "hidden"
             },
             className="col-10 g-0",
