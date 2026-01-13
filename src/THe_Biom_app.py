@@ -240,6 +240,39 @@ app.clientside_callback(
     prevent_initial_call=True
 )
 
+# Callback to handle conditional underlining of navigation links
+@app.callback(
+    Output("logo_link", "style"),
+    Output("about_link_nav", "style"),
+    Input({'type': 'location', 'index': dash.dash._ID_LOCATION}, 'pathname'),
+    State("logo_link", "style"),
+    State("about_link_nav", "style")
+)
+def update_nav_highlight(pathname, logo_style, about_style):
+    # Initialize styles if None
+    logo_style = logo_style or {}
+    about_style = about_style or {}
+    
+    # Determine which page is active
+    if pathname == "/" or pathname is None:
+        logo_style["textDecoration"] = "underline"
+        # Explicitly remove underline from about if present
+        if "textDecoration" in about_style:
+             about_style["textDecoration"] = "none"
+    elif pathname == "/about":
+        # Remove underline from logo
+        if "textDecoration" in logo_style:
+            logo_style["textDecoration"] = "none"
+        about_style["textDecoration"] = "underline"
+    else:
+        # Default or other pages
+        if "textDecoration" in logo_style:
+            logo_style["textDecoration"] = "none"
+        if "textDecoration" in about_style:
+            about_style["textDecoration"] = "none"
+    
+    return logo_style, about_style
+
 application = app.server
 if __name__ == '__main__':
     import controller

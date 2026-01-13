@@ -6,8 +6,8 @@ import pandas as pd
 def detail_box_plot():
     return [
         html.Div([
-            html.Div(id='remove_all_boxplots_button_container', style={'position': 'absolute', 'top': '10px', 'right': '10px', 'zIndex': 10}),
-            html.Div(id="box_plots_container", style={"height": "100%", "display": "flex", "flexDirection": "column", 'position': 'relative', 'marginTop': '48px'})
+            html.Div(id='remove_all_boxplots_button_container', style={'display': 'flex', 'justifyContent': 'flex-end', 'padding': '5px', 'flexShrink': 0}),
+            html.Div(id="box_plots_container", style={"flex": "1", "display": "flex", "flexDirection": "column", 'position': 'relative', 'overflowY': 'auto', 'minHeight': '0'})
         ], style={"height": "100%", "display": "flex", "flexDirection": "column", 'position': 'relative'}),
         dcc.Store(data={'wider_boxplot_border':[]}, id="box_plots_to_style"),
         dcc.Store(data={'stats':[]}, id="box_plots_stats"),
